@@ -1,0 +1,33 @@
+#!/bin/bash
+
+#PBS -q studenti
+#PBS -l nodes=8
+#PBS -N main
+#PBS -o main.out
+#PBS -e main.err
+
+echo --- 
+echo 'Job allocato su '${NCPU}' cpu'
+echo 'Job eseguito sul nodo:'
+cat $PBS_NODEFILE
+
+PBS_NODENUMBER = 8
+PBS_O_WORKDIR=$PBS_O_HOME/job-script
+echo ---
+echo PBS: qsub in esecuzione su $PBS_O_HOST
+echo PBS: la coda di origine e' $PBS_O_QUEUE
+echo PBS: la coda di esecuzione e' $PBS_QUEUE
+echo PBS: la directory di lavoro e' $PBS_O_WORKDIR
+echo PBS: la modalità di esecuzione e' $PBS_ENVIRONMENT
+echo PBS: l'ID del job e' $PBS_JOBID
+echo PBS: il nome del job e' $PBS_JOBNAME
+echo PBS: il nodefile e' $PBS_NODEFILE
+echo PBS: la home directory e' $PBS_O_HOME
+echo PBS: il path e' $PBS_O_PATH
+echo ---
+echo Compilazione in esecuzione
+
+/usr/lib64/openmpi/1.4-gcc/bin/mpicc -o $PBS_O_WORKDIR/main $PBS_O_WORKDIR/main.c
+
+echo Job in esecuzione
+/usr/lib64/openmpi/1.4-gcc/bin/mpiexec -machinefile $PBS_NODEFILE -n $PBS_NODENUMBER $PBS_O_WORKDIR/main
