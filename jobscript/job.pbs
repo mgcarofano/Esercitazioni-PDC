@@ -8,8 +8,8 @@
 
 echo --- 
 echo 'Job allocato su '${NCPU}' cpu'
-echo 'Job eseguito sul nodo:'
-cat $PBS_NODEFILE
+# echo 'Job eseguito sul nodo:'
+# cat $PBS_NODEFILE
 
 PBS_NODENUMBER = 8
 PBS_O_WORKDIR=$PBS_O_HOME/job-script

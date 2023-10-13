@@ -10,9 +10,7 @@
 // DEFINIZIONE DI FUNZIONI E TIPI ACCESSORI
 
 int scegliOperazione(int lim_sup) {
-	int
-		scelta_intero = 0,
-		lim_inf = 1;
+	int scelta_intero = 0, lim_inf = 1;
 	
 	char *buffer = NULL;
 	size_t bufsize = 0;
@@ -25,27 +23,26 @@ int scegliOperazione(int lim_sup) {
 	// }
 
 	chars_read = getline(&buffer, &bufsize, stdin); // inizializzazione del buffer con caratteri estratti dallo stream di input
+	
 	if (chars_read < 0) {
 		printf("Errore nella lettura dell'input!");
 		free(buffer);
 		exit(1);
 	} else {
-		if (chars_read >= 1 && chars_read <= 2) {
-			int digit_val = 0;
-			for (int i = 0; i < chars_read; i++) {
-				if (isdigit(buffer[i])) {
-					digit_val = 10 * digit_val + (buffer[i] - '0'); // per ottenere il valore intero del carattere ASCII
-					scelta_intero = scelta_intero + digit_val;
-				}
+		int digit_val = 0;
+		for (int i = 0; i < chars_read; i++) {
+			if (isdigit(buffer[i])) {
+				digit_val = 10 * digit_val + (buffer[i] - '0'); // per ottenere il valore intero del carattere ASCII
+				scelta_intero = scelta_intero + digit_val;
+			} else {
+				scelta_intero = 0;
+				break;
 			}
-		} else {
-			printf("Puoi inserire solo un valore numerico intero compreso tra %d e %d!\n", lim_inf, lim_sup);
-			printf("Applicazione terminata.\n");
-			free(buffer);
-			exit(1);
 		}
 	}
 
+	printf("scelta_intero: %d\n", scelta_intero);
+	// se scelta_intero == 0, allora il suo valore non è stato calcolato dal controllo di isdigit(buffer[i])
 	if(!(scelta_intero >= lim_inf && scelta_intero <= lim_sup)) {
 		printf("Puoi inserire solo un valore numerico intero compreso tra %d e %d!\n", lim_inf, lim_sup);
 		printf("Applicazione terminata.\n");
@@ -65,9 +62,7 @@ int main(int argc, char const *argv[]) {
 	/* ************************************************************************ */
 	// DEFINIZIONE DELLE VARIABILI
 
-	int
-		scelta = 0,
-		cont = 0;
+	int scelta = 0, cont = 0;
 
 	/* ************************************************************************ */
 
@@ -80,10 +75,10 @@ int main(int argc, char const *argv[]) {
 	/* ************************************************************************ */
 
 	printf("Scegli un'operazione da effettuare: \n");
-	printf("%d. \t Operazione1.\n", ++cont);
-	printf("%d. \t Operazione2.\n", ++cont);
-	// ...
-	printf("%d. \t OperazioneN.\n", ++cont);
+	printf("%d. \t Applicazione della strategia 1.\n", ++cont);
+	printf("%d. \t Applicazione della strategia 2.\n", ++cont);
+	printf("%d. \t Applicazione della strategia 3.\n", ++cont);
+	printf("%d. \t Esecuzione dell'esempio d'uso (somma di 1).\n", ++cont);
 	printf("%d. \t Chiudere l'applicazione.\n", ++cont);
 
   	scelta = scegliOperazione(cont);
@@ -91,26 +86,33 @@ int main(int argc, char const *argv[]) {
 	/* ************************************************************************ */
 
   	switch (scelta) {
-		case 1: // descrizione ...
+		case 1: // Applicazione della strategia 1.
 		{
 			// ...
-			printf("Caso 1\n");
 			break;
 		}
-		case 2: // descrizione ...
+		case 2: // Applicazione della strategia 2.
 		{
 			// ...
-			printf("Caso 2\n");
 			break;
 		}
-		case 3: // descrizione ...
+		case 3: // Applicazione della strategia 3.
 		{
 			// ...
-			printf("Caso 3\n");
 			break;
 		}
-		case 4: // Chiudere l'applicazione
+		case 4: // Esecuzione dell'esempio d'uso (somma di 1).
 		{
+			// ...
+			break;
+		}
+		case 5: // Chiudere l'applicazione
+		{
+			break;
+		}
+		default:
+		{
+			printf("Comando non riconosciuto!");
 			break;
 		}
 	}
