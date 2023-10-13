@@ -11,8 +11,8 @@ echo 'Job allocato su '${NCPU}' cpu'
 # echo 'Job eseguito sul nodo:'
 # cat $PBS_NODEFILE
 
-PBS_NODENUMBER = 8
-PBS_O_WORKDIR=$PBS_O_HOME/job-script
+PBS_NODENUMBER=8
+PBS_O_WORKDIR=$PBS_O_HOME/jobscript/codice
 echo ---
 echo PBS: qsub in esecuzione su $PBS_O_HOST
 echo PBS: la coda di origine e' $PBS_O_QUEUE
@@ -31,3 +31,4 @@ echo Compilazione in esecuzione
 
 echo Job in esecuzione
 /usr/lib64/openmpi/1.4-gcc/bin/mpiexec -machinefile $PBS_NODEFILE -n $PBS_NODENUMBER $PBS_O_WORKDIR/main
+
