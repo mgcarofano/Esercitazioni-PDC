@@ -22,8 +22,8 @@ echo ---
 
 echo --- 
 NCPU=$(wc -l < $PBS_NODEFILE)
-echo 'Job eseguito sul nodo:'
 echo 'Job allocato su '${NCPU}' cpu'
+echo 'Job eseguito sul nodo:'
 cat $PBS_NODEFILE
 echo ---
 
