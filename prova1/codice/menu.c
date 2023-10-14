@@ -19,6 +19,20 @@
 /* ************************************************************************** */
 // DEFINIZIONE DI FUNZIONI E TIPI ACCESSORI
 
+void printTitle() {
+	printf("################################################################\n");
+	printf("#      ________      __                     __           ____  #\n");
+	printf("#     / ____/ /___ _/ /_  ____  _________ _/ /_____     /  _/  #\n");
+	printf("#    / __/ / / __ `/ __ \\/ __ \\/ ___/ __ `/ __/ __ \\    / /    #\n");
+	printf("#   / /___/ / /_/ / /_/ / /_/ / /  / /_/ / /_/ /_/ /  _/ /     #\n");
+	printf("#  /_____/_/\\__,_/_.___/\\____/_/   \\__,_/\\__/\\____/  /___/     #\n");
+	printf("#                                                              #\n");
+	printf("# ---------- Calcolo della somma di N numeri reali ----------- #\n");
+	printf("#                                                              #\n");
+	printf("################################################################\n");
+	printf("\n");
+}
+
 int getIntegerFromInput() {
 	int scelta_intero = 0, lim_inf = 1;
 	
@@ -90,6 +104,7 @@ void printFile(FILE *f) {
 	} while (char_to_read != EOF);
 }
 
+
 /* ************************************************************************** */
 
 int main(int argc, char const *argv[]) {
@@ -99,16 +114,16 @@ int main(int argc, char const *argv[]) {
 
 	int scelta = 0, count = 0, q_num = 0;
 	FILE *pbs_file, *qsub_out, *out_file, *err_file;
-	char char_to_read;
-	long int err_size;
-	char wait_in[2];
+	char char_to_read, *wait_input = NULL;
+	size_t err_size = 0, buf_size = 0;
 
 	/* ************************************************************************ */
 	// INTRODUZIONE
 
 	printf("\n");
-	printf("Buongiorno! Benvenuto nell'applicazione di testing per le\n");
-	printf("esercitazioni di Parallel and Distributed Computing 2023-2024\n\n");
+	printf("Benvenuto nell'applicazione di testing per le esercitazioni di\n");
+	printf("Parallel and Distributed Computing A.A. 2023-2024\n\n");
+	printTitle();
 
 	/* ************************************************************************ */
 
@@ -117,7 +132,8 @@ int main(int argc, char const *argv[]) {
 	printf("%d. \t Applicazione della strategia 2.\n", ++count);
 	printf("%d. \t Applicazione della strategia 3.\n", ++count);
 	printf("%d. \t Esecuzione dell'esempio d'uso (somma di 1).\n", ++count);
-	printf("%d. \t Chiudere l'applicazione.\n", ++count);
+	printf("%d. \t Calcolo dei tempi di esecuzione.\n", ++count);
+	printf("%d. \t Chiudere l'applicazione.\n\n", ++count);
   	scelta = getIntegerFromInput();
 	checkScelta(scelta, 1, count);
 
@@ -125,7 +141,7 @@ int main(int argc, char const *argv[]) {
 
 	/* ************************************************************************ */
 
-	if (scelta != 5) {
+	if (scelta != 6) {
 
 		printf("Inserisci la quantita' di numeri da sommare: \n");
 		q_num = getIntegerFromInput();
@@ -179,6 +195,9 @@ int main(int argc, char const *argv[]) {
 					"echo --- \n",
 		scelta, q_num);
 
+		// TODO: aggiungere controllo scelta == 5 (per calcolare i tempi serve un .pbs diverso)
+		// TODO: aggiungere controllo q_num <=20 con input da tastiera
+
 		fclose(pbs_file);
 		printf("\n");
 
@@ -190,8 +209,8 @@ int main(int argc, char const *argv[]) {
 		system(MKDIR_PATH" -p ../output");
 		system(QSUB_PATH" "NOME_PROVA".pbs > /dev/null 2>&1");
 
-		printf("Premi un qualsiasi tasto per continuare.\n");
-		fgets(wait_in, sizeof wait_in, stdin);
+		printf("Premi il tasto invio per continuare.\n");
+		getline(&wait_input, &buf_size, stdin);
 
 		printf("\n");
 
@@ -201,13 +220,13 @@ int main(int argc, char const *argv[]) {
 		printf("Stampa dell'output in corso...\n");
 
 		if ((err_file = fopen("../output/"NOME_PROVA".err", "r")) == NULL) {
-			printf("Errore nella lettura dell'output!\n");
+			printf("Errore nella lettura dell'output!\n\n");
 			printf("Applicazione terminata.\n");
 			exit(1);
 		}
 
 		if ((out_file = fopen("../output/"NOME_PROVA".out", "r")) == NULL) {
-			printf("Errore nella lettura dell'output!\n");
+			printf("Errore nella lettura dell'output!\n\n");
 			printf("Applicazione terminata.\n");
 			exit(1);
 		}
@@ -220,18 +239,19 @@ int main(int argc, char const *argv[]) {
 
 			printf("\n\n--- ERROR ---\n\n");
 			printFile(err_file);
-			printf("\n\n-----\n\n");
+			printf("\n\n-----\n");
 
 		} else {
 
 			printf("\n\n--- OUTPUT ---\n\n");
 			printFile(out_file);
-			printf("\n\n-----\n\n");
+			printf("\n\n-----\n");
 
 		}
 
 		fclose(out_file);
 		fclose(err_file);
+		printf("\n");
 
 	}
 
@@ -245,6 +265,8 @@ int main(int argc, char const *argv[]) {
 /* ************************************************************************** */
 
 /* RIFERIMENTI
+
+https://patorjk.com/software/taag/#p=display&f=Slant&t=Elaborato%20I
 
 https://stackoverflow.com/questions/35890237/how-to-create-a-type-definition-for-a-string-in-c
 https://stackoverflow.com/questions/5029840/convert-char-to-int-in-c-and-c
