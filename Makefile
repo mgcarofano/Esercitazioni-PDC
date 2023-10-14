@@ -7,7 +7,7 @@ scope:
 	ssh $(login)@ui-studenti.scope.unina.it
 
 upload:
-	ssh $(login)@ui-studenti.scope.unina.it "rm -r /homes/DMA/PDC/2024/$(login)/$(folder)/codice; mkdir -p /homes/DMA/PDC/2024/$(login)/$(folder)/codice mkdir -p /homes/DMA/PDC/2024/$(login)/$(folder)/output"
+	ssh $(login)@ui-studenti.scope.unina.it "rm -r /homes/DMA/PDC/2024/$(login)/$(folder)/codice; mkdir -p /homes/DMA/PDC/2024/$(login)/$(folder)/codice"
 	scp -r -O $(folder)/codice $(login)@ui-studenti.scope.unina.it:/homes/DMA/PDC/2024/$(login)/$(folder)
 
 download:

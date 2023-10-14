@@ -6,12 +6,15 @@
 #include <ctype.h>
 #include <math.h>
 #include <fcntl.h>
+#include <errno.h>
 
 /* ************************************************************************** */
 // ENUMERAZIONI E COSTANTI
 
 #define NOME_PROVA "prova1"
 #define NODE_NUMBER "8"
+#define QSUB_PATH "/usr/bin/qsub"
+#define MKDIR_PATH "/bin/mkdir"
 
 /* ************************************************************************** */
 // DEFINIZIONE DI FUNZIONI E TIPI ACCESSORI
@@ -95,9 +98,10 @@ int main(int argc, char const *argv[]) {
 	// DEFINIZIONE DELLE VARIABILI
 
 	int scelta = 0, count = 0, q_num = 0;
-	FILE *pbs_file, *out_file, *err_file;
+	FILE *pbs_file, *qsub_out, *out_file, *err_file;
 	char char_to_read;
 	long int err_size;
+	char wait_in[2];
 
 	/* ************************************************************************ */
 	// INTRODUZIONE
@@ -152,23 +156,25 @@ int main(int argc, char const *argv[]) {
 					"\n"
 					"#PBS -q studenti\n"
 					"#PBS -l nodes=" NODE_NUMBER "\n"
-					"#PBS -N output/" NOME_PROVA "\n"
-					"#PBS -o output/" NOME_PROVA ".out\n"
-					"#PBS -e output/" NOME_PROVA ".err\n"
+					"#PBS -N " NOME_PROVA "\n"
+					"#PBS -o ../output/" NOME_PROVA ".out\n"
+					"#PBS -e ../output/" NOME_PROVA ".err\n"
 					"\n"
 					"echo --- \n"
-					"NCPU=$(wc -l $PBS_NODEFILE)\n"
+					"NCPU=$(wc -l < $PBS_NODEFILE)\n"
 					"PBS_O_WORKDIR=$PBS_O_HOME/" NOME_PROVA "/codice\n"
 					"\n"
 					"echo PBS: la directory di lavoro e\\' $PBS_O_WORKDIR\n"
 					"echo PBS: Compilazione in esecuzione...\n"
-					"/usr/lib64/openmpi/1.4-gcc/bin/mpicc"
-					"-o $PBS_O_WORKDIR/output/" NOME_PROVA " $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
+					"/usr/lib64/openmpi/1.4-gcc/bin/mpicc "
+					"-o $PBS_O_WORKDIR/" NOME_PROVA " $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
 					"echo PBS: Compilazione completata.\n"
 					"\n"
 					"echo 'PBS: Job in esecuzione su '${NCPU}' cpu...'\n"
-					"/usr/lib64/openmpi/1.4-gcc/bin/mpiexec"
-					"-machinefile $PBS_NODEFILE -n ${NCPU} $PBS_O_WORKDIR/output/" NOME_PROVA " %d %d\n"
+					"echo ---\n"
+					"/usr/lib64/openmpi/1.4-gcc/bin/mpiexec "
+					"-machinefile $PBS_NODEFILE -n ${NCPU} $PBS_O_WORKDIR/" NOME_PROVA " %d %d\n"
+					"echo ---\n"
 					"echo PBS: Job completato.\n"
 					"echo --- \n",
 		scelta, q_num);
@@ -181,7 +187,11 @@ int main(int argc, char const *argv[]) {
 
 		printf("Esecuzione in corso...\n");
 
-		// ...
+		system(MKDIR_PATH" -p ../output");
+		system(QSUB_PATH" "NOME_PROVA".pbs > /dev/null 2>&1");
+
+		printf("Premi un qualsiasi tasto per continuare.\n");
+		fgets(wait_in, sizeof wait_in, stdin);
 
 		printf("\n");
 
@@ -190,13 +200,13 @@ int main(int argc, char const *argv[]) {
 
 		printf("Stampa dell'output in corso...\n");
 
-		if ((err_file = fopen("output/"NOME_PROVA".err", "r")) == NULL) {
+		if ((err_file = fopen("../output/"NOME_PROVA".err", "r")) == NULL) {
 			printf("Errore nella lettura dell'output!\n");
 			printf("Applicazione terminata.\n");
 			exit(1);
 		}
 
-		if ((out_file = fopen("output/"NOME_PROVA".out", "r")) == NULL) {
+		if ((out_file = fopen("../output/"NOME_PROVA".out", "r")) == NULL) {
 			printf("Errore nella lettura dell'output!\n");
 			printf("Applicazione terminata.\n");
 			exit(1);
@@ -239,10 +249,16 @@ int main(int argc, char const *argv[]) {
 https://stackoverflow.com/questions/35890237/how-to-create-a-type-definition-for-a-string-in-c
 https://stackoverflow.com/questions/5029840/convert-char-to-int-in-c-and-c
 https://opensource.com/article/22/5/safely-read-user-input-getline
+
 https://stackoverflow.com/questions/19209141/how-do-i-execute-a-shell-built-in-command-with-a-c-function
+https://kb.iu.edu/d/acec
 https://linuxhint.com/exec_linux_system_call_c/
+https://www.cs.uleth.ca/~holzmann/C/system/shell_commands.html
+
 https://www.w3schools.com/c/c_files_write.php
 https://stackoverflow.com/questions/5256313/c-c-macro-string-concatenation
 https://www.geeksforgeeks.org/c-program-print-contents-file/
+
+https://stackoverflow.com/questions/8671366/undefined-reference-to-pow-and-floor
 
 */
