@@ -1,4 +1,4 @@
-/* ************************************************************************** */
+/* **************************************************************************** */
 // LIBRERIE
 
 #include <stdio.h>
@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-/* ************************************************************************** */
+/* **************************************************************************** */
 // ENUMERAZIONI E COSTANTI
 
 #define NOME_PROVA "prova1"
@@ -16,7 +16,7 @@
 #define QSUB_PATH "/usr/bin/qsub"
 #define MKDIR_PATH "/bin/mkdir"
 
-/* ************************************************************************** */
+/* **************************************************************************** */
 // DEFINIZIONE DI FUNZIONI E TIPI ACCESSORI
 
 void printTitle() {
@@ -169,7 +169,7 @@ void printFile(FILE *f) {
 }
 
 
-/* ************************************************************************** */
+/* **************************************************************************** */
 
 int main(int argc, char const *argv[]) {
 
@@ -284,11 +284,11 @@ int main(int argc, char const *argv[]) {
 			fprintf(pbs_file, "-machinefile $PBS_NODEFILE -n ${NCPU} ");
 		}
 
-		fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA " %d %d", scelta, q_num);
+		fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA " %d %d %d", scelta, q_num, time_calc);
 
 		if (scelta != 4 && q_num <= 20) {
 			int i = 1;
-			for (i = 1; i <= q_num; i++) {
+			for (i=1; i <= q_num; i++) {
 				printf("Inserisci il %do operando da sommare: \n", i);
 				op = getNumberFromInput();
 				fprintf(pbs_file, " %f", op);
@@ -364,7 +364,7 @@ int main(int argc, char const *argv[]) {
 	return 0;
 }
 
-/* ************************************************************************** */
+/* **************************************************************************** */
 
 /* RIFERIMENTI
 
