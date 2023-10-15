@@ -33,15 +33,15 @@ void printTitle() {
 	printf("\n");
 }
 
-int getIntegerFromInput() {
-	int scelta_intero = 0, lim_inf = 1;
-	
+double getNumberFromInput() {
+	double out = 0;
 	char *buffer = NULL;
 	size_t bufsize = 0;
 	ssize_t chars_read;
 
 	chars_read = getline(&buffer, &bufsize, stdin); // inizializzazione del buffer con caratteri estratti dallo stream di input
-	
+	printf("\n");
+
 	if (chars_read < 0) {
 
 		printf("Errore nella lettura dell'input!");
@@ -51,38 +51,102 @@ int getIntegerFromInput() {
 
 	} else {
 
-		int digit_val = 0;
+		double digit_val = 0.0;
 		int i = 0;
-		int exp = 0;
+		int exp_whole = 0;
+		int exp_fract = 0;
+		int pos_point = -1;
 
-		// printf("--- chars_read: %zd ---\n\n", chars_read);
+		// si inizia da chars_read-2 perché:
+		// -	la numerazione del buffer è da 0 a N-1
+		// -	l'ultimo carattere è \0
 
 		for (i = chars_read-2; i >= 0; i--) {
-			// printf("--- buffer[i]: %c ---\n", buffer[i]);
-			// printf("--- exp: %d ---\n", exp);
-			// printf("--- pow(10, exp): %f ---\n", pow(10, exp));
-
-			if (isdigit(buffer[i])) {
-				// printf("--- digit_val: %d ---\n", digit_val);
-				digit_val = pow(10, exp) * (digit_val + (buffer[i] - '0')); // per ottenere il valore intero del carattere ASCII
-				scelta_intero = scelta_intero + digit_val;
-				// printf("--- scelta_intero: %d ---\n", digit_val);
-				// printf("--- digit_val: %d ---\n\n", digit_val);
+			if (buffer[i] != '.' && buffer[i] != ',') {
+				exp_fract--;
 			} else {
-				scelta_intero = 0;
-				printf("Puoi inserire solo valori numerici!\n");
-				printf("Applicazione terminata.\n");
-				free(buffer);
-				exit(1);
+				pos_point = chars_read - (exp_fract * (-1)) -2;
+				break;
+			}
+		}
+
+		// printf("--- chars_read: %zd ---\n", chars_read);
+		// printf("--- pos_point: %d ---\n\n", pos_point);
+
+		i = chars_read-2;
+		while(i >= 0) {
+			// printf("--- i: %d ---\n", i);
+			// printf("--- buffer[i]: %c ---\n", buffer[i]);
+			// printf("--- exp_whole: %d ---\n", exp_whole);
+			// printf("--- exp_fract: %d ---\n", exp_fract);
+
+			if (i > pos_point && pos_point != -1) {
+
+				if (isdigit(buffer[i])) {
+					// printf("--- pow(10, exp_fract): %f ---\n", pow(10, exp_fract));
+					// printf("--- digit_val: %f ---\n\n", digit_val);
+					digit_val = pow(10, exp_fract) * (digit_val + (buffer[i] - '0')); // per ottenere il valore intero del carattere ASCII
+					out = out + digit_val;
+					// printf("--- out: %f ---\n", out);
+					// printf("--- digit_val: %f ---\n\n", digit_val);
+				} else {
+					out = 0.0;
+					printf("Puoi inserire solo valori numerici reali!\n");
+					printf("Applicazione terminata.\n");
+					free(buffer);
+					exit(1);
+				}
+
+				exp_fract++;
+
+			} else if (i < pos_point || pos_point == -1) {
+
+				if (isdigit(buffer[i])) {
+					// printf("--- pow(10, exp_fract): %f ---\n", pow(10, exp_fract));
+					// printf("--- digit_val: %f ---\n\n", digit_val);
+					digit_val = pow(10, exp_whole) * (digit_val + (buffer[i] - '0'));
+					out = out + digit_val;
+					// printf("--- out: %f ---\n", out);
+					// printf("--- digit_val: %f ---\n\n", digit_val);
+				} else {
+					if (i == 0 && buffer[0] == '-') {
+						out = out * (-1);
+					} else {
+						out = 0.0;
+						printf("Puoi inserire solo valori numerici reali!\n");
+						printf("Applicazione terminata.\n");
+						free(buffer);
+						exit(1);
+					}
+				}
+
+				exp_whole++;
 			}
 
-			digit_val = 0;
-			exp++;
+			digit_val = 0.0;
+			i--;
 		}
 	}
 
 	free(buffer);
-	return scelta_intero;
+	return out;
+}
+
+int getIntegerFromInput() {
+
+	double out_double = 0.0;
+	int out_integer = 0;
+	
+	out_double = getNumberFromInput();
+	out_integer = (int)out_double;
+
+	if (out_integer < 0) {
+		printf("Puoi inserire solo valori numerici naturali!\n");
+		printf("Applicazione terminata.\n");
+		exit(1);
+	}
+
+	return out_integer;
 }
 
 void checkScelta(int scelta, int lim_inf, int lim_sup) {
@@ -112,7 +176,8 @@ int main(int argc, char const *argv[]) {
 	/* ************************************************************************ */
 	// DEFINIZIONE DELLE VARIABILI
 
-	int scelta = 0, count = 0, q_num = 0;
+	int scelta = 0, count = 0, q_num = 0, time_calc = 0;
+	double op = 0.0;
 	FILE *pbs_file, *qsub_out, *out_file, *err_file;
 	char char_to_read, *wait_input = NULL;
 	size_t err_size = 0, buf_size = 0;
@@ -132,34 +197,31 @@ int main(int argc, char const *argv[]) {
 	printf("%d. \t Applicazione della strategia 2.\n", ++count);
 	printf("%d. \t Applicazione della strategia 3.\n", ++count);
 	printf("%d. \t Esecuzione dell'esempio d'uso (somma di 1).\n", ++count);
-	printf("%d. \t Calcolo dei tempi di esecuzione.\n", ++count);
 	printf("%d. \t Chiudere l'applicazione.\n\n", ++count);
   	scelta = getIntegerFromInput();
 	checkScelta(scelta, 1, count);
 
-	printf("\n");
-
 	/* ************************************************************************ */
 
-	if (scelta != 6) {
+	if (scelta != 5) {
 
 		printf("Inserisci la quantita' di numeri da sommare: \n");
 		q_num = getIntegerFromInput();
 
-		// printf("q_num: %d\n", q_num);
-
-		if (q_num < 0) {
-			printf("Puoi inserire solo un valore numerico intero maggiore o uguale a 0!\n");
+		if (q_num <= 1) {
+			printf("Devi inserire almeno due operandi!\n");
 			printf("Applicazione terminata.\n");
 			exit(1);
 		}
 
-		printf("\n");
+		if (scelta != 4) {
+			printf("Vuoi calcolare anche i tempi di esecuzione? (no = 0, si = 1)\n");
+			time_calc = getIntegerFromInput();
+			checkScelta(time_calc, 0, 1);
+		}
 
 		/* ******************************************************************** */
 		// CREAZIONE DEL FILE DI ESECUZIONE .PBS
-
-		printf("Preparazione dell'output in corso...\n");
 
 		if ((pbs_file = fopen(NOME_PROVA".pbs", "w")) == NULL) {
 			printf("Errore durante l'esecuzione!");
@@ -171,13 +233,38 @@ int main(int argc, char const *argv[]) {
 					"#!/bin/bash\n"
 					"\n"
 					"#PBS -q studenti\n"
-					"#PBS -l nodes=" NODE_NUMBER "\n"
-					"#PBS -N " NOME_PROVA "\n"
+		);
+
+		fclose(pbs_file);
+
+		if ((pbs_file = fopen(NOME_PROVA".pbs", "a")) == NULL) {
+			printf("Errore durante l'esecuzione!");
+			printf("Applicazione terminata.\n");
+			exit(1);
+		}
+
+		fprintf(pbs_file, "#PBS -l nodes="NODE_NUMBER);
+
+		if (time_calc == 1) {
+			fprintf(pbs_file, ":ppn="NODE_NUMBER);
+		}
+		
+		fprintf(pbs_file,
+					"\n#PBS -N " NOME_PROVA "\n"
 					"#PBS -o ../output/" NOME_PROVA ".out\n"
 					"#PBS -e ../output/" NOME_PROVA ".err\n"
 					"\n"
 					"echo --- \n"
-					"NCPU=$(wc -l < $PBS_NODEFILE)\n"
+		);
+
+		if (time_calc == 1) {
+			fprintf(pbs_file, "sort -u $PBS_NODEFILE > hostlist\n");
+			fprintf(pbs_file, "NCPU=$(wc -l < hostlist)\n");
+		} else {
+			fprintf(pbs_file, "NCPU=$(wc -l < $PBS_NODEFILE)\n");
+		}
+		
+		fprintf(pbs_file,
 					"PBS_O_WORKDIR=$PBS_O_HOME/" NOME_PROVA "/codice\n"
 					"\n"
 					"echo PBS: la directory di lavoro e\\' $PBS_O_WORKDIR\n"
@@ -189,17 +276,32 @@ int main(int argc, char const *argv[]) {
 					"echo 'PBS: Job in esecuzione su '${NCPU}' cpu...'\n"
 					"echo ---\n"
 					"/usr/lib64/openmpi/1.4-gcc/bin/mpiexec "
-					"-machinefile $PBS_NODEFILE -n ${NCPU} $PBS_O_WORKDIR/" NOME_PROVA " %d %d\n"
-					"echo ---\n"
-					"echo PBS: Job completato.\n"
-					"echo --- \n",
-		scelta, q_num);
+		);
 
-		// TODO: aggiungere controllo scelta == 5 (per calcolare i tempi serve un .pbs diverso)
-		// TODO: aggiungere controllo q_num <=20 con input da tastiera
+		if (time_calc == 1) {
+			fprintf(pbs_file, "-machinefile hostlist -np ${NCPU} ");
+		} else {
+			fprintf(pbs_file, "-machinefile $PBS_NODEFILE -n ${NCPU} ");
+		}
+
+		fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA " %d %d", scelta, q_num);
+
+		if (scelta != 4 && q_num <= 20) {
+			int i = 1;
+			for (i = 1; i <= q_num; i++) {
+				printf("Inserisci il %do operando da sommare: \n", i);
+				op = getNumberFromInput();
+				fprintf(pbs_file, " %f", op);
+			}
+		}
+
+		fprintf(pbs_file,
+					"\necho ---\n"
+					"echo PBS: Job completato.\n"
+					"echo --- \n"
+		);
 
 		fclose(pbs_file);
-		printf("\n");
 
 		/* ******************************************************************** */
 		// ESECUZIONE DEL COMANDO QSUB
