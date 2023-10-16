@@ -111,10 +111,37 @@ int main(int argc, char **argv) {
 	op_loc = (double *)calloc (q_loc, sizeof(double));
 
 	if (id_proc == 0) {
-		for (i=0; i < q_num; i++) {
-			op[i] = argToDouble(argv[i+4]);
-			// printf("--- op[i]: %f ---\n", op[i]);
+		if (q_num <= 20) {
+			for (i=0; i < q_num; i++) {
+				op[i] = argToDouble(argv[i+4]);
+			}
+		} else {
+
+			// struct timespec now;
+			// int64_t time_millis;
+
+			// timespec_get(&now, TIME_UTC);
+			// time_millis = ((int64_t) now.tv_sec)
+			// 				* 1000
+			// 				+ ((int64_t) now.tv_nsec)
+			// 				/ 1000000;
+
+			// srand((unsigned)time_millis);
+
+			time_t seed;
+			srand((unsigned)time(&seed));
+
+			for (i=0; i < q_num; i++) {
+				// Si genera un numero casuale reale compreso tra 0 e 100
+				op[i] = ((double)rand() / RAND_MAX) * OP_MAX_VALUE;
+
+				// Si ha il 10% di possibilità che l'i-esimo operando diventi negativo
+				if ((int)rand() % 10 == 0) {
+					op[i] = op[i] * (-1);
+				}
+			}
 		}
+		// printf("--- op[i]: %f ---\n", op[i]);
 	}
 
 	MPI_Bcast(op, q_num, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -304,5 +331,8 @@ int main(int argc, char **argv) {
 /* RIFERIMENTI
 
 https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
+
+https://www.javatpoint.com/random-function-in-c
+https://www.securitronlinux.com/bejiitaswrath/a-nice-example-of-c-programming-getting-a-random-number-in-milliseconds/?utm_content=cmp-true
 
 */

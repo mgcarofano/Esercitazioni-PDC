@@ -9,6 +9,8 @@
 #include <ctype.h>
 #include <math.h>
 #include <fcntl.h>
+#include <time.h>
+#include <inttypes.h>
 
 /* **************************************************************************** */
 // ENUMERAZIONI E COSTANTI
@@ -18,6 +20,7 @@
 #define QSUB_PATH "/usr/bin/qsub"
 #define MKDIR_PATH "/bin/mkdir"
 
+#define OP_MAX_VALUE 100
 #define DISTRIBUTION_TAG 25
 #define FIRST_STRATEGY_TAG 100
 #define SECOND_STRATEGY_TAG 200
