@@ -1,7 +1,6 @@
 /* **************************************************************************** */
 // LIBRERIE
 
-#include "mpi.h"
 #include "./libraries/auxfunc.h"
 #include <tgmath.h>
 
@@ -283,6 +282,7 @@ int main(int argc, char **argv) {
 	}
 
   	/* ************************************************************************ */
+	// TERMINAZIONE DELL'ESECUZIONE
 
 	/*
 		Determina la fine del programma MPI.

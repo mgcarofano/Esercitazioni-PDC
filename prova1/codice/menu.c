@@ -1,173 +1,7 @@
 /* **************************************************************************** */
 // LIBRERIE
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <math.h>
-#include <fcntl.h>
-#include <errno.h>
-
-/* **************************************************************************** */
-// ENUMERAZIONI E COSTANTI
-
-#define NOME_PROVA "prova1"
-#define NODE_NUMBER "8"
-#define QSUB_PATH "/usr/bin/qsub"
-#define MKDIR_PATH "/bin/mkdir"
-
-/* **************************************************************************** */
-// DEFINIZIONE DI FUNZIONI E TIPI ACCESSORI
-
-void printTitle() {
-	printf("################################################################\n");
-	printf("#      ________      __                     __           ____  #\n");
-	printf("#     / ____/ /___ _/ /_  ____  _________ _/ /_____     /  _/  #\n");
-	printf("#    / __/ / / __ `/ __ \\/ __ \\/ ___/ __ `/ __/ __ \\    / /    #\n");
-	printf("#   / /___/ / /_/ / /_/ / /_/ / /  / /_/ / /_/ /_/ /  _/ /     #\n");
-	printf("#  /_____/_/\\__,_/_.___/\\____/_/   \\__,_/\\__/\\____/  /___/     #\n");
-	printf("#                                                              #\n");
-	printf("# ---------- Calcolo della somma di N numeri reali ----------- #\n");
-	printf("#                                                              #\n");
-	printf("################################################################\n");
-	printf("\n");
-}
-
-double getNumberFromInput() {
-	double out = 0;
-	char *buffer = NULL;
-	size_t bufsize = 0;
-	ssize_t chars_read;
-
-	chars_read = getline(&buffer, &bufsize, stdin); // inizializzazione del buffer con caratteri estratti dallo stream di input
-	printf("\n");
-
-	if (chars_read < 0) {
-
-		printf("Errore nella lettura dell'input!");
-		printf("Applicazione terminata.\n");
-		free(buffer);
-		exit(1);
-
-	} else {
-
-		double digit_val = 0.0;
-		int i = 0;
-		int exp_whole = 0;
-		int exp_fract = 0;
-		int pos_point = -1;
-
-		// si inizia da chars_read-2 perché:
-		// -	la numerazione del buffer è da 0 a N-1
-		// -	l'ultimo carattere è \0
-
-		for (i = chars_read-2; i >= 0; i--) {
-			if (buffer[i] != '.' && buffer[i] != ',') {
-				exp_fract--;
-			} else {
-				pos_point = chars_read - (exp_fract * (-1)) -2;
-				break;
-			}
-		}
-
-		// printf("--- chars_read: %zd ---\n", chars_read);
-		// printf("--- pos_point: %d ---\n\n", pos_point);
-
-		i = chars_read-2;
-		while(i >= 0) {
-			// printf("--- i: %d ---\n", i);
-			// printf("--- buffer[i]: %c ---\n", buffer[i]);
-			// printf("--- exp_whole: %d ---\n", exp_whole);
-			// printf("--- exp_fract: %d ---\n", exp_fract);
-
-			if (i > pos_point && pos_point != -1) {
-
-				if (isdigit(buffer[i])) {
-					// printf("--- pow(10, exp_fract): %f ---\n", pow(10, exp_fract));
-					// printf("--- digit_val: %f ---\n\n", digit_val);
-					digit_val = pow(10, exp_fract) * (digit_val + (buffer[i] - '0')); // per ottenere il valore intero del carattere ASCII
-					out = out + digit_val;
-					// printf("--- out: %f ---\n", out);
-					// printf("--- digit_val: %f ---\n\n", digit_val);
-				} else {
-					out = 0.0;
-					printf("Puoi inserire solo valori numerici reali!\n");
-					printf("Applicazione terminata.\n");
-					free(buffer);
-					exit(1);
-				}
-
-				exp_fract++;
-
-			} else if (i < pos_point || pos_point == -1) {
-
-				if (isdigit(buffer[i])) {
-					// printf("--- pow(10, exp_fract): %f ---\n", pow(10, exp_fract));
-					// printf("--- digit_val: %f ---\n\n", digit_val);
-					digit_val = pow(10, exp_whole) * (digit_val + (buffer[i] - '0'));
-					out = out + digit_val;
-					// printf("--- out: %f ---\n", out);
-					// printf("--- digit_val: %f ---\n\n", digit_val);
-				} else {
-					if (i == 0 && buffer[0] == '-') {
-						out = out * (-1);
-					} else {
-						out = 0.0;
-						printf("Puoi inserire solo valori numerici reali!\n");
-						printf("Applicazione terminata.\n");
-						free(buffer);
-						exit(1);
-					}
-				}
-
-				exp_whole++;
-			}
-
-			digit_val = 0.0;
-			i--;
-		}
-	}
-
-	free(buffer);
-	return out;
-}
-
-int getIntegerFromInput() {
-
-	double out_double = 0.0;
-	int out_integer = 0;
-	
-	out_double = getNumberFromInput();
-	out_integer = (int)out_double;
-
-	if (out_integer < 0) {
-		printf("Puoi inserire solo valori numerici naturali!\n");
-		printf("Applicazione terminata.\n");
-		exit(1);
-	}
-
-	return out_integer;
-}
-
-void checkScelta(int scelta, int lim_inf, int lim_sup) {
-	if(!(scelta >= lim_inf && scelta <= lim_sup)) {
-		printf("Puoi inserire solo un valore numerico intero compreso tra %d e %d!\n", lim_inf, lim_sup);
-		printf("Applicazione terminata.\n");
-		exit(1);
-	}
-
-	return;
-}
-
-void printFile(FILE *f) {
-	char char_to_read;
-
-	do {
-		char_to_read = fgetc(f);
-		if (char_to_read != EOF) printf("%c", char_to_read);
-	} while (char_to_read != EOF);
-}
-
+#include "./libraries/auxfunc.h"
 
 /* **************************************************************************** */
 
@@ -176,10 +10,15 @@ int main(int argc, char const *argv[]) {
 	/* ************************************************************************ */
 	// DEFINIZIONE DELLE VARIABILI
 
-	int scelta = 0, count = 0, q_num = 0, time_calc = 0;
+	int scelta = 0, q_num = 0, time_calc = 0;
+	int count = 0;
+
 	double op = 0.0;
+
 	FILE *pbs_file, *qsub_out, *out_file, *err_file;
-	char char_to_read, *wait_input = NULL;
+
+	char char_to_read, *wait_input;
+
 	size_t err_size = 0, buf_size = 0;
 
 	/* ************************************************************************ */
@@ -211,7 +50,7 @@ int main(int argc, char const *argv[]) {
 		if (q_num <= 1) {
 			printf("Devi inserire almeno due operandi!\n");
 			printf("Applicazione terminata.\n");
-			exit(1);
+			exit(NOT_ENOUGH_OPERANDS);
 		}
 
 		if (scelta != 4) {
@@ -226,7 +65,7 @@ int main(int argc, char const *argv[]) {
 		if ((pbs_file = fopen(NOME_PROVA".pbs", "w")) == NULL) {
 			printf("Errore durante l'esecuzione!");
 			printf("Applicazione terminata.\n");
-			exit(1);
+			exit(FILE_OPENING_ERROR);
 		}
 
 		fprintf(pbs_file,
@@ -240,7 +79,7 @@ int main(int argc, char const *argv[]) {
 		if ((pbs_file = fopen(NOME_PROVA".pbs", "a")) == NULL) {
 			printf("Errore durante l'esecuzione!");
 			printf("Applicazione terminata.\n");
-			exit(1);
+			exit(FILE_OPENING_ERROR);
 		}
 
 		fprintf(pbs_file, "#PBS -l nodes="NODE_NUMBER);
@@ -324,13 +163,13 @@ int main(int argc, char const *argv[]) {
 		if ((err_file = fopen("../output/"NOME_PROVA".err", "r")) == NULL) {
 			printf("Errore nella lettura dell'output!\n\n");
 			printf("Applicazione terminata.\n");
-			exit(1);
+			exit(FILE_OPENING_ERROR);
 		}
 
 		if ((out_file = fopen("../output/"NOME_PROVA".out", "r")) == NULL) {
 			printf("Errore nella lettura dell'output!\n\n");
 			printf("Applicazione terminata.\n");
-			exit(1);
+			exit(FILE_OPENING_ERROR);
 		}
 
 		fseek(err_file, 0, SEEK_END); // seek to end of file
