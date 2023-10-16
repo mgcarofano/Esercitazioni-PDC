@@ -1,7 +1,7 @@
 /* **************************************************************************** */
 // LIBRERIE
 
-// #include "mpi.h"
+#include "mpi.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -73,9 +73,12 @@ int main(int argc, char const *argv[]) {
 	// DEFINIZIONE DELLE VARIABILI
 
 	int menum = 0, nproc = 0;
-	int n = 0, nloc = 0, tag = 0;
+	int n = 0, nloc = 0, tag = 0, rest=0;
 	int tmp = 0, start = 0;
 	int *x, *xloc;
+
+	// PORTO FUORI LE VARIABILI ALTRIMENTI CI SONO PROBLEMI CON LO SCOPE
+	int scelta, q_num, time_calc;
 
 	double sum = 0.0, sum_parz = 0.0;
 
@@ -106,16 +109,15 @@ int main(int argc, char const *argv[]) {
 			exit(1);
 		}
 
-		int scelta = argToInt(argv[1]);
-		int q_num = argToInt(argv[2]);
-		int time_calc = argToInt(argv[3]);
+		scelta = argToInt(argv[1]);
+		q_num = argToInt(argv[2]);
+		time_calc = argToInt(argv[3]);
 
 		// printf("scelta: %d, q_num: %d, time_calc: %d\n\n", scelta, q_num, time_calc);
 
 		double op[q_num];
 
-		int i = 0;
-		for (i=0; i < q_num; i++) {
+		for (int i=0; i < q_num; i++) {
 			op[i] = argToDouble(argv[i+4]);
 			// printf("--- op[i]: %f ---\n", op[i]);
 		}
@@ -134,7 +136,7 @@ int main(int argc, char const *argv[]) {
 	if (menum == 0) {
 		xloc = x;
 		tmp = nloc;
-		for (i=1; i < nproc; i++) {
+		for (int i=1; i < nproc; i++) {
 			start = start + tmp;
 			tag = i +22;
 			if (i == rest) {
@@ -161,7 +163,7 @@ int main(int argc, char const *argv[]) {
 	}
 
 	sum = 0.0;
-	for(i=0; i < nloc; i++) {
+	for(int i=0; i < nloc; i++) {
 		sum = sum + xloc[i];
 	}
 
@@ -172,23 +174,23 @@ int main(int argc, char const *argv[]) {
 		case 1: // Applicazione della strategia 1.
 		{
 			if (menum == 0) {
-				for(i=1; i < nproc; i++) {
+				for(int i=1; i < nproc; i++) {
 					tag = i +80;
 					MPI_Recv(&sum_parz, 1, MPI_INT, i, tag, MPI_COMM_WORLD, &status);
 					sum = sum + sum_parz;
 				}
 			} else {
 				tag = menum +80;
-				MPI_Recv(&sum, 1, MPI_INT, 0, tag, MPI_COMM_WORLD);
+				MPI_Recv(&sum, 1, MPI_INT, 0, tag, MPI_COMM_WORLD, &status); //ci mancava status
 			}
 
 			break;
 		}
 		case 2: // Applicazione della strategia 2.
 		{
-			for(i=0; i < log2(nproc); i++) { // passi di comunicazione
-				if ((menum % pow(2, i)) == 0) { // chi partecipa alla comunicazione
-					if ((menum % pow(2, i+1)) == 0) { // chi riceve le comunicazioni
+			for(int i=0; i < log2(nproc); i++) { // passi di comunicazione
+				if ((menum % pow(2.0, i)) == 0) { // chi partecipa alla comunicazione -- pow() vuole i double non gli int
+					if ((menum % pow(2.0, i+1)) == 0) { // chi riceve le comunicazioni -- pow() vuole i double non gli int
 						// ricevi da menum+2^i
 					} else {
 						// spedisci a menum-2^i
@@ -203,9 +205,9 @@ int main(int argc, char const *argv[]) {
 		}
 		case 3: // Applicazione della strategia 3.
 		{
-			for(i=0; i < log2(nproc); i++) { // passi di comunicazione
+			for(int i=0; i < log2(nproc); i++) { // passi di comunicazione
 				// tutti i processi partecipano ad ogni passo
-				if ((menum % pow(2, i+1)) < pow(2, i)) { // si decide solo a chi si invia e da chi si riceve
+				if ((menum % pow(2.0, i+1)) < pow(2.0, i)) { // si decide solo a chi si invia e da chi si riceve -- pow() vuole i double non gli int
 					// ricevi da menum+2^i
 					// spedisci a menum+2^i
 				} else {
