@@ -339,15 +339,15 @@ int main(int argc, char const *argv[]) {
 
 		if (err_size > 0) {
 
-			printf("\n\n--- ERROR ---\n\n");
+			printf("\n\n---------- ERROR ----------\n\n");
 			printFile(err_file);
-			printf("\n\n-----\n");
+			printf("\n\n------------\n");
 
 		} else {
 
-			printf("\n\n--- OUTPUT ---\n\n");
+			printf("\n\n---------- OUTPUT ----------\n\n");
 			printFile(out_file);
-			printf("\n\n-----\n");
+			printf("\n\n------------\n");
 
 		}
 
