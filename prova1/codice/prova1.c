@@ -206,32 +206,47 @@ int main(int argc, char **argv) {
 		}
 		case 2: // Applicazione della strategia 2.
 		{
-			// for(i=0; i < log(n_proc); i++) { // passi di comunicazione
-			// 	p = pow(2, i);
-			// 	if ((id_proc % p) == 0) { // chi partecipa alla comunicazione
-			// 		p = pow(2, i+1);
-			// 		if ((id_proc % p) == 0) { // chi riceve le comunicazioni
-			// 			// ricevi da id_proc+2^i
-			// 		} else {
-			// 			// spedisci a id_proc-2^i
-			// 		}
-			// 	}
-			// }
+			for(i=0; i < log(n_proc); i++) { // passi di comunicazione
+			 	p = pow(2, i);
+			 	if ((id_proc % p) == 0) { // chi partecipa alla comunicazione
+			 		//p = pow(2, i+1); -- riscritto come 2*p
+			 		if ((id_proc % p) == 0) { // chi riceve le comunicazioni
+			 			// ricevi da id_proc+2^i
+						//aggiorna tag ?
+						MPI_Recv(&sum_parz, 1, MPI_DOUBLE, (id_proc + (p*2)), tag, MPI_COMM_WORLD, &status);
+						sum = sum + sum_parz;
+			 		} else {
+			 			// spedisci a id_proc-2^i -- scritto come p/2
+						// aggiorna tag?
+						MPI_Send(&sum, 1, MPI_DOUBLE, (id_proc + (p/2)), tag, MPI_COMM_WORLD, &status);
+			 		}
+				}
+			}
 
 			break;
 		}
 		case 3: // Applicazione della strategia 3.
 		{
-			// for(i=0; i < log2(n_proc); i++) { // passi di comunicazione
-			// 	// tutti i processi partecipano ad ogni passo
-			// 	if ((id_proc % pow(2, i+1)) < pow(2, i)) { // si decide solo a chi si invia e da chi si riceve
-			// 		// ricevi da id_proc+2^i
-			// 		// spedisci a id_proc+2^i
-			// 	} else {
-			// 		// ricevi da id_proc-2^i
-			// 		// spedisci a id_proc-2^i
-			// 	}
-			// }
+			for(i=0; i < log2(n_proc); i++) { // passi di comunicazione
+				// tutti i processi partecipano ad ogni passo
+				if ((id_proc % pow(2, i+1)) < pow(2, i)) { // si decide solo a chi si invia e da chi si riceve
+					//aggiornare tag
+					// ricevi da id_proc+2^i
+					MPI_Recv(&sum_parz, 1, MPI_DOUBLE, (id_proc + (p*2)), tag, MPI_COMM_WORLD, &status);
+					// spedisci a id_proc+2^i
+					MPI_Send(&sum, 1, MPI_DOUBLE, (id_proc + (p*2)), tag, MPI_COMM_WORLD, &status);
+					// calcola somma
+					sum = sum + sum_parz;
+				} else {
+					//aggiornare tag
+					// ricevi da id_proc-2^i
+					MPI_Recv(&sum_parz, 1, MPI_DOUBLE, (id_proc - (p/2)), tag, MPI_COMM_WORLD, &status);
+					// spedisci a id_proc-2^i
+					MPI_Send(&sum, 1, MPI_DOUBLE, (id_proc - (p/2)), tag, MPI_COMM_WORLD, &status);
+					// calcola somma
+					sum = sum + sum_parz;
+			 	}
+			}
 
 			break;
 		}
