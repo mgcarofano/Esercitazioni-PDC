@@ -2,7 +2,15 @@
 // LIBRERIE
 
 #include "./libraries/auxfunc.h"
-#include <tgmath.h>
+
+/* **************************************************************************** */
+// ENUMERAZIONI E COSTANTI
+
+#define OP_MAX_VALUE 100
+#define DISTRIBUTION_TAG 25
+#define FIRST_STRATEGY_TAG 100
+#define SECOND_STRATEGY_TAG 200
+#define THIRD_STRATEGY_TAG 300
 
 /* **************************************************************************** */
 
@@ -114,19 +122,9 @@ int main(int argc, char **argv) {
 		if (q_num <= 20) {
 			for (i=0; i < q_num; i++) {
 				op[i] = argToDouble(argv[i+4]);
+				// printf("--- op[i]: %f ---\n", op[i]);
 			}
 		} else {
-
-			// struct timespec now;
-			// int64_t time_millis;
-
-			// timespec_get(&now, TIME_UTC);
-			// time_millis = ((int64_t) now.tv_sec)
-			// 				* 1000
-			// 				+ ((int64_t) now.tv_nsec)
-			// 				/ 1000000;
-
-			// srand((unsigned)time_millis);
 
 			time_t seed;
 			srand((unsigned)time(&seed));
@@ -135,13 +133,14 @@ int main(int argc, char **argv) {
 				// Si genera un numero casuale reale compreso tra 0 e 100
 				op[i] = ((double)rand() / RAND_MAX) * OP_MAX_VALUE;
 
-				// Si ha il 10% di possibilità che l'i-esimo operando diventi negativo
-				if ((int)rand() % 10 == 0) {
+				// Si ha il 33% di possibilità che l'i-esimo operando diventi negativo
+				if ((int)rand() % 3 == 0) {
 					op[i] = op[i] * (-1);
 				}
+
+				// printf("--- op[%d]: %f ---\n", i, op[i]);
 			}
 		}
-		// printf("--- op[i]: %f ---\n", op[i]);
 	}
 
 	MPI_Bcast(op, q_num, MPI_DOUBLE, 0, MPI_COMM_WORLD);

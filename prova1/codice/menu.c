@@ -1,7 +1,15 @@
 /* **************************************************************************** */
 // LIBRERIE
 
-#include "./libraries/auxfunc.h"
+#include "./libraries/menufunc.h"
+
+/* **************************************************************************** */
+// ENUMERAZIONI E COSTANTI
+
+#define NOME_PROVA "prova1"
+#define NODE_NUMBER "8"
+#define QSUB_PATH "/usr/bin/qsub"
+#define MKDIR_PATH "/bin/mkdir"
 
 /* **************************************************************************** */
 
