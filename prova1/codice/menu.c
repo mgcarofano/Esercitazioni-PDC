@@ -4,45 +4,18 @@
 #include "./libraries/menufunc.h"
 
 /* **************************************************************************** */
-// ENUMERAZIONI E COSTANTI
-
-#define FIRST_STRATEGY_APPLICATION 1
-#define SECOND_STRATEGY_APPLICATION 2
-#define THIRD_STRATEGY_APPLICATION 3
-#define TESTING_SUITE 4
-#define EXIT_APPLICATION 5
-
-#define FIRST_STRATEGY_TEST 1
-#define SECOND_STRATEGY_TEST 2
-#define THIRD_STRATEGY_TEST 3
-#define SUM_20_NUMBERS 4
-#define TIME_CALC_1 5
-#define TIME_CALC_2 6
-#define TIME_CALC_4 7
-#define TIME_CALC_8 8
-#define EXIT_TEST 9
-
-#define NOME_PROVA "prova1"
-#define NODE_NUMBER "8"
-#define QSUB_PATH "/usr/bin/qsub"
-#define MKDIR_PATH "/bin/mkdir"
-
-/* **************************************************************************** */
 
 int main(int argc, char **argv) {
 
 	/* ************************************************************************ */
 	// DEFINIZIONE DELLE VARIABILI
 
-	int scelta = 0, q_num = 0, time_calc = 0;
+	int scelta = 0, q_num = 0, time_calc = NO_TIME_CALC;
+	int wait_time = TIMEOUT;
 
-	double op = 0.0;
+	FILE *out_file, *err_file;
 
-	FILE *pbs_file, *qsub_out, *out_file, *err_file;
-
-	char char_to_read, *wait_input;
-
-	size_t err_size = 0, buf_size = 0;
+	size_t err_size = 0;
 
 	/* ************************************************************************ */
 	// INTRODUZIONE
@@ -51,7 +24,6 @@ int main(int argc, char **argv) {
 	printf("Benvenuto nell'applicazione di testing per le esercitazioni di\n");
 	printf("Parallel and Distributed Computing A.A. 2023-2024\n\n");
 	printTitle();
-
 
 	/* ************************************************************************ */
 	// SCELTA DELLA STRATEGIA DA APPLICARE
@@ -72,20 +44,25 @@ int main(int argc, char **argv) {
 
 		if (scelta == TESTING_SUITE) {
 
+			/*
+				Nell'eseguire la suite di test, il programma fornira':
+				-	il risultato della somma applicando la 1a strategia;
+				-	il risultato della somma applicando la 2a strategia;
+				-	il risultato della somma applicando la 3a strategia;
+				-	i tempi di esecuzione relativi all'esecuzione
+					di tutte e tre le strategie.
+			*/
+
 			printf("Scegli un test da eseguire: \n");
-			printf("%d. \t Somma di 1 con strategia 1.\n", FIRST_STRATEGY_TEST);
-			printf("%d. \t Somma di 1 con strategia 2.\n", SECOND_STRATEGY_TEST);
-			printf("%d. \t Somma di 1 con strategia 3.\n", THIRD_STRATEGY_TEST);
-			printf("%d. \t Somma di 20 numeri con 20 processori.\n", SUM_20_NUMBERS);
-			printf("%d. \t Calcolo dei tempi con 1 processore.\n", TIME_CALC_1);
-			printf("%d. \t Calcolo dei tempi con 2 processori.\n", TIME_CALC_2);
-			printf("%d. \t Calcolo dei tempi con 4 processori.\n", TIME_CALC_4);
-			printf("%d. \t Calcolo dei tempi con 8 processori.\n", TIME_CALC_8);
+			printf("%d. \t Somma di 1.\n", SUM_ONE_TEST);
+			printf("%d. \t Somma di 20 numeri con 20 processori.\n", SUM_20_NUMBERS_TEST);
+			printf("%d. \t Somma dei primi 'N' numeri naturali.\n", GAUSS_TEST);
 			printf("%d. \t Chiudere la suite di testing.\n\n", EXIT_TEST);
 			scelta = getIntegerFromInput();
 			checkScelta(scelta, 1, EXIT_TEST);
 
 			// TODO: suite di testing
+			// createPBS(scelta, q_num, OK_TIME_CALC);
 
 		} else {
 
@@ -99,110 +76,27 @@ int main(int argc, char **argv) {
 				printf("Applicazione terminata.\n");
 				exit(NOT_ENOUGH_OPERANDS);
 			}
-			
-			// printf("Vuoi calcolare anche i tempi di esecuzione? (no = 0, si = 1)\n");
-			// time_calc = getIntegerFromInput();
-			// checkScelta(time_calc, 0, 1);
 
-			/* **************************************************************** */
 			// CREAZIONE DEL FILE DI ESECUZIONE .PBS
-
-			if ((pbs_file = fopen(NOME_PROVA".pbs", "w")) == NULL) {
-				printf("Errore durante l'esecuzione!");
-				printf("Applicazione terminata.\n");
-				exit(FILE_OPENING_ERROR);
-			}
-
-			fprintf(pbs_file,
-						"#!/bin/bash\n"
-						"\n"
-						"#PBS -q studenti\n"
-			);
-
-			fclose(pbs_file);
-
-			if ((pbs_file = fopen(NOME_PROVA".pbs", "a")) == NULL) {
-				printf("Errore durante l'esecuzione!");
-				printf("Applicazione terminata.\n");
-				exit(FILE_OPENING_ERROR);
-			}
-
-			fprintf(pbs_file, "#PBS -l nodes="NODE_NUMBER);
-
-			// if (time_calc == 1) {
-			// 	fprintf(pbs_file, ":ppn="NODE_NUMBER);
-			// }
-			
-			fprintf(pbs_file,
-						"\n#PBS -N " NOME_PROVA "\n"
-						"#PBS -o ../output/" NOME_PROVA ".out\n"
-						"#PBS -e ../output/" NOME_PROVA ".err\n"
-						"\n"
-						"echo --- \n"
-			);
-
-			// if (time_calc == 1) {
-			// 	fprintf(pbs_file, "sort -u $PBS_NODEFILE > hostlist\n");
-			// 	fprintf(pbs_file, "NCPU=$(wc -l < hostlist)\n");
-			// } else {
-				fprintf(pbs_file, "NCPU=$(wc -l < $PBS_NODEFILE)\n");
-			// }
-			
-			fprintf(pbs_file,
-						"PBS_O_WORKDIR=$PBS_O_HOME/" NOME_PROVA "/codice\n"
-						"\n"
-						"echo PBS: la directory di lavoro e\\' $PBS_O_WORKDIR\n"
-						"echo PBS: Compilazione in esecuzione...\n"
-						"/usr/lib64/openmpi/1.4-gcc/bin/mpicc "
-						"-o $PBS_O_WORKDIR/" NOME_PROVA " $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
-						"echo PBS: Compilazione completata.\n"
-						"\n"
-						"echo 'PBS: Job in esecuzione su '${NCPU}' cpu...'\n"
-						"echo ---\n"
-						"/usr/lib64/openmpi/1.4-gcc/bin/mpiexec "
-			);
-
-			// if (time_calc == 1) {
-			// 	fprintf(pbs_file, "-machinefile hostlist -np ${NCPU} ");
-			// } else {
-				fprintf(pbs_file, "-machinefile $PBS_NODEFILE -n ${NCPU} ");
-			// }
-
-			fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA " %d %d", scelta, q_num);
-
-			/*
-				Come richiesto dalle specifiche dell'algoritmo, se la quantità
-				di operandi è minore o uguale a 20, allora il valore di ogni
-				singolo operando deve essere specificato dall'utente.
-			*/
-
-			if (q_num <= 20) {
-				int i = 1;
-				for (i=1; i <= q_num; i++) {
-					printf("Inserisci il %do operando da sommare: \n", i);
-					op = getNumberFromInput();
-					fprintf(pbs_file, " %f", op);
-				}
-			}
-
-			fprintf(pbs_file,
-						"\necho ---\n"
-						"echo PBS: Job completato.\n"
-						"echo --- \n"
-			);
-
-			fclose(pbs_file);
+			createPBS(scelta, q_num, NO_TIME_CALC);
 
 			/* **************************************************************** */
 			// ESECUZIONE DEL COMANDO QSUB
 
 			printf("Esecuzione in corso...\n");
 
+			/*
+				--- int system (const char* command) ---
+				Si utilizza questa funzione per eseguire
+				un comando della shell. In particolare:
+				-	mkdir:	per creare la directory dove memorizzare
+							gli output dell'esecuzione.
+				-	qsub:	per inviare il programma .pbs creato
+							precedentemente alla coda di lavoro del cluster.
+			*/
+
 			system(MKDIR_PATH" -p ../output");
 			system(QSUB_PATH" "NOME_PROVA".pbs > /dev/null 2>&1");
-
-			// printf("Premi il tasto invio per continuare.\n");
-			// getline(&wait_input, &buf_size, stdin);
 
 			printf("\n");
 
@@ -211,42 +105,67 @@ int main(int argc, char **argv) {
 
 			printf("Stampa dell'output in corso...\n");
 
-			if ((err_file = fopen("../output/"NOME_PROVA".err", "r")) == NULL) {
+			/*
+				Con questo ciclo while si attende che l'output venga
+				scritto correttamente nei file .out e .err dall'esecuzione
+				del comando 'qsub'.
+			*/
+
+			while (wait_time > 0) {
+				if ((err_file = fopen("../output/"NOME_PROVA".err", "r")) == NULL
+					|| (out_file = fopen("../output/"NOME_PROVA".out", "r")) == NULL) {
+					
+					sleep(1);
+					printf("."); fflush(stdout);
+					wait_time--;
+				}
+			}
+
+			printf("\n\n");
+
+			if (wait_time <= 0) {
 				printf("Errore nella lettura dell'output!\n\n");
 				printf("Applicazione terminata.\n");
 				exit(FILE_OPENING_ERROR);
 			}
 
-			if ((out_file = fopen("../output/"NOME_PROVA".out", "r")) == NULL) {
-				printf("Errore nella lettura dell'output!\n\n");
-				printf("Applicazione terminata.\n");
-				exit(FILE_OPENING_ERROR);
-			}
+			/*
+				Si recupera la lunghezza del file .err leggendone il
+				numero di byte:
+				-	SEEK_END:	si sposta il puntatore alla fine del file.
+				-	ftell():	ritorna la posizione corrente del puntatore.
+				-	SEEK_SET:	si sposta il puntatore all'inizio del file
+								per consentirne una successiva lettura.
+			*/
 
 			fseek(err_file, 0, SEEK_END); // seek to end of file
 			err_size = ftell(err_file); // get current file pointer
 			fseek(err_file, 0, SEEK_SET); // seek back to beginning of file
 
-			if (err_size > 0) {
+			/*
+				--- void printFile(FILE *f) ---
+				Si utilizza la funzione 'printFile' definita in 'menufunc.h'
+				per riportare il contenuto del file 'f' sulla console.
+				
+				In particolare, se l'esecuzione del comando 'qsub' ha
+				generato un file .err non vuoto, allora si preferisce la
+				stampa di questo file al file .out.
+			*/
 
+			if (err_size > 0) {
 				printf("\n\n---------- ERROR ----------\n\n");
 				printFile(err_file);
 				printf("\n\n------------\n");
-
 			} else {
-
 				printf("\n\n---------- OUTPUT ----------\n\n");
 				printFile(out_file);
 				printf("\n\n------------\n");
-
 			}
 
 			fclose(out_file);
 			fclose(err_file);
 
 		}
-
-		printf("\n");
 
 	}
 

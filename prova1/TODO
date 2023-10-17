@@ -1,6 +1,12 @@
-Chiedere ai proff se il menù è accettato
-    Creazione pbs in maniera dinamica
-    Il numero dei processori va chiesto all'utente?
-I tempi vanno calcolati con lo stesso pbs dell'esecuzione o con un altro separato
-Possibile importare libreria personalizzata per funzioni
-Segnalare quando strategia non è praticabile
+-   Si può creare un menù interattivo per l'utente?
+    -   Si può creare il file .pbs dinamicamente tramite i dati inseriti dall'utente nel menù?
+    -   Il numero dei processori va chiesto all'utente?
+
+-   Per la consegna del progetto ci vuole un file .pbs "classico" ed uno dedicato al
+    calcolo dei tempi di esecuzione?
+
+-   Si possono importare librerie personalizzate nel proprio codice?
+
+-   Si deve segnalare l'utente quando una strategia non è praticabile?
+
+-   Si puà utilizzare sleep() nel menù?

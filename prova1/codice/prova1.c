@@ -4,22 +4,13 @@
 #include "./libraries/auxfunc.h"
 
 /* **************************************************************************** */
-// ENUMERAZIONI E COSTANTI
-
-#define OP_MAX_VALUE 100
-#define DISTRIBUTION_TAG 25
-#define FIRST_STRATEGY_TAG 100
-#define SECOND_STRATEGY_TAG 200
-#define THIRD_STRATEGY_TAG 300
-
-/* **************************************************************************** */
 
 int main(int argc, char **argv) {
 
 	/* ************************************************************************ */
 	// DEFINIZIONE DELLE VARIABILI
 
-	int scelta = 0, q_num = 0, time_calc = 0;
+	int scelta = 0, q_num = 0, time_calc = NO_TIME_CALC;
 	
 	int id_proc = 0, n_proc = 0, rest = 0;
 	int q_loc = 0, tag = 1;
@@ -31,6 +22,8 @@ int main(int argc, char **argv) {
 
 	double t0 = 0.0, t1 = 0.0;
 	double time_loc = 0.0, time_tot = 0.0;
+
+	time_t seed;
 
 	MPI_Status status;
 
@@ -126,7 +119,6 @@ int main(int argc, char **argv) {
 			}
 		} else {
 
-			time_t seed;
 			srand((unsigned)time(&seed));
 
 			for (i=0; i < q_num; i++) {
@@ -201,7 +193,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	if (time_calc == 1) {
+	if (time_calc == OK_TIME_CALC) {
 		// MPI_Barrier(MPI_COMM_WORLD);
 		t0 = MPI_Wtime();
 	}
@@ -276,11 +268,6 @@ int main(int argc, char **argv) {
 
 			break;
 		}
-		case 4: // Esecuzione dell'esempio d'uso (somma di 1).
-		{
-			
-			break;
-		}
 		default:
 		{
 			printf("Comando non riconosciuto!\n");
@@ -291,7 +278,7 @@ int main(int argc, char **argv) {
   	/* ************************************************************************ */
 	// STAMPA DELL'OUTPUT
 
-	if (time_calc == 1) {
+	if (time_calc == OK_TIME_CALC) {
 		t1 = MPI_Wtime();
 		time_loc = t1 - t0;
 		MPI_Reduce(&time_loc, &time_tot, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);

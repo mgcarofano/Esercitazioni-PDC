@@ -1,20 +1,13 @@
 /* **************************************************************************** */
 // LIBRERIE
 
+#include "constants.c"
+
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
 #include <fcntl.h>
-
-/* **************************************************************************** */
-// CODICI DI ERRORE
-
-#define INPUT_LINE_ERROR 5
-#define NOT_REAL_NUMBER_ERROR 6
-#define NOT_NATURAL_NUMBER_ERROR 7
-#define NOT_IN_RANGE_ERROR 8
-#define NOT_ENOUGH_OPERANDS 9
-#define FILE_OPENING_ERROR 10
+#include <unistd.h>
 
 /* **************************************************************************** */
 // CODICE DELLE FUNZIONI DEFINITE IN 'menufunc.h'
@@ -155,8 +148,96 @@ void checkScelta(int scelta, int lim_inf, int lim_sup) {
 		printf("Applicazione terminata.\n");
 		exit(NOT_IN_RANGE_ERROR);
 	}
+}
 
-	return;
+void createPBS(int scelta, int q_num, int time_calc) {
+
+	FILE *pbs_file;
+	double op = 0.0;
+
+	if ((pbs_file = fopen(NOME_PROVA".pbs", "w")) == NULL) {
+		printf("Errore durante l'esecuzione!");
+		printf("Applicazione terminata.\n");
+		exit(FILE_OPENING_ERROR);
+	}
+
+	fprintf(pbs_file, "#!/bin/bash\n");
+	fclose(pbs_file);
+
+	if ((pbs_file = fopen(NOME_PROVA".pbs", "a")) == NULL) {
+		printf("Errore durante l'esecuzione!");
+		printf("Applicazione terminata.\n");
+		exit(FILE_OPENING_ERROR);
+	}
+
+	fprintf(pbs_file,
+				"\n"
+				"#PBS -q studenti\n"
+				"#PBS -l nodes="NODE_NUMBER);
+
+	if (time_calc == OK_TIME_CALC) {
+		fprintf(pbs_file, ":ppn="NODE_PROCESS);
+	}
+	
+	fprintf(pbs_file,
+				"\n#PBS -N " NOME_PROVA "\n"
+				"#PBS -o ../output/" NOME_PROVA ".out\n"
+				"#PBS -e ../output/" NOME_PROVA ".err\n"
+				"\n"
+				"echo --- \n"
+	);
+
+	if (time_calc == OK_TIME_CALC) {
+		fprintf(pbs_file, "sort -u $PBS_NODEFILE > hostlist\n");
+		fprintf(pbs_file, "NCPU=$(wc -l < hostlist)\n");
+	} else {
+		fprintf(pbs_file, "NCPU=$(wc -l < $PBS_NODEFILE)\n");
+	}
+	
+	fprintf(pbs_file,
+				"PBS_O_WORKDIR=$PBS_O_HOME/" NOME_PROVA "/codice\n"
+				"\n"
+				"echo PBS: la directory di lavoro e\\' $PBS_O_WORKDIR\n"
+				"echo PBS: Compilazione in esecuzione...\n"
+				"/usr/lib64/openmpi/1.4-gcc/bin/mpicc "
+				"-o $PBS_O_WORKDIR/" NOME_PROVA " $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
+				"echo PBS: Compilazione completata.\n"
+				"\n"
+				"echo 'PBS: Job in esecuzione su '${NCPU}' cpu...'\n"
+				"echo ---\n"
+				"/usr/lib64/openmpi/1.4-gcc/bin/mpiexec "
+	);
+
+	if (time_calc == OK_TIME_CALC) {
+		fprintf(pbs_file, "-machinefile hostlist -np ${NCPU} ");
+	} else {
+		fprintf(pbs_file, "-machinefile $PBS_NODEFILE -n ${NCPU} ");
+	}
+
+	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA " %d %d", scelta, q_num);
+
+	/*
+		Come richiesto dalle specifiche dell'algoritmo, se la quantità
+		di operandi è minore o uguale a 20, allora il valore di ogni
+		singolo operando deve essere specificato dall'utente.
+	*/
+
+	if (scelta != TESTING_SUITE && q_num <= OP_MAX_QUANTITY) {
+		int i = 1;
+		for (i=1; i <= q_num; i++) {
+			printf("Inserisci il %do operando da sommare: \n", i);
+			op = getNumberFromInput();
+			fprintf(pbs_file, " %f", op);
+		}
+	}
+
+	fprintf(pbs_file,
+				"\necho ---\n"
+				"echo PBS: Job completato.\n"
+				"echo --- \n"
+	);
+
+	fclose(pbs_file);
 }
 
 void printFile(FILE *f) {

@@ -2,26 +2,14 @@
 // LIBRERIE
 
 #include "mpi.h"
+#include "constants.c"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
 #include <tgmath.h>
-
-/* **************************************************************************** */
-// CODICI DI ERRORE
-
-#define NOT_ENOUGH_ARGS_ERROR 1
-#define EMPTY_ARG_ERROR 2
-#define INPUT_ARG_ERROR 3
-#define NOT_INT_ARG_ERROR 4
-#define INPUT_LINE_ERROR 5
-#define NOT_REAL_NUMBER_ERROR 6
-#define NOT_NATURAL_NUMBER_ERROR 7
-#define NOT_IN_RANGE_ERROR 8
-#define NOT_ENOUGH_OPERANDS 9
-#define FILE_OPENING_ERROR 10
 
 /* **************************************************************************** */
 // CODICE DELLE FUNZIONI DEFINITE IN 'auxfunc.h'
