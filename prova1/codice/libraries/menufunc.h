@@ -1,19 +1,27 @@
 /* **************************************************************************** */
 // DIRETTIVE E LIBRERIE
 
-#ifndef AUXFUNCTIONS_H
-#define AUXFUNCTIONS_H
+#ifndef MENUFUNCTIONS_H
+#define MENUFUNCTIONS_H
+
+#include <stdio.h>
 
 /* **************************************************************************** */
 // DEFINIZIONE DELLE FUNZIONI
 
-int argToInt(char *arg);
+void printTitle();
 
-double argToDouble(char *arg);
+double getNumberFromInput();
+
+int getIntegerFromInput();
+
+void checkScelta(int scelta, int lim_inf, int lim_sup);
+
+void printFile(FILE *f);
 
 /* **************************************************************************** */
 
-#include "auxfunc.c"
+#include "menufunc.c"
 #endif
 
 /* **************************************************************************** */

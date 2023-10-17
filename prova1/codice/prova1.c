@@ -2,7 +2,15 @@
 // LIBRERIE
 
 #include "./libraries/auxfunc.h"
-#include <tgmath.h>
+
+/* **************************************************************************** */
+// ENUMERAZIONI E COSTANTI
+
+#define OP_MAX_VALUE 100
+#define DISTRIBUTION_TAG 25
+#define FIRST_STRATEGY_TAG 100
+#define SECOND_STRATEGY_TAG 200
+#define THIRD_STRATEGY_TAG 300
 
 /* **************************************************************************** */
 
@@ -111,9 +119,27 @@ int main(int argc, char **argv) {
 	op_loc = (double *)calloc (q_loc, sizeof(double));
 
 	if (id_proc == 0) {
-		for (i=0; i < q_num; i++) {
-			op[i] = argToDouble(argv[i+4]);
-			// printf("--- op[i]: %f ---\n", op[i]);
+		if (q_num <= 20) {
+			for (i=0; i < q_num; i++) {
+				op[i] = argToDouble(argv[i+4]);
+				// printf("--- op[i]: %f ---\n", op[i]);
+			}
+		} else {
+
+			time_t seed;
+			srand((unsigned)time(&seed));
+
+			for (i=0; i < q_num; i++) {
+				// Si genera un numero casuale reale compreso tra 0 e 100
+				op[i] = ((double)rand() / RAND_MAX) * OP_MAX_VALUE;
+
+				// Si ha il 33% di possibilità che l'i-esimo operando diventi negativo
+				if ((int)rand() % 3 == 0) {
+					op[i] = op[i] * (-1);
+				}
+
+				// printf("--- op[%d]: %f ---\n", i, op[i]);
+			}
 		}
 	}
 
@@ -319,5 +345,8 @@ int main(int argc, char **argv) {
 /* RIFERIMENTI
 
 https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
+
+https://www.javatpoint.com/random-function-in-c
+https://www.securitronlinux.com/bejiitaswrath/a-nice-example-of-c-programming-getting-a-random-number-in-milliseconds/?utm_content=cmp-true
 
 */
