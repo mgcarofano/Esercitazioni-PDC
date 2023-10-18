@@ -185,6 +185,14 @@
 #define MKDIR_PATH "/bin/mkdir"
 
 /*
+	RM_PATH: char*
+	Si utilizza per indicare alla funzione system() il percorso
+	sul cluster dell'eseguibile 'rm'.
+*/
+
+#define RM_PATH "/bin/rm"
+
+/*
 	OP_MAX_VALUE: int
 	Si utilizza come limite massimo del valore di un operando
 	quando si sceglie di sommare numeri reali casuali.

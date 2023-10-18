@@ -89,12 +89,15 @@ int main(int argc, char **argv) {
 				--- int system (const char* command) ---
 				Si utilizza questa funzione per eseguire
 				un comando della shell. In particolare:
+				-	rm: 	per eliminare la cartella 'output' nell'eventuale
+							caso ci fosse un vecchio output memorizzato
 				-	mkdir:	per creare la directory dove memorizzare
 							gli output dell'esecuzione.
 				-	qsub:	per inviare il programma .pbs creato
 							precedentemente alla coda di lavoro del cluster.
 			*/
 
+			system(RM_PATH" -rf ../output");
 			system(MKDIR_PATH" -p ../output");
 			system(QSUB_PATH" "NOME_PROVA".pbs > /dev/null 2>&1");
 
@@ -118,6 +121,8 @@ int main(int argc, char **argv) {
 					sleep(1);
 					printf("."); fflush(stdout);
 					wait_time--;
+				} else {
+					break;
 				}
 			}
 
@@ -159,7 +164,7 @@ int main(int argc, char **argv) {
 			} else {
 				printf("\n\n---------- OUTPUT ----------\n\n");
 				printFile(out_file);
-				printf("\n\n------------\n");
+				printf("\n------------\n");
 			}
 
 			fclose(out_file);

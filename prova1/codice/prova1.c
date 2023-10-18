@@ -23,6 +23,8 @@ int main(int argc, char **argv) {
 	double t0 = 0.0, t1 = 0.0;
 	double time_loc = 0.0, time_tot = 0.0;
 
+	int int_rand = 0;
+	double double_rand = 0.0;
 	time_t seed;
 
 	MPI_Status status;
@@ -83,7 +85,7 @@ int main(int argc, char **argv) {
 
 		scelta = argToInt(argv[1]);
 		q_num = argToInt(argv[2]);
-		time_calc = argToInt(argv[3]);
+		// time_calc = argToInt(argv[3]);
 	}
 
 	/*
@@ -97,7 +99,7 @@ int main(int argc, char **argv) {
 
 	MPI_Bcast(&scelta, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&q_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&time_calc, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	// MPI_Bcast(&time_calc, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	// Si distribuisce equamente il numero di operandi tra tutti i processori.
 	q_loc = q_num / n_proc;
@@ -114,7 +116,7 @@ int main(int argc, char **argv) {
 	if (id_proc == 0) {
 		if (q_num <= 20) {
 			for (i=0; i < q_num; i++) {
-				op[i] = argToDouble(argv[i+4]);
+				op[i] = argToDouble(argv[i+3]);
 				// printf("--- op[i]: %f ---\n", op[i]);
 			}
 		} else {
@@ -122,11 +124,14 @@ int main(int argc, char **argv) {
 			srand((unsigned)time(&seed));
 
 			for (i=0; i < q_num; i++) {
-				// Si genera un numero casuale reale compreso tra 0 e 100
-				op[i] = ((double)rand() / RAND_MAX) * OP_MAX_VALUE;
+				double_rand = (double)rand();
+				int_rand = (int)rand();
 
-				// Si ha il 33% di possibilità che l'i-esimo operando diventi negativo
-				if ((int)rand() % 3 == 0) {
+				// Si genera un numero casuale reale compreso tra 0 e 100
+				op[i] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
+
+				// Si ha il 33% di possibilita che op[i] < 0
+				if (int_rand % 3 == 0) {
 					op[i] = op[i] * (-1);
 				}
 
@@ -224,48 +229,46 @@ int main(int argc, char **argv) {
 		}
 		case 2: // Applicazione della strategia 2.
 		{
-			for(i=0; i < log(n_proc); i++) { // passi di comunicazione
-			 	p = pow(2, i);
-			 	if ((id_proc % p) == 0) { // chi partecipa alla comunicazione
-			 		//p = pow(2, i+1); -- riscritto come 2*p
-			 		if ((id_proc % p) == 0) { // chi riceve le comunicazioni
-			 			// ricevi da id_proc+2^i
-						//aggiorna tag ?
-						MPI_Recv(&sum_parz, 1, MPI_DOUBLE, (id_proc + (p*2)), tag, MPI_COMM_WORLD, &status);
-						sum = sum + sum_parz;
-			 		} else {
-			 			// spedisci a id_proc-2^i -- scritto come p/2
-						// aggiorna tag?
-						MPI_Send(&sum, 1, MPI_DOUBLE, (id_proc + (p/2)), tag, MPI_COMM_WORLD, &status);
-			 		}
-				}
-			}
-
+			// for(i=0; i < log(n_proc); i++) { // passi di comunicazione
+			//  	p = pow(2, i);
+			//  	if ((id_proc % p) == 0) { // chi partecipa alla comunicazione
+			//  		//p = pow(2, i+1); -- riscritto come 2*p
+			//  		if ((id_proc % p) == 0) { // chi riceve le comunicazioni
+			//  			// ricevi da id_proc+2^i
+			// 			//aggiorna tag ?
+			// 			MPI_Recv(&sum_parz, 1, MPI_DOUBLE, (id_proc + (p*2)), tag, MPI_COMM_WORLD, &status);
+			// 			sum = sum + sum_parz;
+			//  		} else {
+			//  			// spedisci a id_proc-2^i -- scritto come p/2
+			// 			// aggiorna tag?
+			// 			MPI_Send(&sum, 1, MPI_DOUBLE, (id_proc + (p/2)), tag, MPI_COMM_WORLD, &status);
+			//  		}
+			// 	}
+			// }
 			break;
 		}
 		case 3: // Applicazione della strategia 3.
 		{
-			for(i=0; i < log2(n_proc); i++) { // passi di comunicazione
-				// tutti i processi partecipano ad ogni passo
-				if ((id_proc % pow(2, i+1)) < pow(2, i)) { // si decide solo a chi si invia e da chi si riceve
-					//aggiornare tag
-					// ricevi da id_proc+2^i
-					MPI_Recv(&sum_parz, 1, MPI_DOUBLE, (id_proc + (p*2)), tag, MPI_COMM_WORLD, &status);
-					// spedisci a id_proc+2^i
-					MPI_Send(&sum, 1, MPI_DOUBLE, (id_proc + (p*2)), tag, MPI_COMM_WORLD, &status);
-					// calcola somma
-					sum = sum + sum_parz;
-				} else {
-					//aggiornare tag
-					// ricevi da id_proc-2^i
-					MPI_Recv(&sum_parz, 1, MPI_DOUBLE, (id_proc - (p/2)), tag, MPI_COMM_WORLD, &status);
-					// spedisci a id_proc-2^i
-					MPI_Send(&sum, 1, MPI_DOUBLE, (id_proc - (p/2)), tag, MPI_COMM_WORLD, &status);
-					// calcola somma
-					sum = sum + sum_parz;
-			 	}
-			}
-
+			// for(i=0; i < log2(n_proc); i++) { // passi di comunicazione
+			// 	// tutti i processi partecipano ad ogni passo
+			// 	if ((id_proc % pow(2, i+1)) < pow(2, i)) { // si decide solo a chi si invia e da chi si riceve
+			// 		//aggiornare tag
+			// 		// ricevi da id_proc+2^i
+			// 		MPI_Recv(&sum_parz, 1, MPI_DOUBLE, (id_proc + (p*2)), tag, MPI_COMM_WORLD, &status);
+			// 		// spedisci a id_proc+2^i
+			// 		MPI_Send(&sum, 1, MPI_DOUBLE, (id_proc + (p*2)), tag, MPI_COMM_WORLD, &status);
+			// 		// calcola somma
+			// 		sum = sum + sum_parz;
+			// 	} else {
+			// 		//aggiornare tag
+			// 		// ricevi da id_proc-2^i
+			// 		MPI_Recv(&sum_parz, 1, MPI_DOUBLE, (id_proc - (p/2)), tag, MPI_COMM_WORLD, &status);
+			// 		// spedisci a id_proc-2^i
+			// 		MPI_Send(&sum, 1, MPI_DOUBLE, (id_proc - (p/2)), tag, MPI_COMM_WORLD, &status);
+			// 		// calcola somma
+			// 		sum = sum + sum_parz;
+			//  	}
+			// }
 			break;
 		}
 		default:
@@ -300,10 +303,6 @@ int main(int argc, char **argv) {
 		{
 			printf("\nProcesso n.%d\n", id_proc);
 			printf("\nLa somma totale e' %f\n", sum);
-		}
-		case 4:
-		{
-
 		}
 		default:
 			break;
