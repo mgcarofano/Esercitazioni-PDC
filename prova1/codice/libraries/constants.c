@@ -4,7 +4,7 @@
 /*
 	NOT_ENOUGH_ARGS_ERROR: int
 	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma è stata terminata per mancanza di un sufficiente di argomenti.
+    programma è stata terminata per mancanza di un numero sufficiente di argomenti.
 */
 
 #define NOT_ENOUGH_ARGS_ERROR 1
@@ -105,7 +105,7 @@
 #define EXIT_APPLICATION 5
 
 /*
-    Le seguenti 3 costanti sono valori interi che rappresentano
+    Le seguenti 4 costanti sono valori interi che rappresentano
     le possibili scelte che può inserire l'utente nel menu'
     della suite di test dell'applicazione.
 */
