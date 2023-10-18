@@ -17,9 +17,7 @@ int getIntegerFromInput();
 
 void checkScelta(int scelta, int lim_inf, int lim_sup);
 
-void createPBS(int scelta, int q_num, int time_calc);
-
-void printFile(FILE *f);
+void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, const char* path);
 
 /* **************************************************************************** */
 

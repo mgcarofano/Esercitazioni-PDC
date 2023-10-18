@@ -98,18 +98,19 @@
     dell'applicazione.
 */
 
-#define FIRST_STRATEGY_APPLICATION 1
-#define SECOND_STRATEGY_APPLICATION 2
-#define THIRD_STRATEGY_APPLICATION 3
+#define FIRST_STRATEGY 1
+#define SECOND_STRATEGY 2
+#define THIRD_STRATEGY 3
 #define TESTING_SUITE 4
 #define EXIT_APPLICATION 5
 
 /*
-    Le seguenti 4 costanti sono valori interi che rappresentano
+    Le seguenti 5 costanti sono valori interi che rappresentano
     le possibili scelte che può inserire l'utente nel menu'
     della suite di test dell'applicazione.
 */
 
+#define NO_TEST 0
 #define SUM_ONE_TEST 1
 #define SUM_20_NUMBERS_TEST 2
 #define GAUSS_TEST 3

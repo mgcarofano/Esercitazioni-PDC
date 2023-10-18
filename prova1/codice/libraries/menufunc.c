@@ -150,13 +150,13 @@ void checkScelta(int scelta, int lim_inf, int lim_sup) {
 	}
 }
 
-void createPBS(int scelta, int q_num, int time_calc) {
+void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, const char* path) {
 
 	FILE *pbs_file;
 	double op = 0.0;
 
-	if ((pbs_file = fopen(NOME_PROVA".pbs", "w")) == NULL) {
-		printf("Errore durante l'esecuzione!");
+	if ((pbs_file = fopen(path, "w")) == NULL) {
+		printf("Errore durante l'esecuzione!\n");
 		printf("Applicazione terminata.\n");
 		exit(FILE_OPENING_ERROR);
 	}
@@ -164,8 +164,8 @@ void createPBS(int scelta, int q_num, int time_calc) {
 	fprintf(pbs_file, "#!/bin/bash\n");
 	fclose(pbs_file);
 
-	if ((pbs_file = fopen(NOME_PROVA".pbs", "a")) == NULL) {
-		printf("Errore durante l'esecuzione!");
+	if ((pbs_file = fopen(path, "a")) == NULL) {
+		printf("Errore durante l'esecuzione!\n");
 		printf("Applicazione terminata.\n");
 		exit(FILE_OPENING_ERROR);
 	}
@@ -214,7 +214,7 @@ void createPBS(int scelta, int q_num, int time_calc) {
 		fprintf(pbs_file, "-machinefile $PBS_NODEFILE -n ${NCPU} ");
 	}
 
-	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA " %d %d", scelta, q_num);
+	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA " %d %d %d", scelta, q_num, test);
 
 	/*
 		Come richiesto dalle specifiche dell'algoritmo, se la quantità
@@ -238,15 +238,6 @@ void createPBS(int scelta, int q_num, int time_calc) {
 	);
 
 	fclose(pbs_file);
-}
-
-void printFile(FILE *f) {
-	char char_to_read;
-
-	do {
-		char_to_read = fgetc(f);
-		if (char_to_read != EOF) printf("%c", char_to_read);
-	} while (char_to_read != EOF);
 }
 
 /* **************************************************************************** */

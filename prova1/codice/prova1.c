@@ -10,7 +10,8 @@ int main(int argc, char **argv) {
 	/* ************************************************************************ */
 	// DEFINIZIONE DELLE VARIABILI
 
-	int scelta = 0, q_num = 0, time_calc = NO_TIME_CALC;
+	int scelta = 0, q_num = 0;
+	int test = NO_TEST, time_calc = NO_TIME_CALC;
 	
 	int id_proc = 0, n_proc = 0, rest = 0;
 	int q_loc = 0, tag = 1;
@@ -86,6 +87,7 @@ int main(int argc, char **argv) {
 
 		scelta = argToInt(argv[1]);
 		q_num = argToInt(argv[2]);
+		test = argToInt(argv[3]);
 
 		/*
 			Come richiesto dalle specifiche dell'algoritmo, se le strategie
@@ -122,7 +124,8 @@ int main(int argc, char **argv) {
 
 	MPI_Bcast(&scelta, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&q_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	// MPI_Bcast(&time_calc, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&test, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&time_calc, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	// Si distribuisce equamente il numero di operandi tra tutti i processori.
 	q_loc = q_num / n_proc;
@@ -153,30 +156,64 @@ int main(int argc, char **argv) {
 
 		op = (double *)calloc (q_num, sizeof(double));
 
-		if (q_num <= 20) {
-			for (i=0; i < q_num; i++) {
-				op[i] = argToDouble(argv[i+3]);
-				// printf("--- op[i]: %f ---\n", op[i]);
-			}
-		} else {
+		switch(test) {
+			case NO_TEST: {
+				if (q_num <= 20) {
+					for (i=0; i < q_num; i++) {
+						op[i] = argToDouble(argv[i+4]);
+						// printf("--- op[i]: %f ---\n", op[i]);
+					}
+				} else {
 
-			srand((unsigned)time(&seed));
+					srand((unsigned)time(&seed));
 
-			for (i=0; i < q_num; i++) {
-				double_rand = (double)rand();
-				int_rand = (int)rand();
+					for (i=0; i < q_num; i++) {
+						double_rand = (double)rand();
+						int_rand = (int)rand();
 
-				// Si genera un numero casuale reale compreso tra 0 e 100
-				op[i] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
+						// Si genera un numero casuale reale compreso tra 0 e 100
+						op[i] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
 
-				// Si ha il 33% di possibilita che op[i] < 0
-				if (int_rand % 3 == 0) {
-					op[i] = op[i] * (-1);
+						// Si ha il 33% di possibilita che op[i] < 0
+						if (int_rand % 3 == 0) {
+							op[i] = op[i] * (-1);
+						}
+
+						// printf("--- op[%d]: %f ---\n", i, op[i]);
+					}
 				}
-
-				// printf("--- op[%d]: %f ---\n", i, op[i]);
+				break;
 			}
+			case SUM_ONE_TEST: {
+				for (i=0; i < q_num; i++) {
+					op[i] = 1;
+				}
+				break;
+			}
+			case SUM_20_NUMBERS_TEST: {
+				srand((unsigned)time(&seed));
+				for (i=0; i < q_num; i++) {
+					double_rand = (double)rand();
+					int_rand = (int)rand();
+
+					op[i] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
+					
+					if (int_rand % 3 == 0) {
+						op[i] = op[i] * (-1);
+					}
+				}
+				break;
+			}
+			case GAUSS_TEST: {
+				for (i=0; i < q_num; i++) {
+					op[i] = i;
+				}
+				break;
+			}
+			default:
+				break;
 		}
+
 
 		// Si assegnano gli operandi locali del processore con id_proc == 0
 		for (i=0; i < q_loc; i++) {

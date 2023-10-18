@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
 	// DEFINIZIONE DELLE VARIABILI
 
 	int scelta = 0, q_num = 0, time_calc = NO_TIME_CALC;
-	int wait_time = TIMEOUT;
+	int wait_time = TIMEOUT, i = 0;
 
 	FILE *out_file, *err_file;
 
@@ -29,9 +29,9 @@ int main(int argc, char **argv) {
 	// SCELTA DELLA STRATEGIA DA APPLICARE
 
 	printf("Scegli un'operazione da effettuare: \n");
-	printf("%d. \t Applicazione della strategia 1.\n", FIRST_STRATEGY_APPLICATION);
-	printf("%d. \t Applicazione della strategia 2.\n", SECOND_STRATEGY_APPLICATION);
-	printf("%d. \t Applicazione della strategia 3.\n", THIRD_STRATEGY_APPLICATION);
+	printf("%d. \t Applicazione della strategia 1.\n", FIRST_STRATEGY);
+	printf("%d. \t Applicazione della strategia 2.\n", SECOND_STRATEGY);
+	printf("%d. \t Applicazione della strategia 3.\n", THIRD_STRATEGY);
 	printf("%d. \t Esecuzione della suite di testing.\n", TESTING_SUITE);
 	printf("%d. \t Chiudere l'applicazione.\n\n", EXIT_APPLICATION);
 	scelta = getIntegerFromInput();
@@ -45,12 +45,11 @@ int main(int argc, char **argv) {
 		if (scelta == TESTING_SUITE) {
 
 			/*
-				Nell'eseguire la suite di test, il programma fornira':
+				Nell'eseguire la suite di testing, il programma fornira':
 				-	il risultato della somma applicando la 1a strategia;
-				-	il risultato della somma applicando la 2a strategia;
-				-	il risultato della somma applicando la 3a strategia;
-				-	i tempi di esecuzione relativi all'esecuzione
-					di tutte e tre le strategie.
+				-	il risultato della somma applicando la 2a strategia (se possibile);
+				-	il risultato della somma applicando la 3a strategia (se possibile);
+				-	i tempi di esecuzione relativi all'esecuzione delle 3 strategie.
 			*/
 
 			printf("Scegli un test da eseguire: \n");
@@ -61,8 +60,32 @@ int main(int argc, char **argv) {
 			scelta = getIntegerFromInput();
 			checkScelta(scelta, 1, EXIT_TEST);
 
-			// TODO: suite di testing
-			// createPBS(scelta, q_num, OK_TIME_CALC);
+			switch(scelta) {
+				case SUM_ONE_TEST: {
+					break;
+				}
+				case SUM_20_NUMBERS_TEST: {
+					break;
+				}
+				case GAUSS_TEST: {
+					printf("Inserisci il limite superiore dell'intervallo: \n");
+					q_num = getIntegerFromInput();
+
+					if (q_num <= 1) {
+						printf("Devi inserire almeno due operandi!\n");
+						printf("Applicazione terminata.\n");
+						exit(NOT_ENOUGH_OPERANDS);
+					}
+		
+					// createPBS(...)
+					
+					break;
+				}
+				case EXIT_TEST:
+				default:
+					break;
+				
+			}
 
 		} else {
 
@@ -78,97 +101,9 @@ int main(int argc, char **argv) {
 			}
 
 			// CREAZIONE DEL FILE DI ESECUZIONE .PBS
-			createPBS(scelta, q_num, NO_TIME_CALC);
-
-			/* **************************************************************** */
-			// ESECUZIONE DEL COMANDO QSUB
-
-			printf("Esecuzione in corso...\n");
-
-			/*
-				--- int system (const char* command) ---
-				Si utilizza questa funzione per eseguire
-				un comando della shell. In particolare:
-				-	rm: 	per eliminare la cartella 'output' nell'eventuale
-							caso ci fosse un vecchio output memorizzato
-				-	mkdir:	per creare la directory dove memorizzare
-							gli output dell'esecuzione.
-				-	qsub:	per inviare il programma .pbs creato
-							precedentemente alla coda di lavoro del cluster.
-			*/
-
-			system(RM_PATH" -rf ../output");
-			system(MKDIR_PATH" -p ../output");
-			system(QSUB_PATH" "NOME_PROVA".pbs > /dev/null 2>&1");
-
-			printf("\n");
-
-			/* **************************************************************** */
-			// STAMPA DELL'OUTPUT
-
-			printf("Stampa dell'output in corso...\n");
-
-			/*
-				Con questo ciclo while si attende che l'output venga
-				scritto correttamente nei file .out e .err dall'esecuzione
-				del comando 'qsub'.
-			*/
-
-			while (wait_time > 0) {
-				if ((err_file = fopen("../output/"NOME_PROVA".err", "r")) == NULL
-					|| (out_file = fopen("../output/"NOME_PROVA".out", "r")) == NULL) {
-					
-					sleep(1);
-					printf("."); fflush(stdout);
-					wait_time--;
-				} else {
-					break;
-				}
-			}
-
-			printf("\n\n");
-
-			if (wait_time <= 0) {
-				printf("Errore nella lettura dell'output!\n\n");
-				printf("Applicazione terminata.\n");
-				exit(FILE_OPENING_ERROR);
-			}
-
-			/*
-				Si recupera la lunghezza del file .err leggendone il
-				numero di byte:
-				-	SEEK_END:	si sposta il puntatore alla fine del file.
-				-	ftell():	ritorna la posizione corrente del puntatore.
-				-	SEEK_SET:	si sposta il puntatore all'inizio del file
-								per consentirne una successiva lettura.
-			*/
-
-			fseek(err_file, 0, SEEK_END); // seek to end of file
-			err_size = ftell(err_file); // get current file pointer
-			fseek(err_file, 0, SEEK_SET); // seek back to beginning of file
-
-			/*
-				--- void printFile(FILE *f) ---
-				Si utilizza la funzione 'printFile' definita in 'menufunc.h'
-				per riportare il contenuto del file 'f' sulla console.
-				
-				In particolare, se l'esecuzione del comando 'qsub' ha
-				generato un file .err non vuoto, allora si preferisce la
-				stampa di questo file al file .out.
-			*/
-
-			if (err_size > 0) {
-				printf("\n\n---------- ERROR ----------\n\n");
-				printFile(err_file);
-				printf("\n\n------------\n");
-			} else {
-				printf("\n\n---------- OUTPUT ----------\n\n");
-				printFile(out_file);
-				printf("\n------------\n");
-			}
-
-			fclose(out_file);
-			fclose(err_file);
+			system(RM_PATH" -rf ../jobs");
+			system(MKDIR_PATH" -p ../jobs");
+			createPBS(8, scelta, q_num, NO_TEST, NO_TIME_CALC, "../jobs/"NOME_PROVA".pbs");
 
 		}
 
