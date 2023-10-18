@@ -19,9 +19,10 @@ int main(int argc, char **argv) {
 
 	double *op, *op_loc;
 	double sum = 0.0, sum_parz = 0.0;
+	double log_num = 0.0;
 
-	double t0 = 0.0, t1 = 0.0;
-	double time_loc = 0.0, time_tot = 0.0;
+	double t_start = 0.0, t_end = 0.0;
+	double t_loc = 0.0, t_tot = 0.0;
 
 	int int_rand = 0;
 	double double_rand = 0.0;
@@ -65,8 +66,8 @@ int main(int argc, char **argv) {
 		printf("Inizio esecuzione.\n\n");
 
 		/*
-			Affidiamo al primo processore il compito di leggere
-			gli argomenti in input 'argv[]'.
+			Si affida al primo processore con id_proc == 0 il compito
+			di leggere gli argomenti in input 'argv[]'.
 		*/
 
 		if (argc < 4) {
@@ -85,7 +86,29 @@ int main(int argc, char **argv) {
 
 		scelta = argToInt(argv[1]);
 		q_num = argToInt(argv[2]);
-		// time_calc = argToInt(argv[3]);
+
+		/*
+			Come richiesto dalle specifiche dell'algoritmo, se le strategie
+			2 e 3 non sono applicabili (perche' il numero di processori
+			non e' potenza di 2), allora si deve applicare la strategia 1.
+
+			Per realizzare questo controllo, si calcola il log2() del numero
+			di processori 'n_proc' e, quindi, si utilizzano le funzioni ceil()
+			che, rispettivamente, restituiscono il tetto e la base.
+
+			Se questi valori calcolati sono diversi, allora si e' in presenza
+			di un numero di processori che non e' potenza di 2. Allora si
+			deve applicare la strategia 1.
+		*/
+
+		log_num = log2(n_proc);
+		if (!(ceil(log_num) == floor(log_num))) {
+			printf("Il numero di processori (%d) non e' potenza di 2.\n", n_proc);
+			scelta = 1;
+		}
+
+		printf("Applicazione della strategia %d.\n", scelta);
+
 	}
 
 	/*
@@ -110,10 +133,26 @@ int main(int argc, char **argv) {
 		q_loc++;
 	}
 
-	op = (double *)calloc (q_num, sizeof(double));
+	/*
+		--- void* calloc (size_t num, size_t size) ---
+		Si utilizza questa funzione per allocare in memoria un vettore
+		di 'num' elementi per memorizzare gli operandi locali.
+		Ciascun elemento ha una dimensione del vettore ha una dimensione
+		pari a 'size', e sarà inizializzato con tutti i suoi bit a 0.
+	*/
+
 	op_loc = (double *)calloc (q_loc, sizeof(double));
 
 	if (id_proc == 0) {
+
+		/*
+			Come prima, si affida al primo processore il compito di leggere
+			gli operandi della somma (da argv[] se q_num <= 20) oppure di
+			assegnarne un valore random.
+		*/
+
+		op = (double *)calloc (q_num, sizeof(double));
+
 		if (q_num <= 20) {
 			for (i=0; i < q_num; i++) {
 				op[i] = argToDouble(argv[i+3]);
@@ -138,21 +177,21 @@ int main(int argc, char **argv) {
 				// printf("--- op[%d]: %f ---\n", i, op[i]);
 			}
 		}
-	}
 
-	MPI_Bcast(op, q_num, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+		// Si assegnano gli operandi locali del processore con id_proc == 0
+		for (i=0; i < q_loc; i++) {
+			op_loc[i] = op[i];
+		}
 
-	if (id_proc == 0) {
-		op_loc = op;
+		/*
+			Si distribuiscono equamente gli operandi rimanenti a tutti
+			gli altri processori utilizzando la funzione MPI_Send().
+		*/
+
 		tmp = q_loc;
-		id_op = 0;
-
 		for (i=1; i < n_proc; i++) {
 			id_op = id_op + tmp;
 			tag = i + DISTRIBUTION_TAG;
-			if (i == rest) {
-				tmp--;
-			}
 
 			/*
 				--- int MPI_Send(void *buf, int count, MPI_Datatype datatype,
@@ -166,6 +205,14 @@ int main(int argc, char **argv) {
 			MPI_Send(&op[id_op], tmp, MPI_DOUBLE, i, tag, MPI_COMM_WORLD);
 		}
 
+		/*
+			--- void free (void* ptr) ---
+			Dopo aver distribuito gli operandi,
+			si libera lo spazio allocato in memoria.
+		*/
+		
+		free(op);
+		
 	} else {
 		tag = id_proc + DISTRIBUTION_TAG;
 
@@ -183,25 +230,40 @@ int main(int argc, char **argv) {
 		MPI_Recv(op_loc, q_loc, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD, &status);
 	}
 
-	/* ************************************************************************ */
-	// CALCOLO DELLA SOMMA PARZIALE
-
-	// printf("\nProcesso n.%d\n", id_proc);
-	// printf("scelta: %d, q_num: %d, time_calc: %d\n", scelta, q_num, time_calc);
-	// printf("q_loc: %d, q_num: %d, time_calc: %d\n", scelta, q_num, time_calc);
-
-	if (id_proc == 0) {
-		if (scelta != 4) {
-			printf("Applicazione della strategia %d.\n", scelta);
-		} else {
-			printf("Esecuzione dell'esempio d'uso (somma di 1).\n");
-		}
+	printf("\n--- PROCESSO N.%d ---\n", id_proc);
+	printf("\tscelta: %d, q_num: %d, time_calc: %d, q_loc: %d\n\n\t", scelta, q_num, time_calc, q_loc);
+	for (i=0; i < n_proc; i++) {
+		printf("op_loc[%d]: %f, ", i, op_loc[i]);
 	}
+	printf("\n\n-----\n\n");
+
+	/* ************************************************************************ */
+	// INIZIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
 
 	if (time_calc == OK_TIME_CALC) {
-		// MPI_Barrier(MPI_COMM_WORLD);
-		t0 = MPI_Wtime();
+
+		/*
+			--- int MPI_Barrier(MPI_Comm comm) ---
+			Si utilizza questa funzione per restituire il controllo al
+			chiamante solo dopo che tutti i processori del contesto 'comm'
+			hanno effettuato la chiamata.
+			Per calcolare correttamente i tempi di esecuzione in
+			sicurezza, si aspetta che tutti i processori siano sincronizzati.
+		*/
+
+		MPI_Barrier(MPI_COMM_WORLD);
+
+		/*
+			--- double MPI_Wtime() ---
+			Si utilizza per ottenere un valore di tempo in secondi
+			rispetto ad un tempo arbitrario nel passato.
+		*/
+
+		t_start = MPI_Wtime();
 	}
+
+	/* ************************************************************************ */
+	// CALCOLO DELLA SOMMA PARZIALE
 
 	sum = 0.0;
 	for(i=0; i < q_loc; i++) {
@@ -278,17 +340,32 @@ int main(int argc, char **argv) {
 		}
 	}
 
-  	/* ************************************************************************ */
-	// STAMPA DELL'OUTPUT
+	/* ************************************************************************ */
+	// FINE DEL CALCOLO DEI TEMPI DI ESECUZIONE
 
 	if (time_calc == OK_TIME_CALC) {
-		t1 = MPI_Wtime();
-		time_loc = t1 - t0;
-		MPI_Reduce(&time_loc, &time_tot, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+		t_end = MPI_Wtime();
+
+		// Si calcola la distanza di tempo tra l'istante iniziale e quello finale.
+		t_loc = t_end - t_start;
+
+		/*
+			--- int MPI_Reduce(void *sendbuf, void *recvbuf, int count,
+    				MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm) ---
+			Si utilizza questa funzione per eseguire un'operazione collettiva
+			su tutti i processori del contesto. In questo caso, si desidera 
+			calcolare il massimo tempo tra tutti i tempi calcolati localmente.
+		*/
+
+		MPI_Reduce(&t_loc, &t_tot, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
 		if (id_proc == 0) {
-			printf("\nApplicazione della strategia %d terminata in %e sec\n", scelta, time_tot);
+			printf("\nApplicazione della strategia %d terminata in %e sec\n", scelta, t_tot);
 		}
 	}
+
+  	/* ************************************************************************ */
+	// STAMPA DELL'OUTPUT
 
 	switch (scelta) {
 		case 1:
@@ -303,8 +380,10 @@ int main(int argc, char **argv) {
 		{
 			printf("\nProcesso n.%d\n", id_proc);
 			printf("\nLa somma totale e' %f\n", sum);
+			break;
 		}
 		default:
+			printf("Errore nella stampa dell'output!\n");
 			break;
 	}
 
@@ -312,18 +391,19 @@ int main(int argc, char **argv) {
 	// TERMINAZIONE DELL'ESECUZIONE
 
 	/*
+		--- int MPI_Finalize() ---
 		Determina la fine del programma MPI.
 		Da questo punto in poi non è possibile richiamare altre funzioni MPI.
 	*/
 
 	MPI_Finalize();
 
-	free(op);
 	free(op_loc);
 
 	if (id_proc == 0) {
 		printf("\nEsecuzione terminata.\n");
 	}
+
 	return 0;
 }
 
@@ -334,5 +414,7 @@ https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
 
 https://www.javatpoint.com/random-function-in-c
 https://www.securitronlinux.com/bejiitaswrath/a-nice-example-of-c-programming-getting-a-random-number-in-milliseconds/?utm_content=cmp-true
+
+https://www.educative.io/answers/how-to-check-if-a-number-is-a-power-of-2-in-cpp
 
 */

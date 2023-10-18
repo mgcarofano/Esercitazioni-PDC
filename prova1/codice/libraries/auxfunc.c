@@ -23,23 +23,30 @@ int argToInt(char *arg) {
 	errno = 0;
 
 	/*
-		Si preferisce l'utilizzo della funzione 'strtol' invece della
-		funzione 'atoi' perche' consente un maggior numero di controlli
-	*/
-
-	out_long = strtol(arg, &p, 10);
-
-	/*
 		Si controlla che l'argomento passato al programma non sia una stringa
 		vuota. La funzione 'strlen', infatti, ne misura la dimensione.
+	*/
+
+	/*
+		--- int MPI_Abort(MPI_Comm comm, int errorcode) ---
+		Nel caso in cui il controllo descritto in precedenza sia vero,
+		allora si forza la terminazione dell'esecuzione utilizzando
+		questa funzione MPI_Abort() e la funzione exit().
 	*/
 
 	if (strlen(arg) == 0) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Finalize();
+		MPI_Abort(MPI_COMM_WORLD, EMPTY_ARG_ERROR);
 		exit(EMPTY_ARG_ERROR);
 	}
+
+	/*
+		Si preferisce l'utilizzo della funzione 'strtol' invece della
+		funzione 'atoi' perche' consente un maggior numero di controlli
+	*/
+
+	out_long = strtol(arg, &p, 10);
 
 	/*
 		Si controlla che l'argomento passato al programma non sia una stringa
@@ -50,7 +57,7 @@ int argToInt(char *arg) {
 	if (*p != '\0' || errno != 0) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Finalize();
+		MPI_Abort(MPI_COMM_WORLD, INPUT_ARG_ERROR);
 		exit(INPUT_ARG_ERROR);
 	}
 
@@ -62,7 +69,7 @@ int argToInt(char *arg) {
 	if (out_long < INT_MIN || out_long > INT_MAX) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Finalize();
+		MPI_Abort(MPI_COMM_WORLD, NOT_INT_ARG_ERROR);
 		exit(NOT_INT_ARG_ERROR);
 	}
 	
@@ -75,19 +82,20 @@ double argToDouble(char *arg) {
 	double out_double = 0.0;
 
 	errno = 0;
-	out_double = strtod(arg, &p);
 
 	if (strlen(arg) == 0) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Finalize();
+		MPI_Abort(MPI_COMM_WORLD, EMPTY_ARG_ERROR);
 		exit(EMPTY_ARG_ERROR);
 	}
+
+	out_double = strtod(arg, &p);
 
 	if (*p != '\0' || errno != 0) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Finalize();
+		MPI_Abort(MPI_COMM_WORLD, INPUT_ARG_ERROR);
 		exit(INPUT_ARG_ERROR);
 	}
 	
