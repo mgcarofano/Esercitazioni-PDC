@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
 				system(MKDIR_PATH" -p ../jobs");
 			}
 
-			sprintf(pbs_path, "../jobs/prova1_%d.pbs", ++pbs_count);
+			sprintf(pbs_path, "../jobs/"NOME_PROVA"_%d.pbs", ++pbs_count);
 			createPBS(8, scelta, q_num, NO_TEST, NO_TIME_CALC, pbs_path, pbs_count);
 			printf("%s creato con successo!\n\n", pbs_path);
 

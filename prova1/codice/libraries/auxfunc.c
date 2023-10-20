@@ -19,6 +19,7 @@
 #include <string.h>
 #include <math.h>
 #include <tgmath.h>
+#include <time.h>
 
 /* **************************************************************************** */
 // CODICE DELLE FUNZIONI DEFINITE IN 'auxfunc.h'

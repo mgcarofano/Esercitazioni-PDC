@@ -24,11 +24,10 @@ int main(int argc, char **argv) {
 	int id_proc = 0, n_proc = 0, rest = 0;
 	int q_loc = 0, tag = 1;
 	int tmp = 0, id_op = 0;
-	int i = 0, pow_proc = 0;
+	int i = 0, pow_proc = 0, pow_tmp = 0, log_proc = 0;
 
 	double *op, *op_loc;
 	double sum = 0.0, sum_parz = 0.0;
-	double log_proc = 0.0;
 
 	double t_start = 0.0, t_end = 0.0;
 	double t_loc = 0.0, t_tot = 0.0;
@@ -112,13 +111,24 @@ int main(int argc, char **argv) {
 			deve applicare la strategia 1.
 		*/
 
-		log_proc = log2(n_proc);
-		if (!(ceil(log_proc) == floor(log_proc))) {
-			printf("Il numero di processori (%d) non e' potenza di 2.\n", n_proc);
-			scelta = 1;
-		}
+		if (n_proc > 1) {
 
-		printf("Applicazione della strategia %d.\n", scelta);
+			if (!(ceil(log2(n_proc)) == floor(log2(n_proc)))) {
+				printf("Il numero di processori (%d) non e' potenza di 2.\n", n_proc);
+				scelta = FIRST_STRATEGY;
+			} else {
+				log_proc = log2(n_proc);
+			}
+
+			printf("Applicazione della strategia %d.\n", scelta);
+
+		} else {
+
+			printf("Il numero di processori (%d) non e' sufficiente per applicare la strategia %d.\n", n_proc, scelta);
+			scelta = NO_STRATEGY;
+			printf("Calcolo della somma in sequenziale.\n");
+
+		}
 
 	}
 
@@ -135,6 +145,7 @@ int main(int argc, char **argv) {
 	MPI_Bcast(&q_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&test, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&time_calc, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&log_proc, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	// Si distribuisce equamente il numero di operandi tra tutti i processori.
 	q_loc = q_num / n_proc;
@@ -170,7 +181,6 @@ int main(int argc, char **argv) {
 				if (q_num <= 20) {
 					for (i=0; i < q_num; i++) {
 						op[i] = argToDouble(argv[i+5]);
-						// printf("--- op[i]: %f ---\n", op[i]);
 					}
 				} else {
 
@@ -187,8 +197,6 @@ int main(int argc, char **argv) {
 						if (int_rand % 3 == 0) {
 							op[i] = op[i] * (-1);
 						}
-
-						// printf("--- op[%d]: %f ---\n", i, op[i]);
 					}
 				}
 				break;
@@ -297,6 +305,9 @@ int main(int argc, char **argv) {
 	// SELEZIONE DELLA STRATEGIA
 
   	switch (scelta) {
+		case NO_STRATEGY: {
+			break;
+		}
 		case FIRST_STRATEGY: // Applicazione della strategia 1.
 		{
 			if (id_proc == 0) {
@@ -313,57 +324,106 @@ int main(int argc, char **argv) {
 		}
 		case SECOND_STRATEGY: // Applicazione della strategia 2.
 		{
-			log_proc = log2(n_proc);
+
+			/*
+				Nella 2° strategia, il numero di passi di comunicazione
+				e' dato dal logaritmo in base 2 del numero di processori,
+				gia' calcolato precedentemente.
+			*/
 
 			for(i=0; i < log_proc; i++) {
+
+				/*
+					Si calcola l'identificativo di chi deve partecipare
+					alle comunicazioni all'i-esimo passo.
+				*/
 
 			 	pow_proc = pow(2, i);
 
 			 	if ((id_proc % pow_proc) == 0) {
 
-					pow_proc = pow(2, i+1);
+					/*
+						Si calcola l'identificativo di chi deve ricevere
+						dalle comunicazioni dell'i-esimo passo.
+					*/
 
-			 		if ((id_proc % pow_proc) == 0) {
+					pow_tmp = pow(2, i+1);
 
-						tmp = id_proc + pow_proc;
-						tag = i + SECOND_STRATEGY_TAG;
+					if ((id_proc % pow_tmp) == 0) {
+
+						/*
+							Questi processori hanno il compito di ricevere la
+							somma parziale da chi esegue la MPI_Send().
+							In questo caso, sia 'tag' che 'tmp' si riferiscono
+							allo stesso processore (chi invia).
+						*/
+
+						tmp = id_proc + pow(2, i);
+						tag = tmp + SECOND_STRATEGY_TAG;
 						MPI_Recv(&sum_parz, 1, MPI_DOUBLE, tmp, tag, MPI_COMM_WORLD, &status);
 						sum = sum + sum_parz;
 
-			 		} else {
+					} else {
 
-						tmp = id_proc - pow_proc;
-						pow_proc = pow(2, i);
+						/*
+							I processori rimanenti avranno il solo compito di
+							inviare la propria somma parziale. In quest'altro
+							caso, 'tag' e 'tmp' hanno valori diversi:
+							-	tag: si riferisce a se' stesso (chi invia);
+							-	tmp: si riferisce al ricevente (chi riceve).
+						*/
+
+						tmp = id_proc - pow(2, i);
 						tag = id_proc + SECOND_STRATEGY_TAG;
 						MPI_Send(&sum, 1, MPI_DOUBLE, tmp, tag, MPI_COMM_WORLD);
 
-			 		}
+					}
 				}
 			}
 			break;
 		}
 		case THIRD_STRATEGY: // Applicazione della strategia 3.
 		{
-			// for(i=0; i < log2(n_proc); i++) { // passi di comunicazione
-			// 	// tutti i processi partecipano ad ogni passo
-			// 	if ((id_proc % pow(2, i+1)) < pow(2, i)) { // si decide solo a chi si invia e da chi si riceve
-			// 		//aggiornare tag
-			// 		// ricevi da id_proc+2^i
-			// 		MPI_Recv(&sum_parz, 1, MPI_DOUBLE, (id_proc + (p*2)), tag, MPI_COMM_WORLD, &status);
-			// 		// spedisci a id_proc+2^i
-			// 		MPI_Send(&sum, 1, MPI_DOUBLE, (id_proc + (p*2)), tag, MPI_COMM_WORLD, &status);
-			// 		// calcola somma
-			// 		sum = sum + sum_parz;
-			// 	} else {
-			// 		//aggiornare tag
-			// 		// ricevi da id_proc-2^i
-			// 		MPI_Recv(&sum_parz, 1, MPI_DOUBLE, (id_proc - (p/2)), tag, MPI_COMM_WORLD, &status);
-			// 		// spedisci a id_proc-2^i
-			// 		MPI_Send(&sum, 1, MPI_DOUBLE, (id_proc - (p/2)), tag, MPI_COMM_WORLD, &status);
-			// 		// calcola somma
-			// 		sum = sum + sum_parz;
-			//  	}
-			// }
+
+			/*
+				Nella 3° strategia, il numero di passi di comunicazione
+				e' lo stesso della 2° strategia, ma al termine dell'esecuzione
+				tutti i processori saranno a conoscenza della somma totale.
+			*/
+
+			for(i=0; i < log_proc; i++) {
+
+				/*
+					Rispetto alla 2° strategia, tutti i processori partecipano
+					ad ogni passo di comunicazione. Operativamente, si rimuove
+					il primo controllo '(id_proc % pow_tmp) == 0'.
+
+					Quindi, tutti i processori hanno il compito di inviare le
+					proprie somme parziali e, al contempo, ricevere le somme
+					parziali dagli altri processori in modo tale che tutti
+					calcolino localmente la somma totale.
+					
+					Operativamente, le operazioni di MPI_Send() e MPI_Recv()
+					sono in comune a tutti i processori, cambia solo
+					l'identificativo di chi ha inviato / riceve.
+				*/
+
+				pow_proc = pow(2, i+1);
+				pow_tmp = pow(2, i);
+
+				if ((id_proc % pow_proc) < pow_tmp) {
+					tmp = id_proc + pow_tmp;
+				} else {
+					tmp = id_proc - pow_tmp;
+				}
+
+				tag = id_proc + THIRD_STRATEGY_TAG;
+				MPI_Send(&sum, 1, MPI_DOUBLE, tmp, tag, MPI_COMM_WORLD);
+
+				tag = tmp + THIRD_STRATEGY_TAG;
+				MPI_Recv(&sum_parz, 1, MPI_DOUBLE, tmp, tag, MPI_COMM_WORLD, &status);
+				sum = sum + sum_parz;
+			}
 			break;
 		}
 		default:
@@ -401,6 +461,7 @@ int main(int argc, char **argv) {
 	// STAMPA DELL'OUTPUT
 
 	switch (scelta) {
+		case NO_STRATEGY:
 		case FIRST_STRATEGY:
 		{
 			if (id_proc == 0) {
@@ -412,7 +473,7 @@ int main(int argc, char **argv) {
 		case THIRD_STRATEGY:
 		{
 			printf("\nProcesso n.%d\n", id_proc);
-			printf("\nLa somma totale e' %f\n", sum);
+			printf("La somma totale e' %f\n", sum);
 			break;
 		}
 		default:
@@ -424,10 +485,13 @@ int main(int argc, char **argv) {
 	// TERMINAZIONE DELL'ESECUZIONE
 
 	/*
-		--- void free (void* ptr) ---
-		Al termine dell'esecuzione, si libera lo spazio allocato in memoria.
+		Attendiamo che tutti i processori abbiano portato a termine
+		correttamente il loro carico di lavoro.
 	*/
 
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	// Al termine dell'esecuzione, si libera lo spazio allocato in memoria.
 	free(op_loc);
 
 	if (id_proc == 0) {

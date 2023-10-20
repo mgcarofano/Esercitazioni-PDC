@@ -101,6 +101,13 @@
 // ENUMERAZIONI E COSTANTI
 
 /*
+	Si utilizza per applicare l'algoritmo del calcolo della somma in
+	sequenziale quando si esegue un caso di test su un solo processore.
+*/
+
+#define NO_STRATEGY 0
+
+/*
     Le seguenti 5 costanti sono valori interi che rappresentano
     le possibili scelte che può inserire l'utente nel menu' principale
     dell'applicazione.
