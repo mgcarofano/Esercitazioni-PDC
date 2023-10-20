@@ -1,3 +1,11 @@
+/*
+
+	prova1.c
+	di Mario Gabriele Carofano
+	e Francesco Noviello
+
+*/
+
 /* **************************************************************************** */
 // LIBRERIE
 
@@ -88,6 +96,7 @@ int main(int argc, char **argv) {
 		scelta = argToInt(argv[1]);
 		q_num = argToInt(argv[2]);
 		test = argToInt(argv[3]);
+		time_calc = argToInt(argv[4]);
 
 		/*
 			Come richiesto dalle specifiche dell'algoritmo, se le strategie
@@ -132,7 +141,7 @@ int main(int argc, char **argv) {
 
 	//	Gli operandi rimanenti sono distribuiti tra i primi 'rest' processori.
 	rest = q_num % n_proc;
-	if (rest != 0  && id_proc < rest) {
+	if (id_proc < rest) {
 		q_loc++;
 	}
 
@@ -160,7 +169,7 @@ int main(int argc, char **argv) {
 			case NO_TEST: {
 				if (q_num <= 20) {
 					for (i=0; i < q_num; i++) {
-						op[i] = argToDouble(argv[i+4]);
+						op[i] = argToDouble(argv[i+5]);
 						// printf("--- op[i]: %f ---\n", op[i]);
 					}
 				} else {
@@ -185,35 +194,17 @@ int main(int argc, char **argv) {
 				break;
 			}
 			case SUM_ONE_TEST: {
-				for (i=0; i < q_num; i++) {
-					op[i] = 1;
-				}
 				break;
 			}
 			case SUM_20_NUMBERS_TEST: {
-				srand((unsigned)time(&seed));
-				for (i=0; i < q_num; i++) {
-					double_rand = (double)rand();
-					int_rand = (int)rand();
-
-					op[i] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
-					
-					if (int_rand % 3 == 0) {
-						op[i] = op[i] * (-1);
-					}
-				}
 				break;
 			}
 			case GAUSS_TEST: {
-				for (i=0; i < q_num; i++) {
-					op[i] = i;
-				}
 				break;
 			}
 			default:
 				break;
 		}
-
 
 		// Si assegnano gli operandi locali del processore con id_proc == 0
 		for (i=0; i < q_loc; i++) {
@@ -231,6 +222,16 @@ int main(int argc, char **argv) {
 			tag = i + DISTRIBUTION_TAG;
 
 			/*
+				Il seguente controllo serve per aggiornare il processore
+				con id_proc == 0 sulla quantita' locale di operandi di
+				tutti gli altri processori.
+			*/
+
+			if (i == rest) {
+				tmp--;
+			}
+
+			/*
 				--- int MPI_Send(void *buf, int count, MPI_Datatype datatype,
 									int dest, int tag, MPI_Comm comm) ---
 				Il processo che esegue questa funzione spedisce i primi 'count'
@@ -241,14 +242,6 @@ int main(int argc, char **argv) {
 
 			MPI_Send(&op[id_op], tmp, MPI_DOUBLE, i, tag, MPI_COMM_WORLD);
 		}
-
-		/*
-			--- void free (void* ptr) ---
-			Dopo aver distribuito gli operandi,
-			si libera lo spazio allocato in memoria.
-		*/
-		
-		free(op);
 		
 	} else {
 		tag = id_proc + DISTRIBUTION_TAG;
@@ -267,14 +260,7 @@ int main(int argc, char **argv) {
 		MPI_Recv(op_loc, q_loc, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD, &status);
 	}
 
-	printf("\n--- PROCESSO N.%d ---\n", id_proc);
-	printf("\tscelta: %d, q_num: %d, time_calc: %d, q_loc: %d\n\n\t", scelta, q_num, time_calc, q_loc);
-	for (i=0; i < n_proc; i++) {
-		printf("op_loc[%d]: %f, ", i, op_loc[i]);
-	}
-	printf("\n\n-----\n\n");
-
-	/* ************************************************************************ */
+  	/* ************************************************************************ */
 	// INIZIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
 
 	if (time_calc == OK_TIME_CALC) {
@@ -311,7 +297,7 @@ int main(int argc, char **argv) {
 	// SELEZIONE DELLA STRATEGIA
 
   	switch (scelta) {
-		case 1: // Applicazione della strategia 1.
+		case FIRST_STRATEGY: // Applicazione della strategia 1.
 		{
 			if (id_proc == 0) {
 				for(i=1; i < n_proc; i++) {
@@ -323,10 +309,9 @@ int main(int argc, char **argv) {
 				tag = id_proc + FIRST_STRATEGY_TAG;
 				MPI_Send(&sum, 1, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD);
 			}
-
 			break;
 		}
-		case 2: // Applicazione della strategia 2.
+		case SECOND_STRATEGY: // Applicazione della strategia 2.
 		{
 			// for(i=0; i < log(n_proc); i++) { // passi di comunicazione
 			//  	p = pow(2, i);
@@ -346,7 +331,7 @@ int main(int argc, char **argv) {
 			// }
 			break;
 		}
-		case 3: // Applicazione della strategia 3.
+		case THIRD_STRATEGY: // Applicazione della strategia 3.
 		{
 			// for(i=0; i < log2(n_proc); i++) { // passi di comunicazione
 			// 	// tutti i processi partecipano ad ogni passo
@@ -405,15 +390,15 @@ int main(int argc, char **argv) {
 	// STAMPA DELL'OUTPUT
 
 	switch (scelta) {
-		case 1:
+		case FIRST_STRATEGY:
 		{
 			if (id_proc == 0) {
 				printf("\nLa somma totale e' %f\n", sum);
 			}
 			break;
 		}
-		case 2:
-		case 3:
+		case SECOND_STRATEGY:
+		case THIRD_STRATEGY:
 		{
 			printf("\nProcesso n.%d\n", id_proc);
 			printf("\nLa somma totale e' %f\n", sum);
@@ -428,19 +413,24 @@ int main(int argc, char **argv) {
 	// TERMINAZIONE DELL'ESECUZIONE
 
 	/*
+		--- void free (void* ptr) ---
+		Al termine dell'esecuzione, si libera lo spazio allocato in memoria.
+	*/
+
+	free(op_loc);
+
+	if (id_proc == 0) {
+		free(op);
+		printf("\nEsecuzione terminata.\n");
+	}
+
+	/*
 		--- int MPI_Finalize() ---
 		Determina la fine del programma MPI.
 		Da questo punto in poi non è possibile richiamare altre funzioni MPI.
 	*/
 
 	MPI_Finalize();
-
-	free(op_loc);
-
-	if (id_proc == 0) {
-		printf("\nEsecuzione terminata.\n");
-	}
-
 	return 0;
 }
 
