@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
 	int scelta = 0, q_num = 0, time_calc = NO_TIME_CALC;
 	int pbs_count = 0;
 	
-	char *pbs_path;
+	char pbs_path[255] = {};
 	FILE *pbs_file, *out_file, *err_file;
 
 	size_t err_size = 0;
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
 				system(MKDIR_PATH" -p ../jobs");
 			}
 
-			sprintf(pbs_path, "../jobs/"NOME_PROVA"_%d.pbs", ++pbs_count);
+			sprintf(pbs_path, "../jobs/prova1_%d.pbs", ++pbs_count);
 			createPBS(8, scelta, q_num, NO_TEST, NO_TIME_CALC, pbs_path, pbs_count);
 			printf("%s creato con successo!\n\n", pbs_path);
 
