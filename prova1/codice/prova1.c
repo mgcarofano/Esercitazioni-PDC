@@ -24,11 +24,11 @@ int main(int argc, char **argv) {
 	int id_proc = 0, n_proc = 0, rest = 0;
 	int q_loc = 0, tag = 1;
 	int tmp = 0, id_op = 0;
-	int i = 0, p = 0;
+	int i = 0, pow_proc = 0;
 
 	double *op, *op_loc;
 	double sum = 0.0, sum_parz = 0.0;
-	double log_num = 0.0;
+	double log_proc = 0.0;
 
 	double t_start = 0.0, t_end = 0.0;
 	double t_loc = 0.0, t_tot = 0.0;
@@ -112,8 +112,8 @@ int main(int argc, char **argv) {
 			deve applicare la strategia 1.
 		*/
 
-		log_num = log2(n_proc);
-		if (!(ceil(log_num) == floor(log_num))) {
+		log_proc = log2(n_proc);
+		if (!(ceil(log_proc) == floor(log_proc))) {
 			printf("Il numero di processori (%d) non e' potenza di 2.\n", n_proc);
 			scelta = 1;
 		}
@@ -313,22 +313,33 @@ int main(int argc, char **argv) {
 		}
 		case SECOND_STRATEGY: // Applicazione della strategia 2.
 		{
-			// for(i=0; i < log(n_proc); i++) { // passi di comunicazione
-			//  	p = pow(2, i);
-			//  	if ((id_proc % p) == 0) { // chi partecipa alla comunicazione
-			//  		//p = pow(2, i+1); -- riscritto come 2*p
-			//  		if ((id_proc % p) == 0) { // chi riceve le comunicazioni
-			//  			// ricevi da id_proc+2^i
-			// 			//aggiorna tag ?
-			// 			MPI_Recv(&sum_parz, 1, MPI_DOUBLE, (id_proc + (p*2)), tag, MPI_COMM_WORLD, &status);
-			// 			sum = sum + sum_parz;
-			//  		} else {
-			//  			// spedisci a id_proc-2^i -- scritto come p/2
-			// 			// aggiorna tag?
-			// 			MPI_Send(&sum, 1, MPI_DOUBLE, (id_proc + (p/2)), tag, MPI_COMM_WORLD, &status);
-			//  		}
-			// 	}
-			// }
+			log_proc = log2(n_proc);
+
+			for(i=0; i < log_proc; i++) {
+
+			 	pow_proc = pow(2, i);
+
+			 	if ((id_proc % pow_proc) == 0) {
+
+					pow_proc = pow(2, i+1);
+
+			 		if ((id_proc % pow_proc) == 0) {
+
+						tmp = id_proc + pow_proc;
+						tag = i + SECOND_STRATEGY_TAG;
+						MPI_Recv(&sum_parz, 1, MPI_DOUBLE, tmp, tag, MPI_COMM_WORLD, &status);
+						sum = sum + sum_parz;
+
+			 		} else {
+
+						tmp = id_proc - pow_proc;
+						pow_proc = pow(2, i);
+						tag = id_proc + SECOND_STRATEGY_TAG;
+						MPI_Send(&sum, 1, MPI_DOUBLE, tmp, tag, MPI_COMM_WORLD);
+
+			 		}
+				}
+			}
 			break;
 		}
 		case THIRD_STRATEGY: // Applicazione della strategia 3.

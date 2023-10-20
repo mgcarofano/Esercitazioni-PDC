@@ -211,11 +211,11 @@ void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, const
 				"echo PBS: la directory di lavoro e\\' $PBS_O_WORKDIR\n"
 				"echo PBS: Compilazione in esecuzione...\n"
 				"/usr/lib64/openmpi/1.4-gcc/bin/mpicc "
-				"-o $PBS_O_WORKDIR/" NOME_PROVA "_%d $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
+				"-o $PBS_O_WORKDIR/" NOME_PROVA "_%d -lm $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
 				"echo PBS: Compilazione completata.\n"
 				"\n"
 				"echo 'PBS: Job in esecuzione su '${NCPU}' cpu...'\n"
-				"echo >>>\n"
+				"echo '>>>'\n"
 				"/usr/lib64/openmpi/1.4-gcc/bin/mpiexec ",
 	pbs_count);
 
@@ -244,7 +244,7 @@ void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, const
 	}
 
 	fprintf(pbs_file,
-				"\necho >>>\n"
+				"\necho '>>>'\n"
 				"echo PBS: Job completato.\n"
 				"echo --- \n"
 	);
