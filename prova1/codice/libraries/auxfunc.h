@@ -1,3 +1,11 @@
+/*
+
+	auxfunc.h
+	di Mario Gabriele Carofano
+	e Francesco Noviello
+
+*/
+
 /* **************************************************************************** */
 // DIRETTIVE E LIBRERIE
 

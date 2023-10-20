@@ -1,3 +1,11 @@
+/*
+
+	auxfunc.c
+	di Mario Gabriele Carofano
+	e Francesco Noviello
+
+*/
+
 /* **************************************************************************** */
 // LIBRERIE
 
@@ -9,6 +17,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
+#include <math.h>
 #include <tgmath.h>
 
 /* **************************************************************************** */
@@ -37,7 +46,7 @@ int argToInt(char *arg) {
 	if (strlen(arg) == 0) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Abort(MPI_COMM_WORLD, EMPTY_ARG_ERROR);
+		MPI_Finalize();
 		exit(EMPTY_ARG_ERROR);
 	}
 
@@ -57,7 +66,7 @@ int argToInt(char *arg) {
 	if (*p != '\0' || errno != 0) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Abort(MPI_COMM_WORLD, INPUT_ARG_ERROR);
+		MPI_Finalize();
 		exit(INPUT_ARG_ERROR);
 	}
 
@@ -69,7 +78,7 @@ int argToInt(char *arg) {
 	if (out_long < INT_MIN || out_long > INT_MAX) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Abort(MPI_COMM_WORLD, NOT_INT_ARG_ERROR);
+		MPI_Finalize();
 		exit(NOT_INT_ARG_ERROR);
 	}
 	
@@ -86,7 +95,7 @@ double argToDouble(char *arg) {
 	if (strlen(arg) == 0) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Abort(MPI_COMM_WORLD, EMPTY_ARG_ERROR);
+		MPI_Finalize();
 		exit(EMPTY_ARG_ERROR);
 	}
 
@@ -95,7 +104,7 @@ double argToDouble(char *arg) {
 	if (*p != '\0' || errno != 0) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Abort(MPI_COMM_WORLD, INPUT_ARG_ERROR);
+		MPI_Finalize();
 		exit(INPUT_ARG_ERROR);
 	}
 	
