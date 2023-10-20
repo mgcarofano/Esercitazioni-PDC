@@ -1,3 +1,11 @@
+/*
+
+	constants.c
+	di Mario Gabriele Carofano
+	e Francesco Noviello
+
+*/
+
 /* **************************************************************************** */
 // CODICI DI ERRORE
 

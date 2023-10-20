@@ -1,3 +1,11 @@
+/*
+
+	menufunc.h
+	di Mario Gabriele Carofano
+	e Francesco Noviello
+
+*/
+
 /* **************************************************************************** */
 // DIRETTIVE E LIBRERIE
 
@@ -17,7 +25,7 @@ int getIntegerFromInput();
 
 void checkScelta(int scelta, int lim_inf, int lim_sup);
 
-void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, const char* path);
+void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, const char* pbs_path, int pbs_count);
 
 /* **************************************************************************** */
 

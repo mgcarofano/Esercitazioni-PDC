@@ -1,3 +1,11 @@
+/*
+
+	menufunc.c
+	di Mario Gabriele Carofano
+	e Francesco Noviello
+
+*/
+
 /* **************************************************************************** */
 // LIBRERIE
 
@@ -150,7 +158,7 @@ void checkScelta(int scelta, int lim_inf, int lim_sup) {
 	}
 }
 
-void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, const char* path) {
+void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, const char* path, int pbs_count) {
 
 	FILE *pbs_file;
 	double op = 0.0;
@@ -180,12 +188,15 @@ void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, const
 	}
 	
 	fprintf(pbs_file,
-				"\n#PBS -N " NOME_PROVA "\n"
-				"#PBS -o ../output/" NOME_PROVA ".out\n"
-				"#PBS -e ../output/" NOME_PROVA ".err\n"
+				"\n#PBS -N " NOME_PROVA "_%d\n"
+				"#PBS -o ../output/" NOME_PROVA "_%d.out\n"
+				"#PBS -e ../output/" NOME_PROVA "_%d.err\n"
 				"\n"
-				"echo --- \n"
-	);
+				"rm -fr $PBS_O_HOME/prova1/output\n"
+				"mkdir -p $PBS_O_HOME/prova1/output\n"
+				"\n"
+				"echo --- \n",
+	pbs_count, pbs_count, pbs_count);
 
 	if (time_calc == OK_TIME_CALC) {
 		fprintf(pbs_file, "sort -u $PBS_NODEFILE > hostlist\n");
@@ -200,13 +211,13 @@ void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, const
 				"echo PBS: la directory di lavoro e\\' $PBS_O_WORKDIR\n"
 				"echo PBS: Compilazione in esecuzione...\n"
 				"/usr/lib64/openmpi/1.4-gcc/bin/mpicc "
-				"-o $PBS_O_WORKDIR/" NOME_PROVA " $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
+				"-o $PBS_O_WORKDIR/" NOME_PROVA "_%d $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
 				"echo PBS: Compilazione completata.\n"
 				"\n"
 				"echo 'PBS: Job in esecuzione su '${NCPU}' cpu...'\n"
-				"echo ---\n"
-				"/usr/lib64/openmpi/1.4-gcc/bin/mpiexec "
-	);
+				"echo >>>\n"
+				"/usr/lib64/openmpi/1.4-gcc/bin/mpiexec ",
+	pbs_count);
 
 	if (time_calc == OK_TIME_CALC) {
 		fprintf(pbs_file, "-machinefile hostlist -np ${NCPU} ");
@@ -214,7 +225,8 @@ void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, const
 		fprintf(pbs_file, "-machinefile $PBS_NODEFILE -n ${NCPU} ");
 	}
 
-	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA " %d %d %d", scelta, q_num, test);
+	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA "_%d %d %d %d %d",
+		pbs_count, scelta, q_num, test, time_calc);
 
 	/*
 		Come richiesto dalle specifiche dell'algoritmo, se la quantità
@@ -232,7 +244,7 @@ void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, const
 	}
 
 	fprintf(pbs_file,
-				"\necho ---\n"
+				"\necho >>>\n"
 				"echo PBS: Job completato.\n"
 				"echo --- \n"
 	);
