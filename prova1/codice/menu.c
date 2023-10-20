@@ -1,3 +1,11 @@
+/*
+
+	menu.c
+	di Mario Gabriele Carofano
+	e Francesco Noviello
+
+*/
+
 /* **************************************************************************** */
 // LIBRERIE
 
@@ -11,9 +19,10 @@ int main(int argc, char **argv) {
 	// DEFINIZIONE DELLE VARIABILI
 
 	int scelta = 0, q_num = 0, time_calc = NO_TIME_CALC;
-	int wait_time = TIMEOUT, i = 0;
-
-	FILE *out_file, *err_file;
+	int pbs_count = 0;
+	
+	char *pbs_path;
+	FILE *pbs_file, *out_file, *err_file;
 
 	size_t err_size = 0;
 
@@ -28,16 +37,16 @@ int main(int argc, char **argv) {
 	/* ************************************************************************ */
 	// SCELTA DELLA STRATEGIA DA APPLICARE
 
-	printf("Scegli un'operazione da effettuare: \n");
-	printf("%d. \t Applicazione della strategia 1.\n", FIRST_STRATEGY);
-	printf("%d. \t Applicazione della strategia 2.\n", SECOND_STRATEGY);
-	printf("%d. \t Applicazione della strategia 3.\n", THIRD_STRATEGY);
-	printf("%d. \t Esecuzione della suite di testing.\n", TESTING_SUITE);
-	printf("%d. \t Chiudere l'applicazione.\n\n", EXIT_APPLICATION);
-	scelta = getIntegerFromInput();
-	checkScelta(scelta, 1, EXIT_APPLICATION);
+	do {
 
-	if (scelta != EXIT_APPLICATION) {
+		printf("Scegli un'operazione da effettuare: \n");
+		printf("%d. \t Applicazione della strategia 1.\n", FIRST_STRATEGY);
+		printf("%d. \t Applicazione della strategia 2.\n", SECOND_STRATEGY);
+		printf("%d. \t Applicazione della strategia 3.\n", THIRD_STRATEGY);
+		printf("%d. \t Esecuzione della suite di testing.\n", TESTING_SUITE);
+		printf("%d. \t Chiudere l'applicazione.\n\n", EXIT_APPLICATION);
+		scelta = getIntegerFromInput();
+		checkScelta(scelta, 1, EXIT_APPLICATION);
 
 		/* ******************************************************************** */
 		// APPLICAZIONE DEGLI ESEMPI D'USO
@@ -87,7 +96,7 @@ int main(int argc, char **argv) {
 				
 			}
 
-		} else {
+		} else if (scelta != EXIT_APPLICATION) {
 
 			/* **************************************************************** */
 
@@ -100,14 +109,21 @@ int main(int argc, char **argv) {
 				exit(NOT_ENOUGH_OPERANDS);
 			}
 
+			/* **************************************************************** */
 			// CREAZIONE DEL FILE DI ESECUZIONE .PBS
-			system(RM_PATH" -rf ../jobs");
-			system(MKDIR_PATH" -p ../jobs");
-			createPBS(8, scelta, q_num, NO_TEST, NO_TIME_CALC, "../jobs/"NOME_PROVA".pbs");
+
+			if (pbs_count == 0) {
+				system(RM_PATH" -rf ../jobs");
+				system(MKDIR_PATH" -p ../jobs");
+			}
+
+			sprintf(pbs_path, "../jobs/"NOME_PROVA"_%d.pbs", ++pbs_count);
+			createPBS(8, scelta, q_num, NO_TEST, NO_TIME_CALC, pbs_path, pbs_count);
+			printf("%s creato con successo!\n\n", pbs_path);
 
 		}
 
-	}
+	} while (scelta != EXIT_APPLICATION);
 
 	/* ************************************************************************ */
 	// USCITA DALL'APPLICATIVO
