@@ -16,9 +16,9 @@
 int main(int argc, char **argv) {
 
 	/* ************************************************************************ */
-	// DEFINIZIONE DELLE VARIABILI
+	// INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
 
-	int strategia = 0, q_num = 0;
+	int strategia = NO_STRATEGY, q_num = 0;
 	int test = NO_TEST, time_calc = NO_TIME_CALC;
 	
 	int id_proc = 0, n_proc = 0, rest = 0;
@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 	MPI_Status status;
 
 	/* ************************************************************************ */
-	// INIZIALIZZAZIONE DI MPI
+	// INIZIALIZZAZIONE DELL'AMBIENTE MPI
 
 	/*
 		--- int MPI_Init(int *argc, char ***argv) ---
@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 	MPI_Comm_size(MPI_COMM_WORLD, &n_proc);
 
 	/* ************************************************************************ */
-	// LETTURA E DISTRIBUZIONE DEI DATI
+	// LETTURA DEI DATI
 	
 	if (id_proc == 0) {
 		printf("Inizio esecuzione.\n\n");
@@ -146,6 +146,9 @@ int main(int argc, char **argv) {
 	MPI_Bcast(&test, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&time_calc, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&log_proc, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	/* ************************************************************************ */
+	// DISTRIBUZIONE DEGLI OPERANDI
 
 	// Si distribuisce equamente il numero di operandi tra tutti i processori.
 	q_loc = q_num / n_proc;
@@ -371,7 +374,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* ************************************************************************ */
-	// SELEZIONE DELLA STRATEGIA
+	// APPLICAZIONE DELLA STRATEGIA
 
   	switch (strategia) {
 		case NO_STRATEGY: {

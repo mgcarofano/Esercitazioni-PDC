@@ -16,7 +16,7 @@
 int main(int argc, char **argv) {
 
 	/* ************************************************************************ */
-	// DEFINIZIONE DELLE VARIABILI
+	// INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
 
 	int strategia = 0, q_num = 0, test = NO_TEST, time_calc = NO_TIME_CALC;
 	int i = 0, pbs_count = 1;
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 		checkScelta(strategia, FIRST_STRATEGY, EXIT_APPLICATION);
 
 		/* ******************************************************************** */
-		// APPLICAZIONE DEGLI ESEMPI D'USO
+		// APPLICAZIONE DELLA SUITE DI TESTING
 
 		if (strategia == TESTING_SUITE) {
 
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
 			printf("%d. \t Somma di 1.\n", SUM_ONE_TEST);
 			printf("%d. \t Somma di un singolo numero.\n", SUM_SINGLE_NUMBER_TEST);
 			printf("%d. \t Somma di numeri interi opposti.\n", SUM_OPPOSITE_NUMBER_TEST);
-			printf("%d. \t Somma dei primi 'N' numeri naturali.\n", GAUSS_TEST);
+			printf("%d. \t Somma di 'N' numeri naturali di un intervallo.\n", GAUSS_TEST);
 			printf("%d. \t Chiudere la suite di testing.\n\n", EXIT_TEST);
 			test = getIntegerFromInput();
 			checkScelta(test, SUM_ONE_TEST, EXIT_TEST);
@@ -87,6 +87,7 @@ int main(int argc, char **argv) {
 		} else if (strategia != EXIT_APPLICATION) {
 
 			/* **************************************************************** */
+			// SCELTA DEL NUMERO DI OPERANDI DA SOMMARE
 
 			printf("Inserisci la quantita' di numeri da sommare: \n");
 			q_num = getIntegerFromInput();
