@@ -1,5 +1,7 @@
 folder = prova1
 login = CRFMGB01R
+file = prova1
+out = prova1_1
 
 scope:
 	ssh $(login)@ui-studenti.scope.unina.it
@@ -15,7 +17,7 @@ mpidocker:
 	docker run --rm -it -v $(shell pwd):/project mfisherman/openmpi
 
 mpirun:
-	mpicc -o $(folder)/codice/$(file) -lm $(folder)/codice/$(file).c
-	mpiexec --hostfile hostfile -np 8 $(folder)/codice/$(file) 3 19 0 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
+	mpicc -o $(folder)/codice/$(out) -lm $(folder)/codice/$(file).c
+	mpiexec --hostfile hostfile -np 8 $(folder)/codice/$(out) 2 100 4 1 1
 
 #	https://unix.stackexchange.com/questions/193368/can-scp-create-a-directory-if-it-doesnt-exist

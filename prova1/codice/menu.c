@@ -18,10 +18,9 @@ int main(int argc, char **argv) {
 	/* ************************************************************************ */
 	// DEFINIZIONE DELLE VARIABILI
 
-	int scelta = 0, q_num = 0, time_calc = NO_TIME_CALC;
-	int pbs_count = 0;
+	int strategia = 0, q_num = 0, test = NO_TEST, time_calc = NO_TIME_CALC;
+	int i = 0, pbs_count = 1;
 	
-	char pbs_path[255] = {};
 	FILE *pbs_file, *out_file, *err_file;
 
 	size_t err_size = 0;
@@ -45,13 +44,13 @@ int main(int argc, char **argv) {
 		printf("%d. \t Applicazione della strategia 3.\n", THIRD_STRATEGY);
 		printf("%d. \t Esecuzione della suite di testing.\n", TESTING_SUITE);
 		printf("%d. \t Chiudere l'applicazione.\n\n", EXIT_APPLICATION);
-		scelta = getIntegerFromInput();
-		checkScelta(scelta, 1, EXIT_APPLICATION);
+		strategia = getIntegerFromInput();
+		checkScelta(strategia, FIRST_STRATEGY, EXIT_APPLICATION);
 
 		/* ******************************************************************** */
 		// APPLICAZIONE DEGLI ESEMPI D'USO
 
-		if (scelta == TESTING_SUITE) {
+		if (strategia == TESTING_SUITE) {
 
 			/*
 				Nell'eseguire la suite di testing, il programma fornira':
@@ -63,40 +62,29 @@ int main(int argc, char **argv) {
 
 			printf("Scegli un test da eseguire: \n");
 			printf("%d. \t Somma di 1.\n", SUM_ONE_TEST);
-			printf("%d. \t Somma di 20 numeri con 20 processori.\n", SUM_20_NUMBERS_TEST);
+			printf("%d. \t Somma di un singolo numero.\n", SUM_SINGLE_NUMBER_TEST);
+			printf("%d. \t Somma di numeri interi opposti.\n", SUM_OPPOSITE_NUMBER_TEST);
 			printf("%d. \t Somma dei primi 'N' numeri naturali.\n", GAUSS_TEST);
 			printf("%d. \t Chiudere la suite di testing.\n\n", EXIT_TEST);
-			scelta = getIntegerFromInput();
-			checkScelta(scelta, 1, EXIT_TEST);
+			test = getIntegerFromInput();
+			checkScelta(test, SUM_ONE_TEST, EXIT_TEST);
 
-			switch(scelta) {
-				case SUM_ONE_TEST: {
-					break;
-				}
-				case SUM_20_NUMBERS_TEST: {
-					break;
-				}
-				case GAUSS_TEST: {
-					printf("Inserisci il limite superiore dell'intervallo: \n");
-					q_num = getIntegerFromInput();
+			if (test != EXIT_TEST) {
+				for (strategia = FIRST_STRATEGY; strategia <= THIRD_STRATEGY; strategia++) {
+					for (i = OP_MIN_EXP_TEST; i <= OP_MAX_EXP_TEST; i++) {
 
-					if (q_num <= 1) {
-						printf("Devi inserire almeno due operandi!\n");
-						printf("Applicazione terminata.\n");
-						exit(NOT_ENOUGH_OPERANDS);
+						q_num = pow(10, i);
+
+						createPBS(1, strategia, q_num, test, OK_TIME_CALC, pbs_count++);
+						createPBS(2, strategia, q_num, test, OK_TIME_CALC, pbs_count++);
+						createPBS(4, strategia, q_num, test, OK_TIME_CALC, pbs_count++);
+						createPBS(7, strategia, q_num, test, OK_TIME_CALC, pbs_count++);
+						createPBS(8, strategia, q_num, test, OK_TIME_CALC, pbs_count++);
 					}
-		
-					// createPBS(...)
-					
-					break;
 				}
-				case EXIT_TEST:
-				default:
-					break;
-				
 			}
 
-		} else if (scelta != EXIT_APPLICATION) {
+		} else if (strategia != EXIT_APPLICATION) {
 
 			/* **************************************************************** */
 
@@ -112,18 +100,11 @@ int main(int argc, char **argv) {
 			/* **************************************************************** */
 			// CREAZIONE DEL FILE DI ESECUZIONE .PBS
 
-			if (pbs_count == 0) {
-				system(RM_PATH" -rf ../jobs");
-				system(MKDIR_PATH" -p ../jobs");
-			}
-
-			sprintf(pbs_path, "../jobs/"NOME_PROVA"_%d.pbs", ++pbs_count);
-			createPBS(8, scelta, q_num, NO_TEST, NO_TIME_CALC, pbs_path, pbs_count);
-			printf("%s creato con successo!\n\n", pbs_path);
+			createPBS(8, strategia, q_num, NO_TEST, NO_TIME_CALC, pbs_count);
 
 		}
 
-	} while (scelta != EXIT_APPLICATION);
+	} while (strategia != EXIT_APPLICATION);
 
 	/* ************************************************************************ */
 	// USCITA DALL'APPLICATIVO

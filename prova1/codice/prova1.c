@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
 	/* ************************************************************************ */
 	// DEFINIZIONE DELLE VARIABILI
 
-	int scelta = 0, q_num = 0;
+	int strategia = 0, q_num = 0;
 	int test = NO_TEST, time_calc = NO_TIME_CALC;
 	
 	int id_proc = 0, n_proc = 0, rest = 0;
@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 	double t_start = 0.0, t_end = 0.0;
 	double t_loc = 0.0, t_tot = 0.0;
 
-	int int_rand = 0;
+	int int_rand = 0, gauss_inf = 0;
 	double double_rand = 0.0;
 	time_t seed;
 
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 
 	MPI_Comm_size(MPI_COMM_WORLD, &n_proc);
 
-	/* ******************************************************************** */
+	/* ************************************************************************ */
 	// LETTURA E DISTRIBUZIONE DEI DATI
 	
 	if (id_proc == 0) {
@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
 			stringhe 'argv[]' e convertirli in valori interi.
 		*/
 
-		scelta = argToInt(argv[1]);
+		strategia = argToInt(argv[1]);
 		q_num = argToInt(argv[2]);
 		test = argToInt(argv[3]);
 		time_calc = argToInt(argv[4]);
@@ -115,17 +115,17 @@ int main(int argc, char **argv) {
 
 			if (!(ceil(log2(n_proc)) == floor(log2(n_proc)))) {
 				printf("Il numero di processori (%d) non e' potenza di 2.\n", n_proc);
-				scelta = FIRST_STRATEGY;
+				strategia = FIRST_STRATEGY;
 			} else {
 				log_proc = log2(n_proc);
 			}
 
-			printf("Applicazione della strategia %d.\n", scelta);
+			printf("Applicazione della strategia %d.\n", strategia);
 
 		} else {
 
-			printf("Il numero di processori (%d) non e' sufficiente per applicare la strategia %d.\n", n_proc, scelta);
-			scelta = NO_STRATEGY;
+			printf("Il numero di processori (%d) non e' sufficiente per applicare la strategia %d.\n", n_proc, strategia);
+			strategia = NO_STRATEGY;
 			printf("Calcolo della somma in sequenziale.\n");
 
 		}
@@ -137,11 +137,11 @@ int main(int argc, char **argv) {
 							int root, MPI_Comm comm) ---
 		Si utilizza questa funzione per inviare gli argomenti letti dal
 		processore 0 (root) a tutti i processori del contesto, incluso se' stesso.
-		Cioè, i valori di 'scelta', 'q_num' e 'time_calc' (interi di dimensione 1)
+		Cioè, i valori di 'strategia', 'q_num' e 'time_calc' (interi di dimensione 1)
 		saranno copiati in tutti i processori del communicator MPI_COMM_WORLD.
 	*/
 
-	MPI_Bcast(&scelta, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&strategia, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&q_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&test, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&time_calc, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -202,12 +202,81 @@ int main(int argc, char **argv) {
 				break;
 			}
 			case SUM_ONE_TEST: {
+
+				for (i=0; i < q_num; i++) {
+					
+					/*
+						Il vettore degli operandi e' costituito di soli 1.
+
+						Il test termina con successo se la somma totale
+						calcolata dai processori e' pari a 'q_num'.
+					*/
+
+					op[i] = 1;
+				}
 				break;
 			}
-			case SUM_20_NUMBERS_TEST: {
+			case SUM_SINGLE_NUMBER_TEST: {
+				for (i=0; i < q_num; i++) {
+
+					/*
+						Ad ogni posizione del vettore degli operandi e'
+						assegnato lo stesso valore reale, passato come
+						argomento 'argv[5]' al programma.
+
+						Il test termina con successo se la somma totale
+						calcolata dai processori e' pari a 'argv[5] * q_num'.
+					*/
+
+					op[i] = argToDouble(argv[5]);
+				}
+				break;
+			}
+			case SUM_OPPOSITE_NUMBER_TEST: {
+
+				/*
+					Si genera un numero casuale reale compreso tra 0 e 100.
+
+					Alle posizioni nella prima metà del vettore degli
+					operandi si assegna il valore reale generato.
+
+					Alle posizioni nella seconda metà del vettore degli
+					operandi si assegna l'opposto del valore reale generato.
+
+					Il test termina con successo se la somma totale calcolata
+					dai processori e' pari a 0 (gli operandi si annullano).
+				*/
+
+				srand((unsigned)time(&seed));
+				double_rand = (double)rand();
+				double_rand = (double_rand / RAND_MAX) * OP_MAX_VALUE;
+
+				for (i=0; i < q_num/2; i++) {
+					op[i] = double_rand;
+				}
+				for (i=q_num/2; i < q_num; i++) {
+					op[i] = double_rand * (-1);
+				}
+				
 				break;
 			}
 			case GAUSS_TEST: {
+				gauss_inf = argToDouble(argv[5]);
+				for (i=0; i < q_num; i++) {
+					
+					/*
+						Il vettore degli operandi e' costituito da tutti i
+						numeri interi racchiusi nell'intervallo
+						[gauss_inf, gauss_inf + q_num].
+
+						Il test termina con successo se la somma totale
+						calcolata dai processori si puo' ottenere con la
+						formula di Gauss, cioe' il prodotto tra media
+						aritmetica e numero di operandi da sommare.
+					*/
+
+					op[i] = gauss_inf + i;
+				}
 				break;
 			}
 			default:
@@ -304,7 +373,7 @@ int main(int argc, char **argv) {
 	/* ************************************************************************ */
 	// SELEZIONE DELLA STRATEGIA
 
-  	switch (scelta) {
+  	switch (strategia) {
 		case NO_STRATEGY: {
 			break;
 		}
@@ -453,14 +522,14 @@ int main(int argc, char **argv) {
 		MPI_Reduce(&t_loc, &t_tot, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
 		if (id_proc == 0) {
-			printf("\nApplicazione della strategia %d terminata in %e sec\n", scelta, t_tot);
+			printf("\nApplicazione della strategia %d terminata in %e sec\n", strategia, t_tot);
 		}
 	}
 
   	/* ************************************************************************ */
 	// STAMPA DELL'OUTPUT
 
-	switch (scelta) {
+	switch (strategia) {
 		case NO_STRATEGY:
 		case FIRST_STRATEGY:
 		{
@@ -518,5 +587,7 @@ https://www.javatpoint.com/random-function-in-c
 https://www.securitronlinux.com/bejiitaswrath/a-nice-example-of-c-programming-getting-a-random-number-in-milliseconds/?utm_content=cmp-true
 
 https://www.educative.io/answers/how-to-check-if-a-number-is-a-power-of-2-in-cpp
+
+http://www.vdepetris.it/t10/Text10.htm
 
 */

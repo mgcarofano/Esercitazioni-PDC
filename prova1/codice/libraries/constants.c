@@ -120,16 +120,39 @@
 #define EXIT_APPLICATION 5
 
 /*
+    Si utilizza per eseguire l'algoritmo del calcolo della somma utilizzando
+	i valori degli operandi scelti dall'utente oppure generati in modo casuale.
+*/
+
+#define NO_TEST 0
+
+/*
     Le seguenti 5 costanti sono valori interi che rappresentano
     le possibili scelte che può inserire l'utente nel menu'
     della suite di test dell'applicazione.
 */
 
-#define NO_TEST 0
 #define SUM_ONE_TEST 1
-#define SUM_20_NUMBERS_TEST 2
-#define GAUSS_TEST 3
-#define EXIT_TEST 4
+#define SUM_SINGLE_NUMBER_TEST 2
+#define SUM_OPPOSITE_NUMBER_TEST 3
+#define GAUSS_TEST 4
+#define EXIT_TEST 5
+
+/*
+    OP_MIN_EXP_TEST: int
+    Si utilizza come esponente minimo per determinare la quantita' di
+	operandi nella creazione dei casi di test.
+*/
+
+#define OP_MIN_EXP_TEST 4
+
+/*
+    OP_MAX_EXP_TEST: int
+    Si utilizza come esponente massimo per determinare la quantita' di
+	operandi nella creazione dei casi di test.
+*/
+
+#define OP_MAX_EXP_TEST 6
 
 /*
     OP_MAX_QUANTITY: int
@@ -138,14 +161,6 @@
 */
 
 #define OP_MAX_QUANTITY 20
-
-/*
-    TIMEOUT: int
-    Si utilizza come tempo di attesa per l'esecuzione in background
-	dei comandi shell tramite la funzione system().
-*/
-
-#define TIMEOUT 12
 
 /*
 	NO_TIME_CALC: int
@@ -183,14 +198,6 @@
 */
 
 #define NODE_PROCESS "8"
-
-/*
-	QSUB_PATH: char*
-	Si utilizza per indicare alla funzione system() il percorso
-	sul cluster dell'eseguibile 'qsub'.
-*/
-
-#define QSUB_PATH "/usr/bin/qsub"
 
 /*
 	MKDIR_PATH: char*
