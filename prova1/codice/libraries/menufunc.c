@@ -173,15 +173,6 @@ void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, in
 
 	sprintf(pbs_path, "../jobs/"NOME_PROVA"_%03d.pbs", pbs_count);
 
-	if ((pbs_file = fopen(pbs_path, "w")) == NULL) {
-		printf("Errore durante l'esecuzione!\n");
-		printf("Applicazione terminata.\n");
-		exit(FILE_OPENING_ERROR);
-	}
-
-	fprintf(pbs_file, "#!/bin/bash\n");
-	fclose(pbs_file);
-
 	if ((pbs_file = fopen(pbs_path, "a")) == NULL) {
 		printf("Errore durante l'esecuzione!\n");
 		printf("Applicazione terminata.\n");
@@ -189,6 +180,7 @@ void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, in
 	}
 
 	fprintf(pbs_file,
+				"#!/bin/bash\n"
 				"\n"
 				"#PBS -q studenti\n"
 				"#PBS -l nodes="NODE_NUMBER);
@@ -198,9 +190,9 @@ void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, in
 	}
 	
 	fprintf(pbs_file,
-				"\n#PBS -N " NOME_PROVA "_%d\n"
-				"#PBS -o ../output/" NOME_PROVA "_%d.out\n"
-				"#PBS -e ../output/" NOME_PROVA "_%d.err\n"
+				"\n#PBS -N " NOME_PROVA "_%03d\n"
+				"#PBS -o ../output/" NOME_PROVA "_%03d.out\n"
+				"#PBS -e ../output/" NOME_PROVA "_%03d.err\n"
 				"\n"
 				"rm -fr $PBS_O_HOME/prova1/output\n"
 				"mkdir -p $PBS_O_HOME/prova1/output\n"
@@ -218,7 +210,7 @@ void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, in
 				"echo PBS: la directory di lavoro e\\' $PBS_O_WORKDIR\n"
 				"echo PBS: Compilazione in esecuzione...\n"
 				"/usr/lib64/openmpi/1.4-gcc/bin/mpicc "
-				"-o $PBS_O_WORKDIR/" NOME_PROVA "_%d -lm $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
+				"-o $PBS_O_WORKDIR/" NOME_PROVA "_%03d -lm $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
 				"echo PBS: Compilazione completata.\n"
 				"\n"
 				"echo 'PBS: Job in esecuzione su %d cpu...'\n"
@@ -232,7 +224,7 @@ void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, in
 		fprintf(pbs_file, "-machinefile $PBS_NODEFILE -n %d ", n_proc);
 	}
 
-	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA "_%d %d %d %d %d",
+	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA "_%03d %d %d %d %d",
 		pbs_count, strategia, q_num, test, time_calc);
 
 	/*

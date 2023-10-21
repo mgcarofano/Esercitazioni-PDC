@@ -206,6 +206,7 @@
 */
 
 #define MKDIR_PATH "/bin/mkdir"
+#define mkdir(dir, mode) _mkdir(dir)
 
 /*
 	RM_PATH: char*
@@ -214,6 +215,20 @@
 */
 
 #define RM_PATH "/bin/rm"
+
+/*
+	CSV_TIME_PATH: char*
+	È il path del file .csv nella quale sono memorizzate tutte le informazioni
+	necessarie allo studio dei casi di test. In particolare, la sua struttura
+	e' la seguente:
+	-	test : int (indica il caso di test eseguito)
+	-	strategia : int (indica la strategia scelta per l'esecuzione)
+	-	n_proc : int (indica il numero di processori)
+	-	q_num : int (indica il numero di operandi sommati)
+	-	t_tot : double (indica il tempo di esecuzione impiegato)
+*/
+
+#define CSV_TIME_PATH "../output"
 
 /*
 	OP_MAX_VALUE: int

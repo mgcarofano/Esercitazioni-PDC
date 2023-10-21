@@ -503,7 +503,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* ************************************************************************ */
-	// FINE DEL CALCOLO DEI TEMPI DI ESECUZIONE
+	// SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
 
 	if (time_calc == OK_TIME_CALC) {
 		t_end = MPI_Wtime();
@@ -523,6 +523,7 @@ int main(int argc, char **argv) {
 
 		if (id_proc == 0) {
 			printf("\nApplicazione della strategia %d terminata in %e sec\n", strategia, t_tot);
+			writeTimeCSV(test, strategia, n_proc, q_num, t_tot);
 		}
 	}
 

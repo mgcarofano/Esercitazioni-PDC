@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 			/* **************************************************************** */
 			// CREAZIONE DEL FILE DI ESECUZIONE .PBS
 
-			createPBS(8, strategia, q_num, NO_TEST, NO_TIME_CALC, pbs_count);
+			createPBS(8, strategia, q_num, NO_TEST, NO_TIME_CALC, pbs_count++);
 
 		}
 

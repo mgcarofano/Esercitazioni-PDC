@@ -19,6 +19,8 @@ int argToInt(char *arg);
 
 double argToDouble(char *arg);
 
+void writeTimeCSV(int test, int strategia, int n_proc, int q_num, double t_tot);
+
 /* **************************************************************************** */
 
 #include "auxfunc.c"

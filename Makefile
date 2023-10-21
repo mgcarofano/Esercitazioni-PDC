@@ -18,6 +18,6 @@ mpidocker:
 
 mpirun:
 	mpicc -o $(folder)/codice/$(out) -lm $(folder)/codice/$(file).c
-	mpiexec --hostfile hostfile -np 8 $(folder)/codice/$(out) 2 100 4 1 1
+	mpiexec --machinefile hostfile -np 8 $(folder)/codice/$(out) 3 10000 1 1
 
 #	https://unix.stackexchange.com/questions/193368/can-scp-create-a-directory-if-it-doesnt-exist
