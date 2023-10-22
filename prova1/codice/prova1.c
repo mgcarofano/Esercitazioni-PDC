@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
 	int test = NO_TEST, time_calc = NO_TIME_CALC;
 	
 	int id_proc = 0, n_proc = 0, rest = 0;
-	int q_loc = 0, tag = 1;
+	int q_loc = 0, tag = 0;
 	int tmp = 0, id_op = 0;
 	int i = 0, pow_proc = 0, pow_tmp = 0, log_proc = 0;
 
@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 
 	int int_rand = 0, gauss_inf = 0;
 	double double_rand = 0.0;
-	time_t seed;
+	// time_t seed;
 
 	MPI_Status status;
 
@@ -187,7 +187,7 @@ int main(int argc, char **argv) {
 					}
 				} else {
 
-					srand((unsigned)time(&seed));
+					srand((unsigned)time(NULL));
 
 					for (i=0; i < q_num; i++) {
 						double_rand = (double)rand();
@@ -376,7 +376,7 @@ int main(int argc, char **argv) {
 	/* ************************************************************************ */
 	// APPLICAZIONE DELLA STRATEGIA
 
-  	switch (strategia) {
+	switch (strategia) {
 		case NO_STRATEGY: {
 			break;
 		}

@@ -18,12 +18,10 @@ int main(int argc, char **argv) {
 	/* ************************************************************************ */
 	// INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
 
-	int strategia = 0, q_num = 0, test = NO_TEST, time_calc = NO_TIME_CALC;
+	int strategia = NO_STRATEGY, q_num = 0, test = NO_TEST, time_calc = NO_TIME_CALC;
 	int i = 0, pbs_count = 1;
 	
-	FILE *pbs_file, *out_file, *err_file;
-
-	size_t err_size = 0;
+	FILE *pbs_file;
 
 	/* ************************************************************************ */
 	// INTRODUZIONE

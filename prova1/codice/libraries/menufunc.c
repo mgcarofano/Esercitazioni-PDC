@@ -14,8 +14,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
-#include <fcntl.h>
-#include <unistd.h>
 
 /* **************************************************************************** */
 // CODICE DELLE FUNZIONI DEFINITE IN 'menufunc.h'
@@ -40,7 +38,8 @@ double getNumberFromInput() {
 	size_t bufsize = 0;
 	ssize_t chars_read;
 
-	chars_read = getline(&buffer, &bufsize, stdin); // inizializzazione del buffer con caratteri estratti dallo stream di input
+	// Inizializzazione del buffer con caratteri estratti dallo stream di input
+	chars_read = getline(&buffer, &bufsize, stdin);
 	printf("\n");
 
 	if (chars_read < 0) {
@@ -351,6 +350,7 @@ void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, in
 /* **************************************************************************** */
 /* RIFERIMENTI
 
+https://www.it.uc3m.es/pbasanta/asng/course_notes/input_output_getline_en.html
 https://www.mrw.it/linux/cicli-for-while_9686.html
 
 */

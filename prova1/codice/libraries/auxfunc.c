@@ -17,7 +17,6 @@
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
-#include <math.h>
 #include <tgmath.h>
 #include <time.h>
 
