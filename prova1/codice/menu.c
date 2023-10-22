@@ -47,10 +47,29 @@ int main(int argc, char **argv) {
 		strategia = getIntegerFromInput();
 		checkScelta(strategia, FIRST_STRATEGY, EXIT_APPLICATION);
 
+		if (strategia <= THIRD_STRATEGY) {
+
+			/* **************************************************************** */
+			// SCELTA DEL NUMERO DI OPERANDI DA SOMMARE
+
+			printf("Inserisci la quantita' di numeri da sommare: \n");
+			q_num = getIntegerFromInput();
+
+			if (q_num <= 1) {
+				printf("Devi inserire almeno due operandi!\n");
+				printf("Applicazione terminata.\n");
+				exit(NOT_ENOUGH_OPERANDS);
+			}
+
+			/* **************************************************************** */
+			// CREAZIONE DEL FILE DI ESECUZIONE .PBS
+
+			createPBS(8, strategia, q_num, NO_TEST, NO_TIME_CALC, pbs_count++);
+
 		/* ******************************************************************** */
 		// APPLICAZIONE DELLA SUITE DI TESTING
 
-		if (strategia == TESTING_SUITE) {
+		} else if (strategia == TESTING_SUITE) {
 
 			/*
 				Nell'eseguire la suite di testing, il programma fornira':
@@ -83,26 +102,6 @@ int main(int argc, char **argv) {
 					}
 				}
 			}
-
-		} else if (strategia != EXIT_APPLICATION) {
-
-			/* **************************************************************** */
-			// SCELTA DEL NUMERO DI OPERANDI DA SOMMARE
-
-			printf("Inserisci la quantita' di numeri da sommare: \n");
-			q_num = getIntegerFromInput();
-
-			if (q_num <= 1) {
-				printf("Devi inserire almeno due operandi!\n");
-				printf("Applicazione terminata.\n");
-				exit(NOT_ENOUGH_OPERANDS);
-			}
-
-			/* **************************************************************** */
-			// CREAZIONE DEL FILE DI ESECUZIONE .PBS
-
-			createPBS(8, strategia, q_num, NO_TEST, NO_TIME_CALC, pbs_count++);
-
 		}
 
 	} while (strategia != EXIT_APPLICATION);

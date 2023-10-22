@@ -158,6 +158,81 @@ void checkScelta(int scelta, int lim_inf, int lim_sup) {
 	}
 }
 
+// void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, int pbs_count) {
+
+// 	char pbs_path[255] = {};
+// 	FILE *pbs_file;
+
+// 	int i = 0, int_op = 0;
+// 	double double_op = 0.0;
+
+// 	if (pbs_count <= 1) {
+// 		// system(RM_PATH" -rf ../..");
+// 		// system(MKDIR_PATH" -p ../jobs");
+// 		system(RM_PATH" -f ../../" NOME_PROVA ".sh");
+// 	}
+
+// 	sprintf(pbs_path, "../../" NOME_PROVA ".sh");
+
+// 	if ((pbs_file = fopen(pbs_path, "a")) == NULL) {
+// 		printf("Errore durante l'esecuzione!\n");
+// 		printf("Applicazione terminata.\n");
+// 		exit(FILE_OPENING_ERROR);
+// 	}
+
+// 	if (pbs_count <= 1) {
+// 		fprintf(pbs_file,
+// 			"mpicc -o " NOME_PROVA "/codice/" NOME_PROVA " -lm "
+// 			NOME_PROVA "/codice/" NOME_PROVA ".c\n\n"
+// 		);
+// 	}
+
+// 	fprintf(pbs_file,
+// 		"for i in $(seq 10)\n"
+// 		"do\n"
+// 		"\tmpiexec --machinefile hostfile -np %d "
+// 		NOME_PROVA "/codice/" NOME_PROVA " %d %d %d %d",
+// 	n_proc, strategia, q_num, test, time_calc);
+
+// 	switch(test) {
+// 		case NO_TEST: {
+// 			if (q_num <= OP_MAX_QUANTITY) {
+// 				for (i=1; i <= q_num; i++) {
+// 					printf("Inserisci il %do operando da sommare: \n", i);
+// 					double_op = getNumberFromInput();
+// 					fprintf(pbs_file, " %f", double_op);
+// 				}
+// 			}
+// 			break;
+// 		}
+// 		case SUM_SINGLE_NUMBER_TEST: {
+// 			printf("Inserisci il valore dell'operando da sommare:\n");
+// 			int_op = getIntegerFromInput();
+// 			fprintf(pbs_file, " %d", int_op);
+// 			break;
+// 		}
+// 		case GAUSS_TEST: {
+// 			printf("Inserisci il limite inferiore dell'intervallo:\n");
+// 			int_op = getIntegerFromInput();
+// 			fprintf(pbs_file, " %d", int_op);
+// 			break;
+// 		}
+// 		default:
+// 			break;
+// 	}
+
+// 	fprintf(pbs_file,
+// 		"\n"
+// 		"done\n\n"
+// 	);
+
+// 	fclose(pbs_file);
+
+// 	if (pbs_count <= 1) {
+// 		printf("%s creato con successo!\n\n", pbs_path);
+// 	}
+// }
+
 void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, int pbs_count) {
 
 	char pbs_path[255] = {};
@@ -215,7 +290,9 @@ void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, in
 				"\n"
 				"echo 'PBS: Job in esecuzione su %d cpu...'\n"
 				"echo '>>>'\n"
-				"/usr/lib64/openmpi/1.4-gcc/bin/mpiexec ",
+				"for i in $(seq 10)\n"
+				"do\n"
+				"\t/usr/lib64/openmpi/1.4-gcc/bin/mpiexec ",
 	pbs_count, n_proc);
 
 	if (time_calc == OK_TIME_CALC) {
@@ -261,7 +338,8 @@ void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, in
 	}
 
 	fprintf(pbs_file,
-				"\necho '>>>'\n"
+				"\ndone\n"
+				"echo '>>>'\n"
 				"echo PBS: Job completato.\n"
 				"echo --- \n"
 	);
@@ -273,6 +351,6 @@ void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, in
 /* **************************************************************************** */
 /* RIFERIMENTI
 
-
+https://www.mrw.it/linux/cicli-for-while_9686.html
 
 */
