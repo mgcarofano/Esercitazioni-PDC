@@ -157,81 +157,6 @@ void checkScelta(int scelta, int lim_inf, int lim_sup) {
 	}
 }
 
-// void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, int pbs_count) {
-
-// 	char pbs_path[255] = {};
-// 	FILE *pbs_file;
-
-// 	int i = 0, int_op = 0;
-// 	double double_op = 0.0;
-
-// 	if (pbs_count <= 1) {
-// 		// system(RM_PATH" -rf ../..");
-// 		// system(MKDIR_PATH" -p ../jobs");
-// 		system(RM_PATH" -f ../../" NOME_PROVA ".sh");
-// 	}
-
-// 	sprintf(pbs_path, "../../" NOME_PROVA ".sh");
-
-// 	if ((pbs_file = fopen(pbs_path, "a")) == NULL) {
-// 		printf("Errore durante l'esecuzione!\n");
-// 		printf("Applicazione terminata.\n");
-// 		exit(FILE_OPENING_ERROR);
-// 	}
-
-// 	if (pbs_count <= 1) {
-// 		fprintf(pbs_file,
-// 			"mpicc -o " NOME_PROVA "/codice/" NOME_PROVA " -lm "
-// 			NOME_PROVA "/codice/" NOME_PROVA ".c\n\n"
-// 		);
-// 	}
-
-// 	fprintf(pbs_file,
-// 		"for i in $(seq 10)\n"
-// 		"do\n"
-// 		"\tmpiexec --machinefile hostfile -np %d "
-// 		NOME_PROVA "/codice/" NOME_PROVA " %d %d %d %d",
-// 	n_proc, strategia, q_num, test, time_calc);
-
-// 	switch(test) {
-// 		case NO_TEST: {
-// 			if (q_num <= OP_MAX_QUANTITY) {
-// 				for (i=1; i <= q_num; i++) {
-// 					printf("Inserisci il %do operando da sommare: \n", i);
-// 					double_op = getNumberFromInput();
-// 					fprintf(pbs_file, " %f", double_op);
-// 				}
-// 			}
-// 			break;
-// 		}
-// 		case SUM_SINGLE_NUMBER_TEST: {
-// 			printf("Inserisci il valore dell'operando da sommare:\n");
-// 			int_op = getIntegerFromInput();
-// 			fprintf(pbs_file, " %d", int_op);
-// 			break;
-// 		}
-// 		case GAUSS_TEST: {
-// 			printf("Inserisci il limite inferiore dell'intervallo:\n");
-// 			int_op = getIntegerFromInput();
-// 			fprintf(pbs_file, " %d", int_op);
-// 			break;
-// 		}
-// 		default:
-// 			break;
-// 	}
-
-// 	fprintf(pbs_file,
-// 		"\n"
-// 		"done\n\n"
-// 	);
-
-// 	fclose(pbs_file);
-
-// 	if (pbs_count <= 1) {
-// 		printf("%s creato con successo!\n\n", pbs_path);
-// 	}
-// }
-
 void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, int pbs_count) {
 
 	char pbs_path[255] = {};
@@ -267,12 +192,17 @@ void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, in
 				"\n#PBS -N " NOME_PROVA "_%03d\n"
 				"#PBS -o ../output/" NOME_PROVA "_%03d.out\n"
 				"#PBS -e ../output/" NOME_PROVA "_%03d.err\n"
-				"\n"
-				"rm -fr $PBS_O_HOME/prova1/output\n"
-				"mkdir -p $PBS_O_HOME/prova1/output\n"
-				"\n"
-				"echo --- \n",
+				"\n",
 	pbs_count, pbs_count, pbs_count);
+
+	if (pbs_count <= 1) {
+		fprintf(pbs_file,
+				"rm -fr $PBS_O_HOME/prova1/output\n"
+				"mkdir -p $PBS_O_HOME/prova1/output\n\n"
+		);
+	}
+
+	fprintf(pbs_file, "echo --- \n");
 
 	if (time_calc == OK_TIME_CALC) {
 		fprintf(pbs_file, "sort -u $PBS_NODEFILE > hostlist\n");
@@ -288,24 +218,29 @@ void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, in
 				"echo PBS: Compilazione completata.\n"
 				"\n"
 				"echo 'PBS: Job in esecuzione su %d cpu...'\n"
-				"echo '>>>'\n"
-				"for i in $(seq 10)\n"
-				"do\n"
-				"\t/usr/lib64/openmpi/1.4-gcc/bin/mpiexec ",
+				"echo '>>>'\n",
 	pbs_count, n_proc);
 
 	if (time_calc == OK_TIME_CALC) {
-		fprintf(pbs_file, "-machinefile hostlist -np %d ", n_proc);
+		fprintf(pbs_file,
+				"for i in $(seq 10)\n"
+				"do\n"
+				"\t/usr/lib64/openmpi/1.4-gcc/bin/mpiexec "
+				"-machinefile hostlist -np %d ",
+		n_proc);
 	} else {
-		fprintf(pbs_file, "-machinefile $PBS_NODEFILE -n %d ", n_proc);
+		fprintf(pbs_file,
+				"/usr/lib64/openmpi/1.4-gcc/bin/mpiexec "
+				"-machinefile $PBS_NODEFILE -n %d ",
+		n_proc);
 	}
 
 	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA "_%03d %d %d %d %d",
 		pbs_count, strategia, q_num, test, time_calc);
 
 	/*
-		Come richiesto dalle specifiche dell'algoritmo, se la quantità
-		di operandi è minore o uguale a 20, allora il valore di ogni
+		Come richiesto dalle specifiche dell'algoritmo, se la quantita'
+		di operandi e' minore o uguale a 20, allora il valore di ogni
 		singolo operando deve essere specificato dall'utente.
 	*/
 
@@ -336,8 +271,13 @@ void createPBS(int n_proc, int strategia, int q_num, int test, int time_calc, in
 			break;
 	}
 
+	if (time_calc == OK_TIME_CALC) {
+		fprintf(pbs_file, "\ndone\n");
+	} else {
+		fprintf(pbs_file, "\n");
+	}
+
 	fprintf(pbs_file,
-				"\ndone\n"
 				"echo '>>>'\n"
 				"echo PBS: Job completato.\n"
 				"echo --- \n"

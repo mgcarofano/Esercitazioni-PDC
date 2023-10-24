@@ -115,16 +115,9 @@ void writeTimeCSV(int test, int strategia, int n_proc, int q_num, double t_tot) 
 
 	FILE *csv_file;
 
-	// system(MKDIR_PATH" -p "CSV_TIME_PATH);
+	system(MKDIR_PATH" -p "CSV_TIME_PATH);
 
-	// if ((csv_file = fopen(CSV_TIME_PATH"/"NOME_PROVA"_time.csv", "a")) == NULL) {
-	// 	printf("Errore durante l'esecuzione!\n");
-	// 	printf("Applicazione terminata.\n");
-	// 	MPI_Finalize();
-	// 	exit(FILE_OPENING_ERROR);
-	// }
-
-	if ((csv_file = fopen(NOME_PROVA"_time.csv", "a")) == NULL) {
+	if ((csv_file = fopen(CSV_TIME_PATH"/"NOME_PROVA"_time.csv", "a")) == NULL) {
 		printf("Errore durante l'esecuzione!\n");
 		printf("Applicazione terminata.\n");
 		MPI_Finalize();

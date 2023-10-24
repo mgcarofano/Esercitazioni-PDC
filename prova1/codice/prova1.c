@@ -34,7 +34,6 @@ int main(int argc, char **argv) {
 
 	int int_rand = 0, gauss_inf = 0;
 	double double_rand = 0.0;
-	// time_t seed;
 
 	MPI_Status status;
 
@@ -250,7 +249,7 @@ int main(int argc, char **argv) {
 					dai processori e' pari a 0 (gli operandi si annullano).
 				*/
 
-				srand((unsigned)time(&seed));
+				srand((unsigned)time(NULL));
 				double_rand = (double)rand();
 				double_rand = (double_rand / RAND_MAX) * OP_MAX_VALUE;
 
