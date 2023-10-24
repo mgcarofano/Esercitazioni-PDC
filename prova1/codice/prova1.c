@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 		Assegna ad ogni processore del communicator l'identificativo
 		'id_proc' (sempre associato al contesto).
 		MPI_COMM_WORLD indica il communicator a cui appartengono tutti
-		i processori attivati (non può essere alterato).
+		i processori attivati (non puo' essere alterato).
 	*/
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
 		Si utilizza questa funzione per allocare in memoria un vettore
 		di 'num' elementi per memorizzare gli operandi locali.
 		Ciascun elemento ha una dimensione del vettore ha una dimensione
-		pari a 'size', e sarà inizializzato con tutti i suoi bit a 0.
+		pari a 'size', e sara' inizializzato con tutti i suoi bit a 0.
 	*/
 
 	op_loc = (double *)calloc (q_loc, sizeof(double));
@@ -252,10 +252,10 @@ int main(int argc, char **argv) {
 						/*
 							Si genera un numero casuale reale compreso tra 0 e 100.
 
-							Alle posizioni nella prima metà del vettore degli
+							Alle posizioni nella prima meta' del vettore degli
 							operandi si assegna il valore reale generato.
 
-							Alle posizioni nella seconda metà del vettore degli
+							Alle posizioni nella seconda meta' del vettore degli
 							operandi si assegna l'opposto del valore reale generato.
 
 							Il test termina con successo se la somma totale calcolata
@@ -401,7 +401,7 @@ int main(int argc, char **argv) {
 		{
 
 			/*
-				Nella 2° strategia, il numero di passi di comunicazione
+				Nella 2a strategia, il numero di passi di comunicazione
 				e' dato dal logaritmo in base 2 del numero di processori,
 				gia' calcolato precedentemente.
 			*/
@@ -461,15 +461,15 @@ int main(int argc, char **argv) {
 		{
 
 			/*
-				Nella 3° strategia, il numero di passi di comunicazione
-				e' lo stesso della 2° strategia, ma al termine dell'esecuzione
+				Nella 3a strategia, il numero di passi di comunicazione
+				e' lo stesso della 2a strategia, ma al termine dell'esecuzione
 				tutti i processori saranno a conoscenza della somma totale.
 			*/
 
 			for(i=0; i < log_proc; i++) {
 
 				/*
-					Rispetto alla 2° strategia, tutti i processori partecipano
+					Rispetto alla 2a strategia, tutti i processori partecipano
 					ad ogni passo di comunicazione. Operativamente, si rimuove
 					il primo controllo '(id_proc % pow_tmp) == 0'.
 
@@ -577,7 +577,7 @@ int main(int argc, char **argv) {
 	/*
 		--- int MPI_Finalize() ---
 		Determina la fine del programma MPI.
-		Da questo punto in poi non è possibile richiamare altre funzioni MPI.
+		Da questo punto in poi non e' possibile richiamare altre funzioni MPI.
 	*/
 
 	MPI_Finalize();

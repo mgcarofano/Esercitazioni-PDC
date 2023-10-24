@@ -64,10 +64,10 @@ int main(int argc, char **argv) {
 
 			createPBS(8, strategia, q_num, NO_TEST, NO_TIME_CALC, pbs_count++);
 
-		/* ******************************************************************** */
-		// APPLICAZIONE DELLA SUITE DI TESTING
-
 		} else if (strategia == TESTING_SUITE) {
+
+			/* **************************************************************** */
+			// APPLICAZIONE DELLA SUITE DI TESTING
 
 			/*
 				Nell'eseguire la suite di testing, il programma fornira':

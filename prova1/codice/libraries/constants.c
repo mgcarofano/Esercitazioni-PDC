@@ -206,7 +206,6 @@
 */
 
 #define MKDIR_PATH "/bin/mkdir"
-#define mkdir(dir, mode) _mkdir(dir)
 
 /*
 	RM_PATH: char*
