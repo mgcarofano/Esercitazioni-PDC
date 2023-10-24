@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#PBS -q studenti
+#PBS -l nodes=8:ppn=8
+#PBS -N prova1_031
+#PBS -o ../output/prova1_031.out
+#PBS -e ../output/prova1_031.err
+
+echo --- 
+sort -u $PBS_NODEFILE > hostlist
+PBS_O_WORKDIR=$PBS_O_HOME/prova1/codice
+
+echo PBS: la directory di lavoro e\' $PBS_O_WORKDIR
+echo PBS: Compilazione in esecuzione...
+/usr/lib64/openmpi/1.4-gcc/bin/mpicc -o $PBS_O_WORKDIR/prova1_031 -lm $PBS_O_WORKDIR/prova1.c
+echo PBS: Compilazione completata.
+
+echo 'PBS: Job in esecuzione su 1 cpu...'
+echo '>>>'
+for i in $(seq 10)
+do
+	/usr/lib64/openmpi/1.4-gcc/bin/mpiexec -machinefile hostlist -np 1 $PBS_O_WORKDIR/prova1_031 3 10000 3 1
+done
+echo '>>>'
+echo PBS: Job completato.
+echo --- 
