@@ -23,19 +23,21 @@ int main(int argc, char **argv) {
 	
 	int id_proc = 0, n_proc = 0, rest = 0;
 	int q_loc = 0, tag = 0;
-	int tmp = 0, id_op = 0;
-	int i = 0, pow_proc = 0, pow_tmp = 0, log_proc = 0;
+	int tmp = 0, i = 0, j = 0;
+	int pow_proc = 0, pow_tmp = 0, log_proc = 0;
 
-	double *op, *op_loc;
+	double *op_tmp, *op_loc;
 	double sum = 0.0, sum_parz = 0.0;
 
 	double t_start = 0.0, t_end = 0.0;
 	double t_loc = 0.0, t_tot = 0.0;
 
-	int int_rand = 0, gauss_inf = 0;
+	int int_rand = 0, gauss_inf = 0, gauss_tmp = 0;
 	double double_rand = 0.0;
 
 	MPI_Status status;
+
+	srand(time(NULL));
 
 	/* ************************************************************************ */
 	// INIZIALIZZAZIONE DELL'AMBIENTE MPI
@@ -175,130 +177,8 @@ int main(int argc, char **argv) {
 			gli operandi della somma (da argv[] se q_num <= 20) oppure di
 			assegnarne un valore random.
 		*/
-
-		op = (double *)calloc (q_num, sizeof(double));
-
-		switch(test) {
-			case NO_TEST: {
-				if (q_num <= 20) {
-					for (i=0; i < q_num; i++) {
-						op[i] = argToDouble(argv[i+5]);
-					}
-				} else {
-
-					srand((unsigned)time(NULL));
-
-					for (i=0; i < q_num; i++) {
-						double_rand = (double)rand();
-						int_rand = (int)rand();
-
-						// Si genera un numero casuale reale compreso tra 0 e 100
-						op[i] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
-
-						// Si ha il 33% di possibilita che op[i] < 0
-						if (int_rand % 3 == 0) {
-							op[i] = op[i] * (-1);
-						}
-					}
-				}
-				break;
-			}
-			case SUM_ONE_TEST: {
-
-				for (i=0; i < q_num; i++) {
-					
-					/*
-						Il vettore degli operandi e' costituito di soli 1.
-
-						Il test termina con successo se la somma totale
-						calcolata dai processori e' pari a 'q_num'.
-					*/
-
-					op[i] = 1;
-				}
-				break;
-			}
-			case SUM_SINGLE_NUMBER_TEST: {
-				for (i=0; i < q_num; i++) {
-
-					/*
-						Ad ogni posizione del vettore degli operandi e'
-						assegnato lo stesso valore reale, passato come
-						argomento 'argv[5]' al programma.
-
-						Il test termina con successo se la somma totale
-						calcolata dai processori e' pari a 'argv[5] * q_num'.
-					*/
-
-					op[i] = argToDouble(argv[5]);
-				}
-				break;
-			}
-			case SUM_OPPOSITE_NUMBER_TEST: {
-
-				/*
-					Si genera un numero casuale reale compreso tra 0 e 100.
-
-					Alle posizioni nella prima metà del vettore degli
-					operandi si assegna il valore reale generato.
-
-					Alle posizioni nella seconda metà del vettore degli
-					operandi si assegna l'opposto del valore reale generato.
-
-					Il test termina con successo se la somma totale calcolata
-					dai processori e' pari a 0 (gli operandi si annullano).
-				*/
-
-				srand((unsigned)time(NULL));
-				double_rand = (double)rand();
-				double_rand = (double_rand / RAND_MAX) * OP_MAX_VALUE;
-
-				for (i=0; i < q_num/2; i++) {
-					op[i] = double_rand;
-				}
-				for (i=q_num/2; i < q_num; i++) {
-					op[i] = double_rand * (-1);
-				}
-				
-				break;
-			}
-			case GAUSS_TEST: {
-				gauss_inf = argToDouble(argv[5]);
-				for (i=0; i < q_num; i++) {
-					
-					/*
-						Il vettore degli operandi e' costituito da tutti i
-						numeri interi racchiusi nell'intervallo
-						[gauss_inf, gauss_inf + q_num].
-
-						Il test termina con successo se la somma totale
-						calcolata dai processori si puo' ottenere con la
-						formula di Gauss, cioe' il prodotto tra media
-						aritmetica e numero di operandi da sommare.
-					*/
-
-					op[i] = gauss_inf + i;
-				}
-				break;
-			}
-			default:
-				break;
-		}
-
-		// Si assegnano gli operandi locali del processore con id_proc == 0
-		for (i=0; i < q_loc; i++) {
-			op_loc[i] = op[i];
-		}
-
-		/*
-			Si distribuiscono equamente gli operandi rimanenti a tutti
-			gli altri processori utilizzando la funzione MPI_Send().
-		*/
-
-		tmp = q_loc;
-		for (i=1; i < n_proc; i++) {
-			id_op = id_op + tmp;
-			tag = i + DISTRIBUTION_TAG;
+	
+		for (i=0; i < n_proc; i++) {
 
 			/*
 				Il seguente controllo serve per aggiornare il processore
@@ -306,20 +186,144 @@ int main(int argc, char **argv) {
 				tutti gli altri processori.
 			*/
 
-			if (i == rest) {
+			tmp = q_loc;
+			if (rest != 0 && i >= rest) {
 				tmp--;
 			}
 
-			/*
-				--- int MPI_Send(void *buf, int count, MPI_Datatype datatype,
-									int dest, int tag, MPI_Comm comm) ---
-				Il processo che esegue questa funzione spedisce i primi 'count'
-				elementi di 'buf' di tipo 'datatype' al processo con
-				identificativo 'dest'. In particolare, l'identificativo 'tag'
-				individua univocamente l'invio nel contesto 'comm'.
-			*/
+			op_tmp = (double *)calloc (tmp, sizeof(double));
 
-			MPI_Send(&op[id_op], tmp, MPI_DOUBLE, i, tag, MPI_COMM_WORLD);
+			switch(test) {
+				case NO_TEST: {
+					if (q_num <= 20) {
+						for (j=0; j < tmp; j++) {
+							op_tmp[j] = argToDouble(argv[j+5]);
+						}
+					} else {
+
+						for (j=0; j < tmp; j++) {
+							double_rand = (double)rand();
+							int_rand = (int)rand();
+
+							// Si genera un numero casuale reale compreso tra 0 e 100
+							op_tmp[j] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
+
+							// Si ha il 33% di possibilita che op_tmp[j] < 0
+							if (int_rand % 3 == 0) {
+								op_tmp[j] = op_tmp[j] * (-1);
+							}
+						}
+					}
+					break;
+				}
+				case SUM_ONE_TEST: {
+					for (j=0; j < tmp; j++) {
+
+						/*
+							Il vettore degli operandi e' costituito di soli 1.
+
+							Il test termina con successo se la somma totale
+							calcolata dai processori e' pari a 'q_num'.
+						*/
+
+						op_tmp[j] = 1;
+					}
+					break;
+				}
+				case SUM_SINGLE_NUMBER_TEST: {
+					for (j=0; j < tmp; j++) {
+
+						/*
+							Ad ogni posizione del vettore degli operandi e'
+							assegnato lo stesso valore reale, passato come
+							argomento 'argv[5]' al programma.
+
+							Il test termina con successo se la somma totale
+							calcolata dai processori e' pari a 'argv[5] * q_num'.
+						*/
+
+						op_tmp[j] = argToDouble(argv[5]);
+					}
+					break;
+				}
+				case SUM_OPPOSITE_NUMBER_TEST: {
+					for (j=0; j < tmp/2; j++) {
+
+						/*
+							Si genera un numero casuale reale compreso tra 0 e 100.
+
+							Alle posizioni nella prima metà del vettore degli
+							operandi si assegna il valore reale generato.
+
+							Alle posizioni nella seconda metà del vettore degli
+							operandi si assegna l'opposto del valore reale generato.
+
+							Il test termina con successo se la somma totale calcolata
+							dai processori e' pari a 0 (gli operandi si annullano).
+						*/
+
+						double_rand = (double)rand();
+						double_rand = (double_rand / RAND_MAX) * OP_MAX_VALUE;
+
+						op_tmp[j] = double_rand;
+						op_tmp[j+tmp/2] = double_rand * (-1);
+
+					}
+					break;
+				}
+				case GAUSS_TEST: {
+					gauss_inf = argToDouble(argv[5]);
+					for (j=0; j < tmp; j++) {
+
+						/*
+							Il vettore degli operandi e' costituito da tutti i
+							numeri interi racchiusi nell'intervallo
+							[gauss_inf, gauss_inf + q_num].
+
+							Il test termina con successo se la somma totale
+							calcolata dai processori si puo' ottenere con la
+							formula di Gauss, cioe' il prodotto tra media
+							aritmetica e numero di operandi da sommare.
+						*/
+
+						op_tmp[j] = gauss_inf + gauss_tmp;
+						gauss_tmp++;
+					}
+					break;
+				}
+				default:
+					break;
+			}
+
+			if (i == 0) {
+
+				// Si assegnano gli operandi locali del processore con id_proc == 0
+				for (j=0; j < tmp; j++) {
+					op_loc[j] = op_tmp[j];
+				}
+
+			} else {
+
+				/*
+					Si distribuiscono equamente gli operandi rimanenti a tutti
+					gli altri processori utilizzando la funzione MPI_Send().
+				*/
+
+				tag = i + DISTRIBUTION_TAG;
+
+				/*
+					--- int MPI_Send(void *buf, int count, MPI_Datatype datatype,
+										int dest, int tag, MPI_Comm comm) ---
+					Il processo che esegue questa funzione spedisce i primi 'count'
+					elementi di 'buf' di tipo 'datatype' al processo con
+					identificativo 'dest'. In particolare, l'identificativo 'tag'
+					individua univocamente l'invio nel contesto 'comm'.
+				*/
+
+				MPI_Send(&op_tmp[0], tmp, MPI_DOUBLE, i, tag, MPI_COMM_WORLD);
+			}
+
+			free(op_tmp);
 		}
 		
 	} else {
@@ -567,7 +571,6 @@ int main(int argc, char **argv) {
 	free(op_loc);
 
 	if (id_proc == 0) {
-		free(op);
 		printf("\nEsecuzione terminata.\n");
 	}
 
