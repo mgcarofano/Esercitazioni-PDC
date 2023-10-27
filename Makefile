@@ -1,7 +1,9 @@
-folder = prova1
+folder = openmp-esempio
+file = openmp
 login = CRFMGB01R
 home=/project
 work=$(home)/prova1/codice
+cc=gcc-13
 
 scope:
 	ssh $(login)@ui-studenti.scope.unina.it
@@ -16,7 +18,7 @@ download:
 mpidocker:
 	docker run --rm -it -v $(shell pwd):/project mfisherman/openmpi
 
-#	Da utilizzare nella cartella 'jobs'
+#	Da utilizzare nella cartella 'prova1/jobs'
 mpirun:
 	mkdir -p $(home)/prova1/output
 	for strategia in $(shell seq 3) ; do \
@@ -34,4 +36,9 @@ mpirun:
 		done ; \
 	done
 
+mprun:
+	$(cc) -fopenmp -libomp -o $(folder)/$(file) $(folder)/$(file).c
+
 #	https://unix.stackexchange.com/questions/193368/can-scp-create-a-directory-if-it-doesnt-exist
+#	https://discussions.apple.com/thread/8336714
+#	https://codeforces.com/blog/entry/88063
