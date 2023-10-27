@@ -1,0 +1,6 @@
+#!/bin/bash
+
+#PBS -q studenti
+#PBS -l nodes=8:ppn=8
+
+gcc -fopenmp -lgomp -o ./example ./openmp-example.c
