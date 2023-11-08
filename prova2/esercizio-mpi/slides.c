@@ -1,4 +1,4 @@
-//dalle slides, sicuro non funziona...
+//dalle slides del 2021/22, sicuro non funziona...
 
 #include <stdio.h>
 #include "mpif.h"
@@ -85,7 +85,27 @@ int main (int argc, char* argv[]){
 
 /*
 void crea_griglia( MPI_Comm *griglia, MPI_Comm *grigliaRighe, MPI_Comm *grigliaColonne, int menum, int nproc, int riga, int col, int *coord){
-    //... WHAT TO DO?
+    //ci manca sicuramente qualcosa
+
+    int dim, *ndim, reorder, *period, vc [2];
+    int dim = 2;
+    ndim = (int *) calloc (dim, sizeof(int));
+    ndim[0] = riga;
+    ndim[1] = col;
+    period = (int *) calloc (dim, sizeof(int));
+    period[0] = period [1] = reorder = 0;
+
+    MPI_Cart_create(MPI_COMM_WORLD, dim, ndim, period, reorder, griglia);
+    //Creazione griglia
+    MPI_Cart_coords(*griglia, menum, 2, coord);
+    //Assegnazione coordinate dei nodi
+    vc[0] = 0;
+    vc[1] = 1;
+    MPI_Cart_sub(*griglia, vc, grigliaRighe); //Divisione in righe del communicator
+    vc[0] = 1;
+    vc[1] = 0;
+    MPI_Cart_sub(*griglia, vc, grigliaColonne); //Divisione in colonne del communicator
+    return;
 }
 
 int MPI_Allreduce (void sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm){
