@@ -87,7 +87,7 @@ int main (int argc, char* argv[]){
 void crea_griglia( MPI_Comm *griglia, MPI_Comm *grigliaRighe, MPI_Comm *grigliaColonne, int menum, int nproc, int riga, int col, int *coord){
     //ci manca sicuramente qualcosa
 
-    int dim, *ndim, reorder, *period, vc [2];
+    int dim, *ndim, reorder, *period, vc[2];
     int dim = 2;
     ndim = (int *) calloc (dim, sizeof(int));
     ndim[0] = riga;
