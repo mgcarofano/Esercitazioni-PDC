@@ -1,8 +1,9 @@
 folder = openmp-esempio
-file = openmp
+file = griglia-2d
 login = CRFMGB01R
 home=/project
 work=$(home)/prova1/codice
+prova2=$(home)/prova2/esercizio-mpi
 
 scope:
 	ssh $(login)@ui-studenti.scope.unina.it
@@ -17,8 +18,12 @@ download:
 mpidocker:
 	docker run --rm -it -v $(shell pwd):/project mfisherman/openmpi
 
-#	Da utilizzare nella cartella 'prova1/jobs'
 mpirun:
+	mpicc $(prova2)/$(file).c -o $(prova2)/$(file)
+	mpiexec -machinefile $(home)/hostfile -np 8 $(prova2)/$(file)
+
+#	Da utilizzare nella cartella 'prova1/jobs'
+mpirun_prova1:
 	mkdir -p $(home)/prova1/output
 	for strategia in $(shell seq 3) ; do \
 		for num in 10000 100000 1000000 ; do \
