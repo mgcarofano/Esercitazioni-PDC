@@ -44,7 +44,7 @@ double getNumberFromInput() {
 
 	if (chars_read < 0) {
 
-		printf("Errore nella lettura dell'input!");
+		printf("Errore nella lettura dell'input!\n");
 		printf("Applicazione terminata.\n");
 		free(buffer);
 		exit(INPUT_LINE_ERROR);

@@ -49,9 +49,10 @@ int main (int argc, char **argv) {
 		int MPI_Cart_create(MPI_Comm comm_old, int ndims, int *dims,
 			int *periods, int reorder, MPI_Comm *comm_cart)
 
-		MPI_Cart_create restituisce un riferimento ad un nuovo
-		'communicator' al quale assegnare le informazioni della topologia
-		a griglia bidimensionale (Cartesian topology).
+		MPI_Cart_create è un'operazione collettiva che restituisce un
+		riferimento ad un nuovo 'communicator' al quale assegnare le
+		informazioni della topologia a griglia bidimensionale (Cartesian
+		topology).
 
 		Se 'reorder = false', allora il rank di ogni processore del nuovo
 		gruppo è identico al rank del gruppo precedente. Altrimenti, tale
@@ -70,7 +71,8 @@ int main (int argc, char **argv) {
 					dimensione deve essere periodica o meno, rispettivamente.
 		reorder:	valore true / false per specificare se è possibile il
 					riordinamento dei rank o meno, rispettivamente.
-		comm_cart:	riferimento al communicator finale della griglia.
+		comm_cart:	riferimento al communicator di output associato
+					alla griglia.
 
 	*/
 

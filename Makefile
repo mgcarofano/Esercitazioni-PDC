@@ -1,5 +1,5 @@
 folder = openmp-esempio
-file = griglia-2d
+file = lezione13
 login = CRFMGB01R
 home=/project
 work=$(home)/prova1/codice
@@ -21,6 +21,7 @@ mpidocker:
 mpirun:
 	mpicc $(prova2)/$(file).c -o $(prova2)/$(file)
 	mpiexec -machinefile $(home)/hostfile -np 8 $(prova2)/$(file)
+	rm -f $(prova2)/$(file)
 
 #	Da utilizzare nella cartella 'prova1/jobs'
 mpirun_prova1:
