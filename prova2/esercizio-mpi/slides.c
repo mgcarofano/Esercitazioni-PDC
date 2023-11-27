@@ -47,7 +47,7 @@ int main (int argc, char* argv[]){
     int i = 0, j = 0;
 
     float **a, **a_loc;
-    float *x, *xloc, *y, *yloc;
+    float *x, *xloc, *y, *yloc, mloc;
     float *sum_loc; // vettori e matrici locali?
  
     MPI_Status status; 
@@ -86,7 +86,7 @@ int main (int argc, char* argv[]){
     // Calcolo del prodotto matrice-vettore
     for(i=0; i<sub_cols; i++){
         for(j=0; j<sub_rows; j++){
-            yloc[i] += a_loc[i*sub_rows +j]*xloc[j]; //pare che equivalga a yloc[i] += a_loc[i][j]*xloc[j];
+            yloc[i] += a_loc[i][j]*xloc[j]; //pare che equivalga a yloc[i] += a_loc[i][j]*xloc[j];
         }
     }
 
