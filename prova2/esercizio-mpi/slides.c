@@ -108,3 +108,27 @@ int main (int argc, char* argv[]){
     MPI_Finalize();
     return 0;
 }
+
+void crea_griglia(MPI_Comm *griglia, MPI_Comm *grigliaRighe, MPI_Comm *grigliaColonne, int menum, int nproc, int comm_cols, int comm_rows, int *coord){
+    int dim=2, ndim[2], reorder, period[2], vc[2];
+
+    ndim[0] = comm_rows; // nproc/riga è stato fatto?
+    ndim[1] = comm_cols;
+    period[0] = 0;
+    period[1] = 0;
+    reorder = 0;
+    
+    // coordinate è stato allocato? se no, farlo qui
+    MPI_Cart_create(MPI_COMM_WORLD, dim, ndim, period, reorder, griglia); // crea griglia
+    MPI_Cart_coords(*griglia, menum, 2, coord); // assegna coordinate...
+
+    vc[0] = 0;
+    vc[1] = 1;
+    MPI_Cart_sub(*griglia, vc, grigliaRighe); // divisione in righe del communicator
+
+    vc[0] = 1; 
+    vc[1] = 0;
+    MPI_Cart_sub(*griglia, vc, grigliaColonne); // divisione in colonne del communicator
+
+    ////... WHAT TO DO?
+}
