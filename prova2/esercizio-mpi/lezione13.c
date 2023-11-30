@@ -76,11 +76,11 @@ void esercizio2(int id_proc, int n_proc, int q_num, double *op) {
 
 	int q_loc = 0, rest = 0, tmp = 0, tag = 0;
 	int i = 0, j = 0;
-	double *op_loc;
+	double *op_loc, *op_tmp;
 	MPI_Status status;
 
-	/* ************************************************************************ */
-	//	DISTRIBUZIONE DEGLI OPERANDI
+	/* 	*********************************************************************** */
+	//	ALLOCAZIONE DEI VETTORI LOCALI
 
 	q_loc = q_num / n_proc;
 
@@ -93,36 +93,158 @@ void esercizio2(int id_proc, int n_proc, int q_num, double *op) {
 
 	op_loc = (double*)calloc (q_loc, sizeof(double));
 
-	if (id_proc == 0) {
+	/* 	*********************************************************************** */
+	//	DISTRIBUZIONE DEGLI OPERANDI CON MPI_SEND e MPI_RECV
+
+	// if (id_proc == 0) {
 	
-		tmp = q_loc;
+	// 	tmp = q_loc;
 
-		// printf("id_proc: %d, tmp: %d, j: %d\n", i, tmp, j);
+	// 	// printf("id_proc: %d, tmp: %d, j: %d\n", i, tmp, j);
 
-		for (j=0; j < tmp; j++) {
-			op_loc[j] = op[j];
-		}
+	// 	for (j=0; j < tmp; j++) {
+	// 		op_loc[j] = op[j];
+	// 	}
 
-		for (i=1; i < n_proc; i++) {
+	// 	for (i=1; i < n_proc; i++) {
 
-			if (rest != 0 && i == rest) {
-				tmp--;
-			}
+	// 		if (rest != 0 && i == rest) {
+	// 			tmp--;
+	// 		}
 
-			tag = i + 25;
-			MPI_Send(&op[j], tmp, MPI_DOUBLE, i, tag, MPI_COMM_WORLD);
+	// 		tag = i + 25;
+	// 		MPI_Send(&op[j], tmp, MPI_DOUBLE, i, tag, MPI_COMM_WORLD);
 
-			j += tmp;
-			// printf("id_proc: %d, tmp: %d, j: %d, tag: %d\n, ", i, tmp, j, tag);
+	// 		j += tmp;
+	// 		// printf("id_proc: %d, tmp: %d, j: %d, tag: %d\n, ", i, tmp, j, tag);
 
-		}
+	// 	}
 
-		// printf("\n");
+	// 	// printf("\n");
 		
-	} else {
-		tag = id_proc + 25;
-		// printf("id_proc: %d, tag: %d\n", id_proc, tag);
-		MPI_Recv(op_loc, q_loc, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD, &status);
+	// } else {
+	// 	tag = id_proc + 25;
+	// 	// printf("id_proc: %d, tag: %d\n", id_proc, tag);
+	// 	MPI_Recv(op_loc, q_loc, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD, &status);
+	// }
+
+	/* ************************************************************************ */
+	//	ALTERNATIVA: DISTRIBUZIONE DEGLI OPERANDI CON MPI_SCATTER
+
+	/*
+	
+		MPI_Scatter() - DIFFONDERE
+
+		L'esecuzione di questa funzione ha lo stesso risultato
+		dell'esecuzione di 'n_proc' MPI_Send da parte del processo radice, e
+		l'esecuzione di una singola MPI_Recv da parte di tutti i processori
+		del communicator (incluso il processo radice).
+
+		Per inviare un vettore di dati, si può eseguire un ciclo for con un
+		numero di iterazioni pari al numero di elementi locali del vettore di
+		ricezione, inviando un solo elemento per ogni iterazione.
+
+		-	void *sendbuf:
+			Indirizzo del vettore da dividere tra i processori (importante
+			solo per il processore root).
+
+		-	int sendcount:
+			Quantita di elementi da inviare ad ogni processore (importante
+			solo per il processore root).
+
+		-	MPI_Datatype sendtype:
+			Tipo dei dati da inviare (importante solo per il processore root).
+
+		-	void *recvbuf:
+			Indirizzo del vettore locale del processore nel quale ricevere
+			i dati.
+
+		-	int recvcount:
+			Quantita di elementi da ricevere.
+
+		-	MPI_Datatype recvtype:
+			Tipo dei dati da ricevere.
+
+		-	int root:
+			Identificativo del processo radice.
+
+		-	MPI_Comm comm:
+			Communicator del gruppo di processori.
+
+	*/
+
+	for (i = 0; i < q_loc; i++) {
+		MPI_Scatter(&op[n_proc * i], 1, MPI_DOUBLE, &op_loc[i], 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	}
+
+	/*
+	
+		MPI_Gather() - METTERE INSIEME
+
+		L'esecuzione di questa funzione ha lo stesso risultato
+		dell'esecuzione di 'n_proc' MPI_Recv da parte del processo radice, e
+		l'esecuzione di una singola MPI_Send da parte di tutti i processori
+		del communicator (incluso il processo radice).
+
+		Per ricevere un vettore di dati, si può eseguire un ciclo for con un
+		numero di iterazioni pari al MASSIMO numero di elementi locali tra
+		tutti i processori, inviando un solo elemento per ogni iterazione.
+
+		E' importante specificare il MASSIMO numero di elementi locali, in
+		quanto il processore radice puo rimanere bloccato nell'esecuzione
+		di MPI_Recv se non sono eseguite abbastanza MPI_Send.
+		
+		Tuttavia, questa soluzione genera un ulteriore problema: siccome il
+		processore radice esegue una MPI_Recv per ogni processore del
+		communicator, e' necessario che il vettore di ricezione sia abbastanza
+		grande da gestire gli accessi per tutte le MPI_Recv, appunto.
+
+		Cioe', si utilizza come dimensione del vettore di ricezione la
+		seguente quantita: 'q_loc * n_proc'. Al termine dell'esecuzione,
+		pero', si può iterare anche solo sui primi 'q_num' elementi, visto
+		che i successivi servono solo per evitare degli eventuali
+		"segmentation fault".
+
+		-	void *sendbuf:
+			Indirizzo del vettore da cui inviare gli elementi.
+
+		-	int sendcount:
+			Quantita di elementi da inviare al processore radice.
+
+		-	MPI_Datatype sendtype:
+			Tipo dei dati da inviare.
+
+		-	void *recvbuf:
+			Indirizzo del vettore di ricezione del processore radice nel quale
+			ricevere i dati (importante solo per il processore root).
+
+		-	int recvcount:
+			Quantita di elementi da ricevere da ogni processore (importante
+			solo per il processore root).
+
+		-	MPI_Datatype recvtype:
+			Tipo dei dati da ricevere (importante solo per il processore root).
+
+		-	int root:
+			Identificativo del processo radice, cioe' quello dedicato alla
+			ricezione e al "gather" dei dati.
+
+		-	MPI_Comm comm:
+			Communicator del gruppo di processori.
+			
+	*/
+
+	if (id_proc == 0) {
+		op_tmp = (double*)calloc (q_loc * n_proc, sizeof(double));
+	}
+	
+	tmp = q_loc;
+	if (id_proc >= rest) {
+		tmp++;
+	}
+
+	for (i = 0; i < tmp; i++) {
+		MPI_Gather(&op_loc[i], 1, MPI_DOUBLE, &op_tmp[n_proc * i], 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	}
 
 	/* ************************************************************************ */
@@ -133,11 +255,27 @@ void esercizio2(int id_proc, int n_proc, int q_num, double *op) {
 	    printf("Processore %d, op_loc[%d]: %f\n", id_proc, j, op_loc[j]);
 	}
 
+	MPI_Barrier(MPI_COMM_WORLD);
+	if (id_proc == 0) {
+		for (j=0; j < q_num; j++) {
+			printf("Processore %d, op_tmp[%d]: %f\n", id_proc, j, op_tmp[j]);
+		}
+	}
+
 	free(op_loc);
+
+	if (id_proc == 0) {
+		free(op_tmp);
+	}
 
 	/*	***********************************************************************
 		RIFERIMENTI
 
+		https://www.youtube.com/watch?v=-IC4pBF4kUk
+		https://www.youtube.com/watch?v=tjb2QQ9oPCE
+		https://gist.github.com/ehamberg/1263868/cae1d85dee821d45fb0cd58747aaf33370f3f1ed
+		https://www.open-mpi.org/doc/v1.4/man3/MPI_Gather.3.php
+		https://www.open-mpi.org/doc/v1.4/man3/MPI_Scatter.3.php
 
 	*/
 
@@ -231,7 +369,7 @@ int main (int argc, char **argv) {
 						op[j] = op[j] * (-1);
 					}
 
-					printf("op[%d]: %f\n", j, op[j]);
+					// printf("op[%d]: %f\n", j, op[j]);
 				}
 			}
 
