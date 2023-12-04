@@ -1,5 +1,5 @@
 folder = openmp-esempio
-file = lezione13
+file = 1108_lezione13
 login = CRFMGB01R
 home=/project
 work=$(home)/prova1/codice
