@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 	// LETTURA DEI DATI
 	
 	/* ************************************************************************ */
-	// DISTRIBUZIONE DEGLI OPERANDI
+	// DISTRIBUZIONE DEGLI OPERANDI -> ESSENDO MEMORIA CONDIVISA NON SI DEVE DISTRIBUIRE NULLA
 
 	/* ************************************************************************ */
 	// INIZIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
@@ -43,7 +43,8 @@ int main(int argc, char **argv) {
 		t_start = time.tv_sec + (time.tv_usec / TIME_PRECISION);
 	}
 
-	/* ************************************************************************ */
+	/* ************************************************************************
+	// E NON SI APPLICANO LE STRATEGIE
 	// APPLICAZIONE DELLA STRATEGIA
 
 	switch (strategia) {
@@ -68,6 +69,7 @@ int main(int argc, char **argv) {
 			break;
 		}
 	}
+	*/
 
 	/* ************************************************************************ */
 	// SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
@@ -88,6 +90,7 @@ int main(int argc, char **argv) {
   	/* ************************************************************************ */
 	// STAMPA DELL'OUTPUT
 
+	/* ************************************************************************
 	switch (strategia) {
 		case NO_STRATEGY:
 		case FIRST_STRATEGY:
@@ -108,6 +111,7 @@ int main(int argc, char **argv) {
 			printf("Errore nella stampa dell'output!\n");
 			break;
 	}
+	*/
 
   	/* ************************************************************************ */
 	// TERMINAZIONE DELL'ESECUZIONE
