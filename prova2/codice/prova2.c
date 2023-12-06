@@ -6,125 +6,280 @@
 
 */
 
-/* **************************************************************************** */
-// LIBRERIE
+/*	************************************************************************ */
+//	LIBRERIE
 
 #include "./libraries/auxfunc.h"
+#include <omp.h>
 
-/* **************************************************************************** */
+/*	************************************************************************ */
 
 int main(int argc, char **argv) {
 
-	/* ************************************************************************ */
-	// INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
+	/*	******************************************************************** */
+	//	INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
 
-	int strategia = NO_STRATEGY, q_num = 0;
-	int test = NO_TEST, time_calc = NO_TIME_CALC;
+	int strategia = NO_STRATEGY, test = NO_TEST, time_calc = NO_TIME_CALC;
+	int rows = 0, cols = 0, threads = 0;
+	int q_num = 0;
 
-	int id_proc = 0;
+	int i = 0, j = 0, k = 0;
+	double **mat, *vet;
+	double *multiplication;
 
-	timeval time;
+	struct timeval t;
 	double t_start = 0.0, t_end = 0.0, t_tot = 0.0;
+
+	int int_rand = 0;
 	double double_rand = 0.0;
 
 	srand(time(NULL));
 
-	/* ************************************************************************ */
-	// LETTURA DEI DATI
-	
-	/* ************************************************************************ */
-	// DISTRIBUZIONE DEGLI OPERANDI -> ESSENDO MEMORIA CONDIVISA NON SI DEVE DISTRIBUIRE NULLA
+	/*	******************************************************************** */
+	//	LETTURA DEI DATI
 
-	/* ************************************************************************ */
-	// INIZIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
-
-	if (time_calc == OK_TIME_CALC) {
-		gettimeofday(&time, NULL);
-		t_start = time.tv_sec + (time.tv_usec / TIME_PRECISION);
+	// I processori leggono gli argomenti in input 'argv[]'.
+	if (argc < 5) {
+		printf("Errore nella lettura degli argomenti di input!\n\n");
+		printf("Esecuzione terminata.\n");
+		exit(NOT_ENOUGH_ARGS_ERROR);
 	}
 
-	/* ************************************************************************
-	// E NON SI APPLICANO LE STRATEGIE
-	// APPLICAZIONE DELLA STRATEGIA
+	/*
+		--- int argToInt(char *arg) ---
+		Si utilizza la funzione 'argToInt' definita in 'auxfunc.h'
+		per leggere gli argomenti contenuti nel vettore di 
+		stringhe 'argv[]' e convertirli in valori interi.
+	*/
 
-	switch (strategia) {
-		case NO_STRATEGY: {
+	rows = argToInt(argv[1]);
+	cols = argToInt(argv[2]);
+	threads = argToInt(argv[3]);
+	test = argToInt(argv[4]);
+	time_calc = argToInt(argv[5]);
+
+	mat = (double**) calloc(rows, sizeof(double*));
+	for (i = 0; i < rows; i++) {
+		mat[i] = (double*) calloc(cols, sizeof(double));
+	}
+
+	vet = (double*) calloc(cols, sizeof(double));
+
+	multiplication = (double*) calloc(rows, sizeof(double));
+
+	switch(NO_TEST) {
+		case NO_TEST:
+		{
+			q_num = rows * cols;
+			k = 1;
+			if (q_num <= OP_MAX_QUANTITY) {
+
+				for (i = 0; i < rows; i++) {
+					for (j = 0; j < cols; j++) {
+						mat[i][j] = argToDouble(argv[k+5]);
+						k++;
+					}
+				}
+
+				for (j = 0; j < cols; j++) {
+					vet[j] = argToDouble(argv[k+5]);
+					k++;
+				}
+
+			} else {
+
+				for (i = 0; i < rows; i++) {
+					for (j = 0; j < cols; j++) {
+						double_rand = (double)rand();
+						int_rand = (int)rand();
+
+						// Si genera un numero casuale reale compreso tra 0 e 100
+						mat[i][j] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
+
+						// Si ha il 33% di possibilita che mat[i][j] < 0
+						if (int_rand % 3 == 0) {
+							mat[i][j] = mat[i][j] * (-1);
+						}
+					}
+				}
+
+				for (j = 0; j < cols; j++) {
+					double_rand = (double)rand();
+					int_rand = (int)rand();
+
+					vet[j] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
+
+					if (int_rand % 3 == 0) {
+						vet[j] = vet[j] * (-1);
+					}
+				}
+
+			}
+
 			break;
 		}
-		case FIRST_STRATEGY: // Applicazione della strategia 1.
+		case MULTIPLICATION_ONE_TEST:
 		{
+
+			/*
+				Il vettore da moltiplicare e' costituito di soli 1.
+
+				Il test termina con successo se il vettore finale
+				e' costituito dal valore della somma dei valori di
+				ogni singola riga.
+			*/
+
+			for (i = 0; i < rows; i++) {
+				for (j = 0; j < cols; j++) {
+					double_rand = (double)rand();
+					int_rand = (int)rand();
+
+					mat[i][j] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
+
+					if (int_rand % 3 == 0) {
+						mat[i][j] = mat[i][j] * (-1);
+					}
+				}
+			}
+
+			for (j = 0; j < cols; j++) {
+				vet[j] = 1;
+			}
+
 			break;
 		}
-		case SECOND_STRATEGY: // Applicazione della strategia 2.
+		case MULTIPLICATION_SINGLE_NUMBER_TEST:
 		{
+
+			/*
+				Ad ogni posizione del vettore degli operandi e'
+				assegnato lo stesso valore reale, passato come
+				argomento 'argv[6]' al programma.
+
+				Il test termina con successo se il vettore finale
+				e' costituito dal valore della somma dei valori di
+				ogni singola riga moltiplicato proprio per il
+				valore 'argv[6]'.
+			*/
+
+			for (i = 0; i < rows; i++) {
+				for (j = 0; j < cols; j++) {
+					double_rand = (double)rand();
+					int_rand = (int)rand();
+
+					mat[i][j] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
+
+					if (int_rand % 3 == 0) {
+						mat[i][j] = mat[i][j] * (-1);
+					}
+				}
+			}
+
+			for (j = 0; j < cols; j++) {
+				vet[j] = argToDouble(argv[6]);
+			}
+
 			break;
 		}
-		case THIRD_STRATEGY: // Applicazione della strategia 3.
+		case MULTIPLICATION_CSV_TEST:
 		{
+			// TODO
+			break;
+		}
+		case MULTIPLICATION_EIGENVECTOR_TEST:
+		{
+			// Da implementare, si veda la sezione futuri sviluppi nella documentazione.
 			break;
 		}
 		default:
-		{
-			printf("Comando non riconosciuto!\n");
 			break;
+	}
+
+	for (i = 0; i < rows; i++) {
+		for (j = 0; j < cols; j++) {
+			printf("Riga %d, ", i);
+			printf("Colonna %d -> %f\n", j, mat[i][j]);
 		}
 	}
+
+	for (j = 0; j < cols; j++) {
+		printf("Colonna %d -> %f\n", j, vet[i]);
+	}
+	
+	/*	******************************************************************** */
+	//	DISTRIBUZIONE DEGLI OPERANDI
+
+	/*
+		Dato che questo programma e' progettato per essere eseguito su
+		architettura MIMD a memoria condivisa, non si devono distribuire gli
+		operandi della matrice e del vettore.
 	*/
 
-	/* ************************************************************************ */
-	// SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
+	/*	******************************************************************** */
+	// 	INIZIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
 
 	if (time_calc == OK_TIME_CALC) {
-		gettimeofday(&time, NULL);
-		t_end = time.tv_sec + (time.tv_usec / TIME_PRECISION);
+		gettimeofday(&t, NULL);
+		t_start = t.tv_sec + (t.tv_usec / TIME_PRECISION);
+	}
+
+	/*	******************************************************************** */
+	//	APPLICAZIONE DELLA STRATEGIA
+
+	/*
+		Dato che non è stata eseguita la distribuzione degli operandi,
+		anche l'applicazione della strategia di calcolo tra i processori,
+		di conseguenza, si può omettere.
+	*/
+
+	/*	******************************************************************** */
+	//	CALCOLO DEL PRODOTTO MATRICE-VETTORE
+
+    omp_set_num_threads(threads);
+
+	if (multiplication) {
+        #pragma omp parallel for default(none) shared(rows, cols, mat, vet, multiplication) private (i,j)
+        for (i = 0; i < rows; i++) {
+            for (j = 0; j < cols; j++) {
+                multiplication[i] = multiplication[i] + mat[i][j] * vet[j];
+            }
+        }
+    }
+
+	/*	******************************************************************** */
+	//	SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
+
+	if (time_calc == OK_TIME_CALC) {
+		gettimeofday(&t, NULL);
+		t_end = t.tv_sec + (t.tv_usec / TIME_PRECISION);
 
 		// Si calcola la distanza di tempo tra l'istante iniziale e quello finale.
 		t_tot = t_end - t_start;
 
-		if (id_proc == 0) {
-			printf("\nApplicazione della strategia %d terminata in %e sec\n", strategia, t_tot);
-			writeTimeCSV(test, strategia, n_proc, q_num, t_tot);
-		}
+		printf("\nCalcolo del prodotto matrice-vettore terminato in %e sec\n", t_tot);
+		// writeTimeCSV(test, n_proc, rows, cols, t_tot);
 	}
 
-  	/* ************************************************************************ */
-	// STAMPA DELL'OUTPUT
+  	/*	******************************************************************** */
+	//	STAMPA DELL'OUTPUT
 
-	/* ************************************************************************
-	switch (strategia) {
-		case NO_STRATEGY:
-		case FIRST_STRATEGY:
-		{
-			if (id_proc == 0) {
-				printf("\nLa somma totale e' %f\n", sum);
-			}
-			break;
-		}
-		case SECOND_STRATEGY:
-		case THIRD_STRATEGY:
-		{
-			printf("\nProcesso n.%d\n", id_proc);
-			printf("La somma totale e' %f\n", sum);
-			break;
-		}
-		default:
-			printf("Errore nella stampa dell'output!\n");
-			break;
+	for (i = 0; i < rows; i++) {
+        printf("Riga %d -> %f\n", i, multiplication[i]);
 	}
-	*/
 
-  	/* ************************************************************************ */
-	// TERMINAZIONE DELL'ESECUZIONE
+  	/*	******************************************************************** */
+	//	TERMINAZIONE DELL'ESECUZIONE
 
-	if (id_proc == 0) {
-		printf("\nEsecuzione terminata.\n");
-	}
+	free(mat);
+	free(vet);
+	free(multiplication);
+	printf("\nEsecuzione terminata.\n");
 
 	return 0;
 }
 
-/* **************************************************************************** */
-/* RIFERIMENTI
+/*	************************************************************************ */
+/*	RIFERIMENTI
 
 
 

@@ -21,6 +21,12 @@ double argToDouble(char *arg);
 
 void writeTimeCSV(int test, int strategia, int n_proc, int q_num, double t_tot);
 
+int getRowsFromCSV(const char* path);
+
+int getFieldsFromCSV(const char* path);
+
+double** getMatrix(const char* path);
+
 /* **************************************************************************** */
 
 #include "auxfunc.c"

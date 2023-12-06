@@ -10,4 +10,6 @@
 
 Questa repository contiene codice e documentazione di tutte le esercitazioni dell'insegnamento "Parallel & Distributed Computing".
 
-1. Somma di N numeri.
+1. Somma di N numeri in ambiente parallelo su architettura MIMD a memoria distribuita.
+
+2. Prodotto matrice-vettore in ambiente parallelo su architettura MIMD a memoria condivisa.

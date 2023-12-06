@@ -26,7 +26,8 @@ void printTitle() {
 		"#   / /___/ / /_/ / /_/ / /_/ / /  / /_/ / /_/ /_/ /  _/ /_/ /     #\n"
 		"#  /_____/_/\\__,_/_.___/\\____/_/   \\__,_/\\__/\\____/  /___/___/     #\n"
 		"#                                                                  #\n"
-		"# ------------ Calcolo del prodotto matrice - vettore ------------ #\n"
+		"# -- Calcolo del prodotto matrice-vettore in ambiente di calcolo - #\n"
+		"# ------ parallelo su architettura MIMD a memoria condivisa ------ #\n"
 		"#                                                                  #\n"
 		"####################################################################\n\n"
 	);

@@ -98,7 +98,7 @@ double argToDouble(char *arg) {
 	return out_double;
 }
 
-void writeTimeCSV(int test, int strategia, int n_proc, int q_num, double t_tot) {
+void writeTimeCSV(int test, int n_proc, int rows, int cols, double t_tot) {
 
 	FILE *csv_file;
 
@@ -111,12 +111,128 @@ void writeTimeCSV(int test, int strategia, int n_proc, int q_num, double t_tot) 
 	}
 
 	fprintf(csv_file, "%d,%d,%d,%d,%1.9f\n",
-		test, strategia, n_proc, q_num, t_tot);
+		test, n_proc, rows, cols, t_tot);
 
 	fclose(csv_file);
 
 	printf("%s aggiornato con successo!\n\n", CSV_TIME_PATH"/"NOME_PROVA"_time.csv");
 
+}
+
+int getRowsFromCSV(const char* path) {
+
+    FILE* file;
+	char c;
+	int rows = 0;
+
+	if ((file = fopen(path, "r")) == NULL) {
+		printf("Errore durante l'esecuzione!\n");
+		printf("Applicazione terminata.\n");
+		exit(FILE_OPENING_ERROR);
+	}
+
+	do {
+		c = fgetc(file);
+		if (c == 10) {
+			rows++;
+		}
+	} while (c != EOF);
+
+	return rows+1;
+}
+
+int getFieldsFromCSV(const char* path) {
+
+    FILE* file;
+	char c;
+	int fields = 0;
+
+	if ((file = fopen(path, "r")) == NULL) {
+		printf("Errore durante l'esecuzione!\n");
+		printf("Applicazione terminata.\n");
+		exit(FILE_OPENING_ERROR);
+	}
+
+	do {
+		c = fgetc(file);
+		if (c == 44) {
+			fields++;
+		}
+        if (c == 10) {
+            fields = 0;
+        }
+	} while (c != EOF);
+
+	return fields+1;
+}
+
+double** getMatrix(const char* path) {
+	FILE *file;
+	char c, char_val[CSV_FIELD_PRECISION] = {};
+	int rows = 0, fields = 0;
+
+	int i = -1;
+	int row_count = 0, comma_count = 0;
+
+	if ((file = fopen(path, "r")) == NULL) {
+		printf("Errore durante l'esecuzione!\n");
+		printf("Applicazione terminata.\n");
+		exit(FILE_OPENING_ERROR);
+	}
+
+	rows = getRowsFromCSV(path);
+	fields = getFieldsFromCSV(path);
+
+	double** ret = (double**) calloc(rows, sizeof(double*));
+	for (i = 0; i < rows; i++) {
+		ret[i] = (double*) calloc(fields, sizeof(double));
+		for (int j = 0; j < fields; j++) {
+			ret[i][j] = -1;
+			// printf("ret[%d][%d]: %f\n", i, j, ret[i][j]);
+		}
+		// printf("\n");
+	}
+
+	i = -1;
+
+	do {
+		++i;
+		c = fgetc(file);
+
+		// printf("%c", c);
+		if (c != 44) {
+			if (i < CSV_FIELD_PRECISION) {
+				char_val[i] = c;
+			} else {
+				printf("Errore nella lettura dell'input!\n\n");
+				printf("Applicazione terminata.\n");
+				exit(OVERFLOW_ERROR);
+			}
+		}
+		
+		if (c == 44 || c == 10 || c == EOF) {
+			char_val[i] = '\0';
+			ret[row_count][comma_count++] = argToDouble(char_val);
+
+			if (c == EOF) {
+				break;
+			}
+			
+			if (c == 10) {
+				comma_count = 0;
+				row_count++;
+			}
+
+			for (i = 0; i < CSV_FIELD_PRECISION; i++) {
+				char_val[i] = '0';
+			}
+			char_val[i] ='\0';
+
+			i = -1;
+		}
+	} while (c != EOF);
+
+	return ret;
 }
 
 /* **************************************************************************** */

@@ -11,16 +11,16 @@
 
 /*
 	NOT_ENOUGH_ARGS_ERROR: int
-	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma è stata terminata per mancanza di un numero sufficiente di argomenti.
+	Si utilizza per segnalare all'utente che l'esecuzione del programma
+	e' stata terminata per mancanza di un numero sufficiente di argomenti.
 */
 
 #define NOT_ENOUGH_ARGS_ERROR 1
 
 /*
 	EMPTY_ARG_ERROR: int
-	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma è stata terminata siccome un argomento dato in input e' vuoto.
+	Si utilizza per segnalare all'utente che l'esecuzione del programma
+	e' stata terminata siccome un argomento dato in input e' vuoto.
 */
 
 #define EMPTY_ARG_ERROR 2
@@ -28,7 +28,7 @@
 /*
 	INPUT_ARG_ERROR: int
 	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma è stata terminata a causa di un errata lettura di un
+    programma e' stata terminata a causa di un errata lettura di un
     argomento dato in input.
 */
 
@@ -37,8 +37,8 @@
 /*
 	NOT_INT_ARG_ERROR: int
 	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma è stata terminata poiche' un argomento dato in input
-    non è rappresentabile come intero.
+    programma e' stata terminata poiche' un argomento dato in input
+    non e' rappresentabile come intero.
 */
 
 #define NOT_INT_ARG_ERROR 4
@@ -46,7 +46,7 @@
 /*
 	INPUT_LINE_ERROR: int
 	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma è stata terminata a causa di un errata lettura
+    programma e' stata terminata a causa di un errata lettura
     dello 'standard input stream' (stdin).
 */
 
@@ -55,8 +55,8 @@
 /*
 	NOT_REAL_NUMBER_ERROR: int
 	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma è stata terminata siccome non ha inserito un
-    numero reale correttamente.
+    programma e' stata terminata siccome non ha inserito un
+    numero reale nel formato corretto.
 */
 
 #define NOT_REAL_NUMBER_ERROR 6
@@ -64,8 +64,8 @@
 /*
 	NOT_NATURAL_NUMBER_ERROR: int
 	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma è stata terminata siccome non ha inserito un
-    numero naturale correttamente.
+    programma e' stata terminata siccome non ha inserito un
+    numero naturale nel formato corretto.
 */
 
 #define NOT_NATURAL_NUMBER_ERROR 7
@@ -73,36 +73,38 @@
 /*
 	NOT_IN_RANGE_ERROR: int
 	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma è stata terminata siccome non ha inserito un
+    programma e' stata terminata siccome non ha inserito un
     numero compreso in un certo intervallo.
 */
 
 #define NOT_IN_RANGE_ERROR 8
 
 /*
-	NOT_ENOUGH_OPERANDS: int
-	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma è stata terminata siccome non ha inserito un
-    numero sufficiente di operandi per la somma.
-*/
-
-#define NOT_ENOUGH_OPERANDS 9
-
-/*
 	FILE_OPENING_ERROR: int
 	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma è stata terminata a causa di un errore durante
-    l'apertura di un determinato file.
+    programma e' stata terminata a causa di un errore durante
+    l'apertura di un file.
 */
 
-#define FILE_OPENING_ERROR 10
+#define FILE_OPENING_ERROR 9
+
+/*
+	OVERFLOW_ERROR: int
+	Si utilizza per segnalare all'utente che l'esecuzione del
+    programma e' stata terminata siccome il file .csv letto in
+	input contiene dei valori float con una maggior precisione
+	di quella descritta dalla costante CSV_FIELD_PRECISION.
+*/
+
+#define OVERFLOW_ERROR 10
 
 /* **************************************************************************** */
 // ENUMERAZIONI E COSTANTI
 
 /*
-	Si utilizza per applicare l'algoritmo del calcolo della somma in
-	sequenziale quando si esegue un caso di test su un solo processore.
+	Si utilizza per applicare l'algoritmo del calcolo del prodotto
+	matrice-vettore in sequenziale quando si esegue un caso di
+	test su un solo processore.
 */
 
 #define NO_STRATEGY 0
@@ -113,15 +115,13 @@
     dell'applicazione.
 */
 
-#define FIRST_STRATEGY 1
-#define SECOND_STRATEGY 2
-#define THIRD_STRATEGY 3
-#define TESTING_SUITE 4
-#define EXIT_APPLICATION 5
+#define TESTING_SUITE 1
+#define EXIT_APPLICATION 2
 
 /*
-    Si utilizza per eseguire l'algoritmo del calcolo della somma utilizzando
-	i valori degli operandi scelti dall'utente oppure generati in modo casuale.
+    Si utilizza per eseguire l'algoritmo del calcolo del prodotto
+	matrice-vettore utilizzando i valori degli operandi scelti
+	dall'utente oppure generati in modo casuale.
 */
 
 #define NO_TEST 0
@@ -132,32 +132,16 @@
     della suite di test dell'applicazione.
 */
 
-#define SUM_ONE_TEST 1
-#define SUM_SINGLE_NUMBER_TEST 2
-#define SUM_OPPOSITE_NUMBER_TEST 3
-#define GAUSS_TEST 4
+#define MULTIPLICATION_ONE_TEST 1
+#define MULTIPLICATION_SINGLE_NUMBER_TEST 2
+#define MULTIPLICATION_CSV_TEST 3
+#define MULTIPLICATION_EIGENVECTOR_TEST 4
 #define EXIT_TEST 5
 
 /*
-    OP_MIN_EXP_TEST: int
-    Si utilizza come esponente minimo per determinare la quantita' di
-	operandi nella creazione dei casi di test.
-*/
-
-#define OP_MIN_EXP_TEST 4
-
-/*
-    OP_MAX_EXP_TEST: int
-    Si utilizza come esponente massimo per determinare la quantita' di
-	operandi nella creazione dei casi di test.
-*/
-
-#define OP_MAX_EXP_TEST 6
-
-/*
     OP_MAX_QUANTITY: int
-    Come richiesto dalle specifiche dell'algoritmo, il massimo numero
-    di operandi che l'utente può inserire manualmente è 20.
+    Si utilizza per specificare il massimo numero di operandi
+	che l'utente può inserire manualmente.
 */
 
 #define OP_MAX_QUANTITY 20
@@ -174,17 +158,19 @@
 #define OK_TIME_CALC 1
 
 /*
-	NOME_PROVA: char*
-	Si utilizza nella funzione createPBS() per personalizzare il
-	file .pbs con il nome della prova corrente.
-*/
-
-/*
 	TIME_PRECISION: double
-	
+	Si utilizza per modificare la sensibilità dei tempi di esecuzione
+	recuperati durante l'esecuzione del programma. In questo caso, il
+	valore 1000000.0 indica che il tempo sarà misurato in secondi.
 */
 
 #define TIME_PRECISION 1000000.0
+
+/*
+	NOME_PROVA: char*
+	Si utilizza nella funzione createPBS() per personalizzare il
+	file .pbs con il nome della prova da consegnare.
+*/
 
 #define NOME_PROVA "prova2"
 
@@ -195,7 +181,7 @@
 	eseguire il programma.
 */
 
-#define NODE_NUMBER "8"
+#define NODE_NUMBER "1"
 
 /*
 	NODE_PROCESS: char*
@@ -224,13 +210,13 @@
 
 /*
 	CSV_TIME_PATH: char*
-	È il path del file .csv nella quale sono memorizzate tutte le informazioni
+	E' il path del file .csv nella quale sono memorizzate tutte le informazioni
 	necessarie allo studio dei casi di test. In particolare, la sua struttura
 	e' la seguente:
 	-	test : int (indica il caso di test eseguito)
-	-	strategia : int (indica la strategia scelta per l'esecuzione)
 	-	n_proc : int (indica il numero di processori)
-	-	q_num : int (indica il numero di operandi sommati)
+	-	rows : int (indica il numero di righe della matrice)
+	-	cols : int (indica il numero di colonne della matrice e del vettore)
 	-	t_tot : double (indica il tempo di esecuzione impiegato)
 */
 
@@ -238,40 +224,16 @@
 
 /*
 	OP_MAX_VALUE: int
-	Si utilizza come limite massimo del valore di un operando
-	quando si sceglie di sommare numeri reali casuali.
+	Si utilizza come limite massimo dei valori della matrice o
+	del vettore quando si sceglie di utilizzare numeri reali casuali.
 */
 
 #define OP_MAX_VALUE 100
 
 /*
-	DISTRIBUTION_TAG: int
-	Si utilizza per assegnare un identificativo unico alle
-	comunicazioni di MPI durante la fase di distribuzione dei dati.
+	CSV_FIELD_PRECISION: int
+	Si utilizza come limite massimo di cifre decimali dei valori
+	della matrice quando si sceglie la lettura da file .csv.
 */
 
-#define DISTRIBUTION_TAG 25
-
-/*
-	FIRST_STRATEGY_TAG: int
-	Si utilizza per assegnare un identificativo unico alle
-	comunicazioni di MPI durante l'applicazione della 1a strategia.
-*/
-
-#define FIRST_STRATEGY_TAG 100
-
-/*
-	SECOND_STRATEGY_TAG: int
-	Si utilizza per assegnare un identificativo unico alle
-	comunicazioni di MPI durante l'applicazione della 2a strategia.
-*/
-
-#define SECOND_STRATEGY_TAG 200
-
-/*
-	THIRD_STRATEGY_TAG: int
-	Si utilizza per assegnare un identificativo unico alle
-	comunicazioni di MPI durante l'applicazione della 3a strategia.
-*/
-
-#define THIRD_STRATEGY_TAG 300
+#define CSV_FIELD_PRECISION 10

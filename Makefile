@@ -46,7 +46,7 @@ clang-openmp-run:
 		-L/opt/homebrew/opt/libomp/lib \
 		-I/opt/homebrew/opt/libomp/include -lomp \
 		$(folder)/$(file).c -o $(folder)/$(file)
-	./$(folder)/$(file)
+	./$(folder)/$(file) 3 2 8 0 1 1.0 2.0 3.0 4.0 5.0 6.0 1.0 2.0
 	rm -f $(folder)/$(file)
 
 #	https://unix.stackexchange.com/questions/193368/can-scp-create-a-directory-if-it-doesnt-exist
