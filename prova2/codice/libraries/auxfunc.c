@@ -123,7 +123,7 @@ int getRowsFromCSV(const char* path) {
 
     FILE* file;
 	char c;
-	int rows = 0;
+	int rows_csv = 0;
 
 	if ((file = fopen(path, "r")) == NULL) {
 		printf("Errore durante l'esecuzione!\n");
@@ -134,18 +134,18 @@ int getRowsFromCSV(const char* path) {
 	do {
 		c = fgetc(file);
 		if (c == 10) {
-			rows++;
+			rows_csv++;
 		}
 	} while (c != EOF);
 
-	return rows+1;
+	return rows_csv+1;
 }
 
-int getFieldsFromCSV(const char* path) {
+int getColsFromCSV(const char* path) {
 
     FILE* file;
 	char c;
-	int fields = 0;
+	int cols_csv = 0;
 
 	if ((file = fopen(path, "r")) == NULL) {
 		printf("Errore durante l'esecuzione!\n");
@@ -156,20 +156,20 @@ int getFieldsFromCSV(const char* path) {
 	do {
 		c = fgetc(file);
 		if (c == 44) {
-			fields++;
+			cols_csv++;
 		}
         if (c == 10) {
-            fields = 0;
+            cols_csv = 0;
         }
 	} while (c != EOF);
 
-	return fields+1;
+	return cols_csv+1;
 }
 
-double** getMatrix(const char* path) {
+void getMatrixFromCSV(const char* path, double** mat, int rows_mat, int cols_mat) {
 	FILE *file;
 	char c, char_val[CSV_FIELD_PRECISION] = {};
-	int rows = 0, fields = 0;
+	int rows_csv = 0, cols_csv = 0;
 
 	int i = -1;
 	int row_count = 0, comma_count = 0;
@@ -180,20 +180,17 @@ double** getMatrix(const char* path) {
 		exit(FILE_OPENING_ERROR);
 	}
 
-	rows = getRowsFromCSV(path);
-	fields = getFieldsFromCSV(path);
+	rows_csv = getRowsFromCSV(path);
+	cols_csv = getColsFromCSV(path);
 
-	double** ret = (double**) calloc(rows, sizeof(double*));
-	for (i = 0; i < rows; i++) {
-		ret[i] = (double*) calloc(fields, sizeof(double));
-		for (int j = 0; j < fields; j++) {
-			ret[i][j] = -1;
-			// printf("ret[%d][%d]: %f\n", i, j, ret[i][j]);
-		}
-		// printf("\n");
+	// printf("rows_csv: %d, cols_csv: %d\n", rows_csv, cols_csv);
+	// printf("rows_mat: %d, cols_mat: %d\n", rows_mat, cols_mat);
+
+	if ((rows_csv != rows_mat) || (cols_csv != cols_mat)) {
+		printf("La dimensione della matrice non e' corretta!\n");
+		printf("Applicazione terminata.\n");
+		exit(MATRIX_DIMENSION_ERROR);
 	}
-
-	i = -1;
 
 	do {
 		++i;
@@ -212,7 +209,7 @@ double** getMatrix(const char* path) {
 		
 		if (c == 44 || c == 10 || c == EOF) {
 			char_val[i] = '\0';
-			ret[row_count][comma_count++] = argToDouble(char_val);
+			mat[row_count][comma_count++] = argToDouble(char_val);
 
 			if (c == EOF) {
 				break;
@@ -231,8 +228,74 @@ double** getMatrix(const char* path) {
 			i = -1;
 		}
 	} while (c != EOF);
+}
 
-	return ret;
+void getVectorFromCSV(const char* path, double* vet, int cols_mat) {
+	FILE *file;
+	char c, char_val[CSV_FIELD_PRECISION] = {};
+	int rows_csv = 0;
+
+	int i = -1;
+	int row_count = 0;
+
+	if ((file = fopen(path, "r")) == NULL) {
+		printf("Errore durante l'esecuzione!\n");
+		printf("Applicazione terminata.\n");
+		exit(FILE_OPENING_ERROR);
+	}
+
+	rows_csv = getRowsFromCSV(path);
+
+	// printf("rows_csv: %d, cols_mat: %d\n", rows_csv, cols_mat);
+
+	if (rows_csv != cols_mat) {
+		printf("La dimensione del vettore non e' corretta!\n");
+		printf("Applicazione terminata.\n");
+		exit(VECTOR_DIMENSION_ERROR);
+	}
+
+	do {
+		++i;
+		c = fgetc(file);
+
+		// printf("%c", c);
+		if (c != 10) {
+			if (i < CSV_FIELD_PRECISION) {
+				char_val[i] = c;
+			} else {
+				printf("Errore nella lettura dell'input!\n\n");
+				printf("Applicazione terminata.\n");
+				exit(OVERFLOW_ERROR);
+			}
+		}
+		
+		if (c == 10 || c == EOF) {
+			char_val[i] = '\0';
+			vet[row_count] = argToDouble(char_val);
+
+			if (c == EOF) {
+				break;
+			}
+			
+			if (c == 10) {
+				row_count++;
+			}
+
+			for (i = 0; i < CSV_FIELD_PRECISION; i++) {
+				char_val[i] = '0';
+			}
+			char_val[i] ='\0';
+
+			i = -1;
+		}
+	} while (c != EOF);
+}
+
+void freeMatrix(double** mat, int rows_csv) {
+    for (int i = 0; i < rows_csv; i++) {
+        free(mat[i]);
+    }
+    free(mat);
 }
 
 /* **************************************************************************** */

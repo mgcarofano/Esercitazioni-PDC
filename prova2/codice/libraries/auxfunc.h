@@ -23,9 +23,13 @@ void writeTimeCSV(int test, int strategia, int n_proc, int q_num, double t_tot);
 
 int getRowsFromCSV(const char* path);
 
-int getFieldsFromCSV(const char* path);
+int getColsFromCSV(const char* path);
 
-double** getMatrix(const char* path);
+void getMatrixFromCSV(const char* path, double** mat, int rows_mat, int cols_mat);
+
+void getVectorFromCSV(const char* path, double* vet, int cols_mat);
+
+void freeMatrix(double** mat, int rows);
 
 /* **************************************************************************** */
 

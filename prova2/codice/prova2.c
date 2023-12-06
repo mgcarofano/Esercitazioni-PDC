@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 
 	multiplication = (double*) calloc(rows, sizeof(double));
 
-	switch(NO_TEST) {
+	switch(test) {
 		case NO_TEST:
 		{
 			q_num = rows * cols;
@@ -183,12 +183,23 @@ int main(int argc, char **argv) {
 		}
 		case MULTIPLICATION_CSV_TEST:
 		{
-			// TODO
+
+			/*
+				In questo caso di test, i valori per la matrice ed il vettore
+				sono caricati da un file .csv il cui percorso sono specificati
+				alle posizioni 'argv[6]' e 'argv[7]'.
+			*/
+
+			// printf("rows: %d, cols: %d\n", rows, cols);
+
+			getMatrixFromCSV(argv[6], mat, rows, cols);
+			getVectorFromCSV(argv[7], vet, cols);
 			break;
 		}
 		case MULTIPLICATION_EIGENVECTOR_TEST:
 		{
-			// Da implementare, si veda la sezione futuri sviluppi nella documentazione.
+			// Da implementare.
+			// Si veda la sezione "Futuri sviluppi" nella documentazione.
 			break;
 		}
 		default:
@@ -203,7 +214,7 @@ int main(int argc, char **argv) {
 	}
 
 	for (j = 0; j < cols; j++) {
-		printf("Colonna %d -> %f\n", j, vet[i]);
+		printf("Colonna %d -> %f\n", j, vet[j]);
 	}
 	
 	/*	******************************************************************** */
@@ -270,7 +281,15 @@ int main(int argc, char **argv) {
   	/*	******************************************************************** */
 	//	TERMINAZIONE DELL'ESECUZIONE
 
-	free(mat);
+	/*
+		--- void freeMatrix(double** mat, int rows) ---
+		Si utilizza questa funzione per liberare la memoria allocata
+		dalla matrice: non basta una sola free() per il puntatore double**,
+		ma una free() per ogni puntatore double* ai vettori riga.
+	*/
+
+	freeMatrix(mat, rows);
+
 	free(vet);
 	free(multiplication);
 	printf("\nEsecuzione terminata.\n");
@@ -281,6 +300,7 @@ int main(int argc, char **argv) {
 /*	************************************************************************ */
 /*	RIFERIMENTI
 
-
+    https://www.openmp.org/spec-html/5.0/openmp.html
+	https://www.studenti.it/matematica/prodotto-matrici-righe-colonne-4.jspc
 
 */

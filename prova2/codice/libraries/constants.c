@@ -98,6 +98,22 @@
 
 #define OVERFLOW_ERROR 10
 
+/*
+	MATRIX_DIMENSION_ERROR: int
+	Si utilizza per segnalare all'utente che l'esecuzione del
+    programma e' stata terminata a causa di
+*/
+
+#define MATRIX_DIMENSION_ERROR 11
+
+/*
+	VECTOR_DIMENSION_ERROR: int
+	Si utilizza per segnalare all'utente che l'esecuzione del
+    programma e' stata terminata a causa di
+*/
+
+#define VECTOR_DIMENSION_ERROR 12
+
 /* **************************************************************************** */
 // ENUMERAZIONI E COSTANTI
 
