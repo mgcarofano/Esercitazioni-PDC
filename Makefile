@@ -1,5 +1,5 @@
-folder = openmp-esempio
-file = 1108_lezione13
+folder = ./prova2/codice
+file = prova2
 login = CRFMGB01R
 home=/project
 work=$(home)/prova1/codice
@@ -46,7 +46,7 @@ clang-openmp-run:
 		-L/opt/homebrew/opt/libomp/lib \
 		-I/opt/homebrew/opt/libomp/include -lomp \
 		$(folder)/$(file).c -o $(folder)/$(file)
-	./$(folder)/$(file) 10 3 8 3 1 matrix.csv vector.csv
+	./$(folder)/$(file) 3 3 8 0 1 1 2 3 4 5 6 7 8 9 1 1 1
 	rm -f $(folder)/$(file)
 
 #	https://unix.stackexchange.com/questions/193368/can-scp-create-a-directory-if-it-doesnt-exist
