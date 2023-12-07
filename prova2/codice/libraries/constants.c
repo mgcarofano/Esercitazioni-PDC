@@ -126,7 +126,7 @@
 #define NO_STRATEGY 0
 
 /*
-    Le seguenti 5 costanti sono valori interi che rappresentano
+    Le seguenti 2 costanti sono valori interi che rappresentano
     le possibili scelte che può inserire l'utente nel menu' principale
     dell'applicazione.
 */
