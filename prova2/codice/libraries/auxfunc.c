@@ -292,7 +292,8 @@ void getVectorFromCSV(const char* path, double* vet, int cols_mat) {
 }
 
 void freeMatrix(double** mat, int rows_csv) {
-    for (int i = 0; i < rows_csv; i++) {
+	int i = 0;
+    for (i = 0; i < rows_csv; i++) {
         free(mat[i]);
     }
     free(mat);

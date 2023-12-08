@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#PBS -q studenti
+#PBS -l nodes=1:ppn=8
+#PBS -N prova2_015
+#PBS -o ../output/prova2_015.out
+#PBS -e ../output/prova2_015.err
+
+echo --- 
+
+PBS_O_WORKDIR=$PBS_O_HOME/prova2/codice
+
+echo PBS: la directory di lavoro e\' $PBS_O_WORKDIR
+
+export OMP_NUM_THREADS=8
+export PSC_OMP_AFFINITY=TRUE
+
+echo PBS: Compilazione in esecuzione...
+gcc -fopenmp -lgomp -o $PBS_O_WORKDIR/prova2_015 -lm $PBS_O_WORKDIR/prova2.c
+echo PBS: Compilazione completata.
+
+echo 'PBS: Job in esecuzione su un pool di 8 threads...'
+echo '>>>'
+for i in $(seq 10)
+do
+	$PBS_O_WORKDIR/prova2_015 10000 10000 8 3 1
+done
+echo '>>>'
+echo PBS: Job completato.
+echo --- 
