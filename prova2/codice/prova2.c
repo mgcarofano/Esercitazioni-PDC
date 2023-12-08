@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 	//	INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
 
-	int strategia = NO_STRATEGY, test = NO_TEST, time_calc = NO_TIME_CALC;
+	int test = MULTIPLICATION_INPUT_TEST, time_calc = NO_TIME_CALC;
 	int rows = 0, cols = 0, threads = 0;
 	int q_num = 0;
 
@@ -54,7 +54,11 @@ int main(int argc, char **argv) {
 
 	rows = argToInt(argv[1]);
 	cols = argToInt(argv[2]);
+
 	threads = argToInt(argv[3]);
+	if (threads > rows)
+		threads = rows;
+	
 	test = argToInt(argv[4]);
 	time_calc = argToInt(argv[5]);
 
@@ -68,7 +72,7 @@ int main(int argc, char **argv) {
 	multiplication = (double*) calloc(rows, sizeof(double));
 
 	switch(test) {
-		case NO_TEST:
+		case MULTIPLICATION_INPUT_TEST:
 		{
 			q_num = rows * cols;
 			k = 1;
@@ -116,6 +120,19 @@ int main(int argc, char **argv) {
 
 			}
 
+			break;
+		}
+		case MULTIPLICATION_CSV_TEST:
+		{
+
+			/*
+				In questo caso di test, i valori per la matrice ed il vettore
+				sono caricati da un file .csv i cui percorsi sono specificati
+				alle posizioni 'argv[6]' e 'argv[7]'.
+			*/
+
+			getMatrixFromCSV(argv[6], mat, rows, cols);
+			getVectorFromCSV(argv[7], vet, cols);
 			break;
 		}
 		case MULTIPLICATION_ONE_TEST:
@@ -181,21 +198,6 @@ int main(int argc, char **argv) {
 
 			break;
 		}
-		case MULTIPLICATION_CSV_TEST:
-		{
-
-			/*
-				In questo caso di test, i valori per la matrice ed il vettore
-				sono caricati da un file .csv il cui percorso sono specificati
-				alle posizioni 'argv[6]' e 'argv[7]'.
-			*/
-
-			// printf("rows: %d, cols: %d\n", rows, cols);
-
-			getMatrixFromCSV(argv[6], mat, rows, cols);
-			getVectorFromCSV(argv[7], vet, cols);
-			break;
-		}
 		case MULTIPLICATION_EIGENVECTOR_TEST:
 		{
 			// Da implementare.
@@ -206,16 +208,16 @@ int main(int argc, char **argv) {
 			break;
 	}
 
-	for (i = 0; i < rows; i++) {
-		for (j = 0; j < cols; j++) {
-			printf("Riga %d, ", i);
-			printf("Colonna %d -> %f\n", j, mat[i][j]);
-		}
-	}
+	// for (i = 0; i < rows; i++) {
+	// 	for (j = 0; j < cols; j++) {
+	// 		printf("Riga %d, ", i);
+	// 		printf("Colonna %d -> %f\n", j, mat[i][j]);
+	// 	}
+	// }
 
-	for (j = 0; j < cols; j++) {
-		printf("Colonna %d -> %f\n", j, vet[j]);
-	}
+	// for (j = 0; j < cols; j++) {
+	// 	printf("Colonna %d -> %f\n", j, vet[j]);
+	// }
 	
 	/*	******************************************************************** */
 	//	DISTRIBUZIONE DEGLI OPERANDI
@@ -274,6 +276,7 @@ int main(int argc, char **argv) {
   	/*	******************************************************************** */
 	//	STAMPA DELL'OUTPUT
 
+	printf("Risultato:\n");
 	for (i = 0; i < rows; i++) {
         printf("Riga %d -> %f\n", i, multiplication[i]);
 	}

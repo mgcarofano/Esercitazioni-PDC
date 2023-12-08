@@ -25,7 +25,7 @@ int getIntegerFromInput();
 
 void checkScelta(int scelta, int lim_inf, int lim_sup);
 
-void createPBS(int n_proc, int scelta, int q_num, int test, int time_calc, int pbs_count);
+void createPBS(int rows, int cols, int threads, int test, int time_calc, int pbs_count);
 
 /* **************************************************************************** */
 

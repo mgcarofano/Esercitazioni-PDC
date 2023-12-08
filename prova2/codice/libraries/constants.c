@@ -117,22 +117,12 @@
 /* **************************************************************************** */
 // ENUMERAZIONI E COSTANTI
 
-/*
-	Si utilizza per applicare l'algoritmo del calcolo del prodotto
-	matrice-vettore in sequenziale quando si esegue un caso di
-	test su un solo processore.
-*/
-
-#define NO_STRATEGY 0
 
 /*
-    Le seguenti 2 costanti sono valori interi che rappresentano
-    le possibili scelte che può inserire l'utente nel menu' principale
-    dell'applicazione.
+    Le seguenti 6 costanti sono valori interi che rappresentano
+    le possibili scelte che può inserire l'utente nel menu'
+    della suite di test dell'applicazione.
 */
-
-#define TESTING_SUITE 1
-#define EXIT_APPLICATION 2
 
 /*
     Si utilizza per eseguire l'algoritmo del calcolo del prodotto
@@ -140,19 +130,13 @@
 	dall'utente oppure generati in modo casuale.
 */
 
-#define NO_TEST 0
+#define MULTIPLICATION_INPUT_TEST 1
 
-/*
-    Le seguenti 5 costanti sono valori interi che rappresentano
-    le possibili scelte che può inserire l'utente nel menu'
-    della suite di test dell'applicazione.
-*/
-
-#define MULTIPLICATION_ONE_TEST 1
-#define MULTIPLICATION_SINGLE_NUMBER_TEST 2
-#define MULTIPLICATION_CSV_TEST 3
-#define MULTIPLICATION_EIGENVECTOR_TEST 4
-#define EXIT_TEST 5
+#define MULTIPLICATION_CSV_TEST 2
+#define MULTIPLICATION_ONE_TEST 3
+#define MULTIPLICATION_SINGLE_NUMBER_TEST 4
+#define MULTIPLICATION_EIGENVECTOR_TEST 5
+#define EXIT_TEST 6
 
 /*
     OP_MAX_QUANTITY: int
@@ -161,6 +145,22 @@
 */
 
 #define OP_MAX_QUANTITY 20
+
+/*
+    OP_MIN_EXP_TEST: int
+    Si utilizza come esponente minimo per determinare la quantita' di
+	operandi nella creazione dei casi di test.
+*/
+
+#define OP_MIN_EXP_TEST 2
+
+/*
+    OP_MAX_EXP_TEST: int
+    Si utilizza come esponente massimo per determinare la quantita' di
+	operandi nella creazione dei casi di test.
+*/
+
+#define OP_MAX_EXP_TEST 4
 
 /*
 	NO_TIME_CALC: int
@@ -253,3 +253,11 @@
 */
 
 #define CSV_FIELD_PRECISION 10
+
+/*
+	PATH_MAX_LENGTH: int
+	Si utilizza come limite massimo per la lunghezza di un percorso
+	di un file.
+*/
+
+#define PATH_MAX_LENGTH 255
