@@ -270,7 +270,7 @@ int main(int argc, char **argv) {
 		t_tot = t_end - t_start;
 
 		printf("\nCalcolo del prodotto matrice-vettore terminato in %e sec\n", t_tot);
-		// writeTimeCSV(test, n_proc, rows, cols, t_tot);
+		writeTimeCSV(rows, cols, threads, test, t_tot);
 	}
 
   	/*	******************************************************************** */

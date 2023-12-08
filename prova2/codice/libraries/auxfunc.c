@@ -98,7 +98,7 @@ double argToDouble(char *arg) {
 	return out_double;
 }
 
-void writeTimeCSV(int test, int n_proc, int rows, int cols, double t_tot) {
+void writeTimeCSV(int rows, int cols, int threads, int test, double t_tot) {
 
 	FILE *csv_file;
 
@@ -111,7 +111,7 @@ void writeTimeCSV(int test, int n_proc, int rows, int cols, double t_tot) {
 	}
 
 	fprintf(csv_file, "%d,%d,%d,%d,%1.9f\n",
-		test, n_proc, rows, cols, t_tot);
+		rows, cols, threads, test, t_tot);
 
 	fclose(csv_file);
 
