@@ -60,8 +60,8 @@ double getNumberFromInput() {
 
 		/*
 			La lettura dei caratteri inizia dall'indice chars_read-2 perche':
-			-	la numerazione del buffer è da 0 a N-1.
-			-	l'ultimo carattere è \0.
+			-	la numerazione del buffer e' da 0 a N-1.
+			-	l'ultimo carattere e' \0.
 		*/
 
 		for (i = chars_read-2; i >= 0; i--) {
@@ -150,7 +150,7 @@ void createPBS(int rows, int cols, int threads, int test, int time_calc, int pbs
 	char pbs_path[PATH_MAX_LENGTH] = {};
 	FILE *pbs_file;
 
-	int i = 0, q_num = 0;
+	int i = 0, j = 0, q_num = 0;
 	double double_op = 0.0;
 
 	char *buffer = NULL;
@@ -227,8 +227,18 @@ void createPBS(int rows, int cols, int threads, int test, int time_calc, int pbs
 	switch(test) {
 		case MULTIPLICATION_INPUT_TEST: {
 			if (q_num <= OP_MAX_QUANTITY) {
-				for (i=1; i <= q_num; i++) {
-					printf("Inserisci il %do operando da sommare: \n", i);
+				printf("Inserimento degli elementi della matrice.\n");
+				for (i = 1; i <= rows; i++) {
+					for (j = 1; j <= cols; j++) {
+						printf("Inserisci il %do elemento sulla %da riga:\n", j, i);
+						double_op = getNumberFromInput();
+						fprintf(pbs_file, " %f", double_op);
+					}
+				}
+
+				printf("Inserimento degli elementi del vettore.\n");
+				for (j = 1; j <= cols; j++) {
+					printf("Inserisci il %do elemento:\n", j);
 					double_op = getNumberFromInput();
 					fprintf(pbs_file, " %f", double_op);
 				}
@@ -236,7 +246,8 @@ void createPBS(int rows, int cols, int threads, int test, int time_calc, int pbs
 			break;
 		}
 		case MULTIPLICATION_CSV_TEST: {
-			printf("Inserisci il percorso del file .csv da cui recuperare i valori per la matrice:\n");
+			printf("Inserimento degli elementi della matrice.\n");
+			printf("Inserisci il percorso del file .csv:\n");
 			chars_read = getline(&buffer, &bufsize, stdin);
 			printf("\n");
 
@@ -253,7 +264,8 @@ void createPBS(int rows, int cols, int threads, int test, int time_calc, int pbs
 				}
 			}
 
-			printf("Inserisci il percorso del file .csv da cui recuperare i valori per il vettore:\n");
+			printf("Inserimento degli elementi del vettore.\n");
+			printf("Inserisci il percorso del file .csv:\n");
 			chars_read = getline(&buffer, &bufsize, stdin);
 			printf("\n");
 

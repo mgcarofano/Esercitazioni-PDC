@@ -240,9 +240,9 @@ int main(int argc, char **argv) {
 	//	APPLICAZIONE DELLA STRATEGIA
 
 	/*
-		Dato che non è stata eseguita la distribuzione degli operandi,
+		Dato che non e' stata eseguita la distribuzione degli operandi,
 		anche l'applicazione della strategia di calcolo tra i processori,
-		di conseguenza, si può omettere.
+		di conseguenza, si puo' omettere.
 	*/
 
 	/*	******************************************************************** */
