@@ -21,15 +21,17 @@ double argToDouble(char *arg);
 
 void writeTimeCSV(const char* path, int rows, int cols, int threads, int test, double t_tot);
 
+void freeMatrix(double** mat, int rows);
+
 int getRowsFromCSV(const char* path);
 
 int getColsFromCSV(const char* path);
 
+// void getCSVDimensions(const char* path, int* rows_csv, int* cols_csv);
+
 void getMatrixFromCSV(const char* path, double** mat, int rows_mat, int cols_mat);
 
 void getVectorFromCSV(const char* path, double* vet, int cols_mat);
-
-void freeMatrix(double** mat, int rows);
 
 /* **************************************************************************** */
 

@@ -101,7 +101,8 @@
 /*
 	MATRIX_DIMENSION_ERROR: int
 	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma e' stata terminata a causa di
+    programma e' stata terminata siccome ha inserito delle dimensioni
+	per la matrice piu' grandi di quelle del file .csv.
 */
 
 #define MATRIX_DIMENSION_ERROR 11
@@ -109,7 +110,8 @@
 /*
 	VECTOR_DIMENSION_ERROR: int
 	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma e' stata terminata a causa di
+    programma e' stata terminata siccome ha inserito una dimensione
+	per il vettore piu' grande di quella del file .csv.
 */
 
 #define VECTOR_DIMENSION_ERROR 12
@@ -144,7 +146,7 @@
 	che l'utente può inserire manualmente.
 */
 
-#define OP_MAX_QUANTITY 20
+#define OP_MAX_QUANTITY 25
 
 /*
     OP_MIN_EXP_TEST: int
@@ -185,7 +187,7 @@
 /*
 	NOME_PROVA: char*
 	Si utilizza nella funzione createPBS() per personalizzare il
-	file .pbs con il nome della prova da consegnare.
+	file .pbs con il nome della prova corrente.
 */
 
 #define NOME_PROVA "prova2"
@@ -193,7 +195,7 @@
 /*
 	NODE_NUMBER: char*
 	Si utilizza nella funzione createPBS() per personalizzare il
-	file .pbs con il numero di nodi con i quali si vuole
+	file .pbs con il numero di nodi nel cluster sui quali si vuole
 	eseguire il programma.
 */
 
@@ -229,10 +231,11 @@
 	E' il path del file .csv nella quale sono memorizzate tutte le informazioni
 	necessarie allo studio dei casi di test. In particolare, la sua struttura
 	e' la seguente:
-	-	test : int (indica il caso di test eseguito)
-	-	n_proc : int (indica il numero di processori)
 	-	rows : int (indica il numero di righe della matrice)
-	-	cols : int (indica il numero di colonne della matrice e del vettore)
+	-	cols : int (indica il numero di colonne della matrice e, quindi,
+		anche di elementi del vettore)
+	-	threads : int (indica il numero di threads parallelizzati)
+	-	test : int (indica il caso di test eseguito)
 	-	t_tot : double (indica il tempo di esecuzione impiegato)
 */
 

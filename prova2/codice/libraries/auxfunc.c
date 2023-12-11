@@ -15,7 +15,6 @@
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
-#include <tgmath.h>
 #include <time.h>
 #include <sys/time.h>
 
@@ -128,20 +127,36 @@ void writeTimeCSV(const char* out_path, int rows, int cols, int threads, int tes
 
 }
 
+void freeMatrix(double** mat, int rows) {
+	int i = 0;
+    for (i = 0; i < rows; i++) {
+        free(mat[i]);
+    }
+    free(mat);
+}
+
 int getRowsFromCSV(const char* path) {
 
-    FILE* file;
-	char c;
-	int rows_csv = 0;
+    FILE* csv_file;
+	char c = 0;
+	int rows_csv = 0, size = 0;
 
-	if ((file = fopen(path, "r")) == NULL) {
+	if ((csv_file = fopen(path, "r")) == NULL) {
 		printf("Errore durante l'esecuzione!\n");
 		printf("Applicazione terminata.\n");
 		exit(FILE_OPENING_ERROR);
 	}
 
+	fseek(csv_file, 0, SEEK_END);
+    size = ftell(csv_file);
+	if (size == 0) {
+		return 0;
+	}
+
+	fseek(csv_file, 0, SEEK_SET);
+
 	do {
-		c = fgetc(file);
+		c = fgetc(csv_file);
 		if (c == 10) {
 			rows_csv++;
 		}
@@ -152,18 +167,26 @@ int getRowsFromCSV(const char* path) {
 
 int getColsFromCSV(const char* path) {
 
-    FILE* file;
-	char c;
-	int cols_csv = 0;
+    FILE* csv_file;
+	char c = 0;
+	int cols_csv = 0, size = 0;
 
-	if ((file = fopen(path, "r")) == NULL) {
+	if ((csv_file = fopen(path, "r")) == NULL) {
 		printf("Errore durante l'esecuzione!\n");
 		printf("Applicazione terminata.\n");
 		exit(FILE_OPENING_ERROR);
 	}
 
+	fseek(csv_file, 0, SEEK_END);
+    size = ftell(csv_file);
+	if (size == 0) {
+		return 0;
+	}
+
+	fseek(csv_file, 0, SEEK_SET);
+
 	do {
-		c = fgetc(file);
+		c = fgetc(csv_file);
 		if (c == 44) {
 			cols_csv++;
 		}
@@ -174,6 +197,43 @@ int getColsFromCSV(const char* path) {
 
 	return cols_csv+1;
 }
+
+// void getCSVDimensions(const char* path, int* rows_csv, int* cols_csv) {
+
+// 	FILE* csv_file;
+// 	char c = 0;
+// 	int size = 0;
+
+// 	if ((csv_file = fopen(path, "r")) == NULL) {
+// 		printf("Errore durante l'esecuzione!\n");
+// 		printf("Applicazione terminata.\n");
+// 		exit(FILE_OPENING_ERROR);
+// 	}
+
+// 	fseek(csv_file, 0, SEEK_END);
+//     size = ftell(csv_file);
+// 	if (size == 0) {
+// 		*rows_csv = 0;
+// 		*cols_csv = 0;
+// 	}
+
+// 	fseek(csv_file, 0, SEEK_SET);
+
+// 	do {
+// 		c = fgetc(csv_file);
+// 		if (c == CSV_FIELDS_SEPARATOR) {
+// 			*cols_csv++;
+// 		}
+//         if (c == CSV_ROWS_SEPARATOR) {
+//             *cols_csv = 0;
+// 			*rows_csv++;
+//         }
+// 	} while (c != EOF);
+
+// 	*cols_csv += 1;
+// 	*rows_csv += 1;
+
+// }
 
 void getMatrixFromCSV(const char* path, double** mat, int rows_mat, int cols_mat) {
 	FILE *file;
@@ -306,17 +366,30 @@ void getVectorFromCSV(const char* path, double* vet, int cols_mat) {
 	} while (1);
 }
 
-void freeMatrix(double** mat, int rows) {
-	int i = 0;
-    for (i = 0; i < rows; i++) {
-        free(mat[i]);
-    }
-    free(mat);
-}
+// void getVectorFromCSV(const char* path, double* vet, int cols_mat) {
+
+// 	double** mat;
+// 	int i = 0;
+
+// 	mat = (double**) calloc(cols_mat, sizeof(double*));
+// 	for (i = 0; i < cols_mat; i++) {
+// 		mat[i] = (double*) calloc(1, sizeof(double));
+// 	}
+
+// 	getMatrixFromCSV(path, mat, cols_mat, 1);
+
+// 	for (i = 0; i < cols_mat; i++) {
+// 		mat[i][0] = vet[i];
+// 	}
+
+// 	freeMatrix(mat, cols_mat);
+// }
 
 /* **************************************************************************** */
 /* RIFERIMENTI
 
-
-
+	https://stackoverflow.com/questions/13566082/how-to-check-if-a-file-has-content-or-not-using-c
+	https://bl831.als.lbl.gov/~gmeigs/scripting_help/printf_awk_notes.txt
+	https://www.tutorialspoint.com/how-can-we-return-multiple-values-from-a-function-in-c-cplusplus
+	
 */
