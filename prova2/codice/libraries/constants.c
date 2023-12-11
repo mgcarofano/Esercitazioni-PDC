@@ -252,7 +252,7 @@
 	della matrice quando si sceglie la lettura da file .csv.
 */
 
-#define CSV_FIELD_PRECISION 10
+#define CSV_FIELD_PRECISION 12
 
 /*
 	PATH_MAX_LENGTH: int

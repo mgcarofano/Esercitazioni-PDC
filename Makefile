@@ -49,6 +49,9 @@ clang-openmp-run:
 	./$(folder)/$(file) 100 100 1 3 1
 	rm -f $(folder)/$(file)
 
+#	clang -Xclang -fopenmp -L/opt/homebrew/opt/libomp/lib -I/opt/homebrew/opt/libomp/include -lomp prova2.c -o prova2
+#	./prova2 100 100 1 3 1
+
 #	https://unix.stackexchange.com/questions/193368/can-scp-create-a-directory-if-it-doesnt-exist
 #	https://discussions.apple.com/thread/8336714
 #	https://codeforces.com/blog/entry/88063

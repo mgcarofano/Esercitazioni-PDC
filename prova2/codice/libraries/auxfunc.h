@@ -19,7 +19,7 @@ int argToInt(char *arg);
 
 double argToDouble(char *arg);
 
-void writeTimeCSV(int rows, int cols, int threads, int test, double t_tot);
+void writeTimeCSV(const char* path, int rows, int cols, int threads, int test, double t_tot);
 
 int getRowsFromCSV(const char* path);
 

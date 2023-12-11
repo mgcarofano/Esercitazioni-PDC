@@ -248,16 +248,16 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 	//	CALCOLO DEL PRODOTTO MATRICE-VETTORE
 
-    omp_set_num_threads(threads);
+	omp_set_num_threads(threads);
 
 	if (multiplication) {
-        #pragma omp parallel for default(none) shared(rows, cols, mat, vet, multiplication) private (i,j)
-        for (i = 0; i < rows; i++) {
-            for (j = 0; j < cols; j++) {
-                multiplication[i] = multiplication[i] + mat[i][j] * vet[j];
-            }
-        }
-    }
+		#pragma omp parallel for default(none) shared(rows, cols, mat, vet, multiplication) private (i,j)
+		for (i = 0; i < rows; i++) {
+			for (j = 0; j < cols; j++) {
+				multiplication[i] = multiplication[i] + mat[i][j] * vet[j];
+			}
+		}
+	}
 
 	/*	******************************************************************** */
 	//	SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
@@ -270,7 +270,7 @@ int main(int argc, char **argv) {
 		t_tot = t_end - t_start;
 
 		printf("\nCalcolo del prodotto matrice-vettore terminato in %e sec\n", t_tot);
-		writeTimeCSV(rows, cols, threads, test, t_tot);
+		writeTimeCSV(CSV_TIME_PATH"/"NOME_PROVA"_time.csv", rows, cols, threads, test, t_tot);
 	}
 
   	/*	******************************************************************** */
@@ -278,7 +278,7 @@ int main(int argc, char **argv) {
 
 	printf("Risultato:\n");
 	for (i = 0; i < rows; i++) {
-        printf("Riga %d -> %f\n", i, multiplication[i]);
+		printf("Riga %d -> %f\n", i, multiplication[i]);
 	}
 
   	/*	******************************************************************** */
@@ -303,7 +303,7 @@ int main(int argc, char **argv) {
 /*	************************************************************************ */
 /*	RIFERIMENTI
 
-    https://www.openmp.org/spec-html/5.0/openmp.html
+	https://www.openmp.org/spec-html/5.0/openmp.html
 	https://www.studenti.it/matematica/prodotto-matrici-righe-colonne-4.jspc
 
 */
