@@ -28,10 +28,13 @@ void calcola_media(double **mat, int rows) {
 	int i = 0, k = 0;
 
 	for (k = 0; k < rows; k += BURST_SIZE) {
+		avg = 0.0;
+
 		for (i = 0; i < BURST_SIZE; i++) {
-			avg += mat[i][TIME_FIELD];
+			avg += mat[k+i][TIME_FIELD];
 		}
-		avg /= rows;
+
+		avg /= BURST_SIZE;
 
 		// printf("%1.0f,%1.0f,%1.0f,%1.0f,%1.9f\n",
 		// 	mat[k][ROWS_FIELD],

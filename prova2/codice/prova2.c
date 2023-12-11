@@ -58,9 +58,23 @@ int main(int argc, char **argv) {
 	threads = argToInt(argv[3]);
 	if (threads > rows)
 		threads = rows;
+	omp_set_num_threads(threads);
 	
 	test = argToInt(argv[4]);
 	time_calc = argToInt(argv[5]);
+
+	/*	******************************************************************** */
+	//	DISTRIBUZIONE DEGLI OPERANDI
+
+	/*
+		Dato che questo programma e' progettato per essere eseguito su
+		architettura MIMD a memoria condivisa, non si devono distribuire gli
+		elementi della matrice e del vettore.
+
+		Per questo motivo, si puo' procedere direttamente con l'allocazione
+		di memoria per i vettori e per la matrice e, successivamente, con
+		l'assegnazione degli elementi.
+	*/
 
 	mat = (double**) calloc(rows, sizeof(double*));
 	for (i = 0; i < rows; i++) {
@@ -70,6 +84,8 @@ int main(int argc, char **argv) {
 	vet = (double*) calloc(cols, sizeof(double));
 
 	multiplication = (double*) calloc(rows, sizeof(double));
+
+	/*	******************************************************************** */
 
 	switch(test) {
 		case MULTIPLICATION_INPUT_TEST:
@@ -218,15 +234,6 @@ int main(int argc, char **argv) {
 	// for (j = 0; j < cols; j++) {
 	// 	printf("Colonna %d -> %f\n", j, vet[j]);
 	// }
-	
-	/*	******************************************************************** */
-	//	DISTRIBUZIONE DEGLI OPERANDI
-
-	/*
-		Dato che questo programma e' progettato per essere eseguito su
-		architettura MIMD a memoria condivisa, non si devono distribuire gli
-		operandi della matrice e del vettore.
-	*/
 
 	/*	******************************************************************** */
 	// 	INIZIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
@@ -248,9 +255,7 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 	//	CALCOLO DEL PRODOTTO MATRICE-VETTORE
 
-	omp_set_num_threads(threads);
-
-	if (multiplication) {
+	if (mat && vet && multiplication) {
 		#pragma omp parallel for default(none) shared(rows, cols, mat, vet, multiplication) private (i,j)
 		for (i = 0; i < rows; i++) {
 			for (j = 0; j < cols; j++) {

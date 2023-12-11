@@ -151,6 +151,7 @@ void createPBS(int rows, int cols, int threads, int test, int time_calc, int pbs
 	FILE *pbs_file;
 
 	int i = 0, j = 0, q_num = 0;
+	int int_op = 0;
 	double double_op = 0.0;
 
 	char *buffer = NULL;
@@ -285,6 +286,14 @@ void createPBS(int rows, int cols, int threads, int test, int time_calc, int pbs
 			fprintf(pbs_file, " %s %s", mat_csv, vet_csv);
 
 			free(buffer);
+			break;
+		}
+		case MULTIPLICATION_SINGLE_NUMBER_TEST:
+		{
+			printf("Inserimento degli elementi del vettore.\n");
+			printf("Inserisci l'unico valore per tutti gli elementi:\n");
+			int_op = getIntegerFromInput();
+			fprintf(pbs_file, " %d", int_op);
 			break;
 		}
 		default:
