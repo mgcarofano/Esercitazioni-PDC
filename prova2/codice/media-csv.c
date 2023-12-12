@@ -72,8 +72,6 @@ int main(int argc, char **argv) {
 		mat[i] = (double*) calloc(cols, sizeof(double));
 	}
 
-	// printf("rows: %d, cols: %d\n", rows, cols);
-
 	getMatrixFromCSV(csv_path, mat, rows, cols);
 	calcola_media(mat, rows);
 	freeMatrix(mat, rows);

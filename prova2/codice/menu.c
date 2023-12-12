@@ -84,7 +84,6 @@ int main(int argc, char **argv) {
 				createPBS(rows, cols, 8, test, OK_TIME_CALC, pbs_count++);
 
 				break;
-				
 			}
 			case MULTIPLICATION_ONE_TEST:
 			case MULTIPLICATION_SINGLE_NUMBER_TEST:

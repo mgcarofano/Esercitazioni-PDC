@@ -219,8 +219,8 @@ void createPBS(int rows, int cols, int threads, int test, int time_calc, int pbs
 
 	/*
 		Nella suite di testing progettata, se il numero di elementi della
-		matrice e' minore o uguale a 20, allora il valore di ogni elemento
-		deve essere specificato dall'utente.
+		matrice e' minore o uguale a OP_MAX_QUANTITY, allora il valore di
+		ogni elemento deve essere specificato dall'utente.
 	*/
 
 	q_num = rows * cols;
