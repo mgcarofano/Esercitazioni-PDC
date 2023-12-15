@@ -103,7 +103,12 @@ int main(int argc, char **argv) {
             l'esecuzione deve terminare.
 		*/
 
-		if (dim % sqrt(n_proc) != 0){
+		if (sqrt(n_proc) == floor(sqrt(n_proc))){ // se non è un quadrato perfetto non andare oltre (?)
+            printf("Il numero dei processori non è un quadrato perfetto!\n\n");
+			printf("Esecuzione terminata.\n");
+			MPI_Finalize();
+			exit(); // Creare codice di errore utile
+        } else if (dim % sqrt(n_proc) != 0){
             printf("La dimensione delle matrici non è multiplo della radice del numero dei processori!\n\n");
 			printf("Esecuzione terminata.\n");
 			MPI_Finalize();
