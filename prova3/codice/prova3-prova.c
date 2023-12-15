@@ -231,7 +231,7 @@ int main(int argc, char **argv) {
 			}
 
 			if (i == 0) {
-                // MODIFICARE...
+                // MODIFICARE... Assegnare alle sottomatrici la matrice...
 				// Si assegnano gli operandi locali del processore con id_proc == 0
 				for (j=0; j < tmp; j++) {
 					op_loc[j] = op_tmp[j];
