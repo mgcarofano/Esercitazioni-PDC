@@ -110,13 +110,13 @@ int main(int argc, char **argv) {
 			exit(); // Creare codice di errore utile
 		} else {
             //allocazione delle matrici e riempimento con numeri pseudo-random
-            mat1 = (double**) calloc(rows, sizeof(double*));
-            mat2 = (double**) calloc(rows, sizeof(double*));
-            multiplication = (double**) calloc(rows, sizeof(double*));
+            mat1 = (double**) calloc(dim, sizeof(double*));
+            mat2 = (double**) calloc(dim, sizeof(double*));
+            multiplication = (double**) calloc(dim, sizeof(double*));
             for (i = 0; i < dim; i++) {
-                mat1[i] = (double*) calloc(cols, sizeof(double));
-                mat2[i] = (double*) calloc(cols, sizeof(double));
-                multiplication[i] = (double*) calloc(cols, sizeof(double));
+                mat1[i] = (double*) calloc(dim, sizeof(double));
+                mat2[i] = (double*) calloc(dim, sizeof(double));
+                multiplication[i] = (double*) calloc(dim, sizeof(double));
             }
 		
             //TODO: Creare griglia di processori in base a n_proc
@@ -156,8 +156,8 @@ int main(int argc, char **argv) {
 	mat1_loc = (double**) calloc(sub_dim, sizeof(double*));
     mat2_loc = (double**) calloc(sub_dim, sizeof(double*));
     for (i = 0; i < sub_dim; i++) {
-        mat1_loc[i] = (double*) calloc(cols, sizeof(double));
-        mat2_loc[i] = (double*) calloc(cols, sizeof(double));
+        mat1_loc[i] = (double*) calloc(sub_dim, sizeof(double));
+        mat2_loc[i] = (double*) calloc(sub_dim, sizeof(double));
     }
 
     //da qui in poi va riscritto tutto, o quasi, per il corretto prodotto matrice-matrice
@@ -191,8 +191,8 @@ int main(int argc, char **argv) {
                             }
 						}
 					} else { //pseudorandom altrimenti
-                        mat1 = random_matrix(dim, mat1);
-                        mat2 = random_matrix(dim, mat2);
+                        random_matrix(dim, mat1);
+                        random_matrix(dim, mat2);
 					}
 					break;
 				}
