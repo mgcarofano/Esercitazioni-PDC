@@ -14,6 +14,7 @@
 #include <mpi.h>
 
 /* **************************************************************************** */
+void random_matrix(int dim, double **mat);
 
 int main(int argc, char **argv) {
 
@@ -117,9 +118,6 @@ int main(int argc, char **argv) {
                 mat2[i] = (double*) calloc(cols, sizeof(double));
                 multiplication[i] = (double*) calloc(cols, sizeof(double));
             }
-
-            mat1 = random_matrix(dim, mat1);
-            mat2 = random_matrix(dim, mat2);
 		
             //TODO: Creare griglia di processori in base a n_proc
         
@@ -162,6 +160,8 @@ int main(int argc, char **argv) {
         mat2_loc[i] = (double*) calloc(cols, sizeof(double));
     }
 
+    //da qui in poi va riscritto tutto, o quasi, per il corretto prodotto matrice-matrice
+
 	if (id_proc == 0) {
 
 		/*
@@ -178,117 +178,60 @@ int main(int argc, char **argv) {
 				tutti gli altri processori.
 			*/
 
-			tmp = q_loc;
-			if (rest != 0 && i >= rest) {
-				tmp--;
-			}
-
 			op_tmp = (double *)calloc (tmp, sizeof(double));
 
 			switch(test) {
 				case NO_TEST: {
 					if (q_num <= 20) {
-						for (j=0; j < tmp; j++) {
-							op_tmp[j] = argToDouble(argv[j+5]);
+						for (i=0; i < dim; i++) {
+                            for (j=0; j < dim; j++){
+                                //provvisoriamente le due matrici sono uguali quando inserite dall'utente
+                                mat1[i][j] = argToDouble(argv[j+5]);
+                                mat2[i][j] = argToDouble(argv[j+5]);
+                            }
 						}
-					} else {
-
-						for (j=0; j < tmp; j++) {
-							double_rand = (double)rand();
-							int_rand = (int)rand();
-
-							// Si genera un numero casuale reale compreso tra 0 e 100
-							op_tmp[j] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
-
-							// Si ha il 33% di possibilita che op_tmp[j] < 0
-							if (int_rand % 3 == 0) {
-								op_tmp[j] = op_tmp[j] * (-1);
-							}
-						}
+					} else { //pseudorandom altrimenti
+                        mat1 = random_matrix(dim, mat1);
+                        mat2 = random_matrix(dim, mat2);
 					}
 					break;
 				}
-				case SUM_ONE_TEST: {
-					for (j=0; j < tmp; j++) {
-
-						/*
-							Il vettore degli operandi e' costituito di soli 1.
-
-							Il test termina con successo se la somma totale
-							calcolata dai processori e' pari a 'q_num'.
-						*/
-
-						op_tmp[j] = 1;
-					}
+				case MAT_MAT_ONE_TEST: {
+                    for (i=0; i < dim; i++) {
+                        for (j=0; j < dim; j++){
+                            //TUTTI 1
+                            mat1[i][j] = 1;
+                            mat2[i][j] = 1;
+                        }
+                    }
 					break;
 				}
-				case SUM_SINGLE_NUMBER_TEST: {
-					for (j=0; j < tmp; j++) {
-
+				case MAT_MAT_SINGLE_NUMBER_TEST: {
 						/*
 							Ad ogni posizione del vettore degli operandi e'
 							assegnato lo stesso valore reale, passato come
 							argomento 'argv[5]' al programma.
-
-							Il test termina con successo se la somma totale
-							calcolata dai processori e' pari a 'argv[5] * q_num'.
 						*/
-
-						op_tmp[j] = argToDouble(argv[5]);
+                    for (i=0; i < dim; i++) {
+                        for (j=0; j < dim; j++){
+                            mat1[i][j] = argToDouble(argv[5]);
+                            mat2[i][j] = argToDouble(argv[5]);
+                        }
 					}
 					break;
 				}
 				case SUM_OPPOSITE_NUMBER_TEST: {
-					for (j=0; j < tmp/2; j++) {
-
-						/*
-							Si genera un numero casuale reale compreso tra 0 e 100.
-
-							Alle posizioni nella prima meta' del vettore degli
-							operandi si assegna il valore reale generato.
-
-							Alle posizioni nella seconda meta' del vettore degli
-							operandi si assegna l'opposto del valore reale generato.
-
-							Il test termina con successo se la somma totale calcolata
-							dai processori e' pari a 0 (gli operandi si annullano).
-						*/
-
-						double_rand = (double)rand();
-						double_rand = (double_rand / RAND_MAX) * OP_MAX_VALUE;
-
-						op_tmp[j] = double_rand;
-						op_tmp[j+tmp/2] = double_rand * (-1);
-
-					}
+                    //TODO: Fare qualcosa
 					break;
 				}
 				case GAUSS_TEST: {
-					gauss_inf = argToDouble(argv[5]);
-					for (j=0; j < tmp; j++) {
-
-						/*
-							Il vettore degli operandi e' costituito da tutti i
-							numeri interi racchiusi nell'intervallo
-							[gauss_inf, gauss_inf + q_num].
-
-							Il test termina con successo se la somma totale
-							calcolata dai processori si puo' ottenere con la
-							formula di Gauss, cioe' il prodotto tra media
-							aritmetica e numero di operandi da sommare.
-						*/
-
-						op_tmp[j] = gauss_inf + gauss_tmp;
-						gauss_tmp++;
-					}
+					//TODO: Fare qualcosa
 					break;
-				}
-				default:
-					break;
+                }
 			}
 
 			if (i == 0) {
-
+                // MODIFICARE...
 				// Si assegnano gli operandi locali del processore con id_proc == 0
 				for (j=0; j < tmp; j++) {
 					op_loc[j] = op_tmp[j];
@@ -300,7 +243,9 @@ int main(int argc, char **argv) {
 					Si distribuiscono equamente gli operandi rimanenti a tutti
 					gli altri processori utilizzando la funzione MPI_Send().
 				*/
-
+                
+                // il numero dei valori distribuiti da p0 a ogni processore è pari al rapporto tra n e la grandezza della griglia dei processori ...
+                // ... quindi è pari a sub_dim
 				tag = i + DISTRIBUTION_TAG;
 
 				/*
