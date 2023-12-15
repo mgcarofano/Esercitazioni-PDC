@@ -1,6 +1,6 @@
 /*
 
-	prova2.c
+	prova3.c
 	di Mario Gabriele Carofano
 	e Francesco Noviello
 
@@ -9,8 +9,9 @@
 /*	************************************************************************ */
 //	LIBRERIE
 
-#include "./libraries/auxfunc.h"
-#include <omp.h>
+#include "../libraries/auxfunc.h"
+#include <mpi.h>
+
 
 /*	************************************************************************ */
 
@@ -24,8 +25,8 @@ int main(int argc, char **argv) {
 	int q_num = 0;
 
 	int i = 0, j = 0, k = 0;
-	double **mat, *vet;
-	double *multiplication;
+	double **mat1, **mat2;
+	double **multiplication;
 
 	struct timeval t;
 	double t_start = 0.0, t_end = 0.0, t_tot = 0.0;
@@ -55,11 +56,13 @@ int main(int argc, char **argv) {
 	rows = argToInt(argv[1]);
 	cols = argToInt(argv[2]);
 
+	/* i threads non servono più
 	threads = argToInt(argv[3]);
 	if (threads > rows)
 		threads = rows;
 	omp_set_num_threads(threads);
-	
+	*/
+
 	test = argToInt(argv[4]);
 	time_calc = argToInt(argv[5]);
 
@@ -76,14 +79,20 @@ int main(int argc, char **argv) {
 		l'assegnazione degli elementi.
 	*/
 
-	mat = (double**) calloc(rows, sizeof(double*));
+	mat1 = (double**) calloc(rows, sizeof(double*));
 	for (i = 0; i < rows; i++) {
 		mat[i] = (double*) calloc(cols, sizeof(double));
 	}
 
-	vet = (double*) calloc(cols, sizeof(double));
+	mat2 = (double**) calloc(rows, sizeof(double*));
+	for (i = 0; i < rows; i++) {
+		mat[i] = (double*) calloc(cols, sizeof(double));
+	}
 
-	multiplication = (double*) calloc(rows, sizeof(double));
+	multiplication = (double**) calloc(rows, sizeof(double*));
+	for (i = 0; i < rows; i++) {
+		mat[i] = (double*) calloc(cols, sizeof(double));
+	}
 
 	/*	******************************************************************** */
 
