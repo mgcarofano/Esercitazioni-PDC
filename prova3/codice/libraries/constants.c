@@ -190,7 +190,7 @@
 	file .pbs con il nome della prova corrente.
 */
 
-#define NOME_PROVA "prova2"
+#define NOME_PROVA "prova3"
 
 /*
 	NODE_NUMBER: char*
@@ -199,7 +199,7 @@
 	eseguire il programma.
 */
 
-#define NODE_NUMBER "1"
+#define NODE_NUMBER "8"
 
 /*
 	NODE_PROCESS: char*
@@ -208,7 +208,7 @@
 	per l'esecuzione del programma.
 */
 
-#define NODE_PROCESS "8"
+#define NODE_PROCESS "1"
 
 /*
 	MKDIR_PATH: char*
