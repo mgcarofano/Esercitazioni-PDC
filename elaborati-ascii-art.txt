@@ -16,7 +16,8 @@
 #   / /___/ / /_/ / /_/ / /_/ / /  / /_/ / /_/ /_/ /  _/ /_/ /     #
 #  /_____/_/\__,_/_.___/\____/_/   \__,_/\__/\____/  /___/___/     #
 #                                                                  #
-# ------------ Calcolo del prodotto matrice - vettore ------------ #
+# -- Calcolo del prodotto matrice-vettore in ambiente di calcolo - #
+# ------ parallelo su architettura MIMD a memoria condivisa ------ #
 #                                                                  #
 ####################################################################
 
@@ -27,7 +28,7 @@
 #   / /___/ / /_/ / /_/ / /_/ / /  / /_/ / /_/ /_/ /  _/ /_/ /_/ /     #
 #  /_____/_/\__,_/_.___/\____/_/   \__,_/\__/\____/  /___/___/___/     #
 #                                                                      #
-# ---                                                                  #   
+# ---- Calcolo del prodotto matrice-matrice in ambiente di calcolo --- #
+# ------- parallelo su architettura MIMD a memoria distribuita ------- #
 #                                                                      #
 ########################################################################
-

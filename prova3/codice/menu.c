@@ -18,8 +18,10 @@ int main(int argc, char **argv) {
 	/*	*********************************************************************** */
 	//	INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
 
-	int rows = 0, cols = 0;
-	int test = MULTIPLICATION_INPUT_TEST;
+	int mat_dim = 0;
+	int A_rows = 0, A_cols = 0;
+	int B_rows = 0, B_cols = 0;
+	int scelta = DEFAULT_SCELTA, input = DEFAULT_INPUT, test = DEFAULT_TEST;
 	int i = 0, pbs_count = 1;
 
 	/*	*********************************************************************** */
@@ -30,86 +32,97 @@ int main(int argc, char **argv) {
 	printf("Parallel and Distributed Computing A.A. 2023-2024\n\n");
 	printTitle();
 
-	/*	*********************************************************************** */
-	//	APPLICAZIONE DELLA SUITE DI TESTING
-
-	/*
-		Nell'eseguire la suite di testing, il programma fornira':
-		-	il risultato prodotto matrice-vettore;
-		-	il tempo di esecuzione relativo all'esecuzione del prodotto.
-	*/
-
 	do {
 
-		printf("Scegli un test da eseguire: \n");
-		printf("%d. \t Prodotto matrice-vettore con scelta degli operandi.\n", MULTIPLICATION_INPUT_TEST);
-		printf("%d. \t Prodotto matrice-vettore con input da file .csv.\n", MULTIPLICATION_CSV_TEST);
-		printf("%d. \t Prodotto di una matrice per un vettore unitario.\n", MULTIPLICATION_ONE_TEST);
-		printf("%d. \t Prodotto di una matrice per un vettore di numeri uguali.\n", MULTIPLICATION_SINGLE_NUMBER_TEST);
-		printf("%d. \t Prodotto di una matrice per un autovettore.\n", MULTIPLICATION_EIGENVECTOR_TEST);
-		printf("%d. \t Chiudere la suite di testing.\n\n", EXIT_TEST);
-		test = getIntegerFromInput();
-		checkScelta(test, MULTIPLICATION_INPUT_TEST, EXIT_TEST);
+		/*	******************************************************************* */
+		//	SCELTA DELL'OPERAZIONE DA EFFETTUARE
 
-		switch(test) {
-			case MULTIPLICATION_INPUT_TEST:
-			case MULTIPLICATION_CSV_TEST:
+		printf("Scegli un'operazione da effettuare: \n");
+		printf("%d. \t Calcolo del prodotto matrice-matrice senza test.\n", NO_TEST);
+		printf("%d. \t Esecuzione della suite di testing.\n", TESTING_SUITE);
+		printf("%d. \t Chiudere l'applicazione.\n\n", EXIT_APPLICATION);
+		scelta = getIntegerFromInput();
+		checkScelta(scelta, NO_TEST, EXIT_APPLICATION);
+
+		/*	******************************************************************* */
+
+		switch(scelta) {
+			case NO_TEST:
 			{
+				/*	*********************************************************** */
+				//	SCELTA DELLA DIMENSIONE DELLE MATRICI
 
-				/*	*************************************************************** */
-				//	SCELTA DELLE DIMENSIONI DELLA MATRICE E DEL VETTORE
+				printf("Inserisci la dimensione delle matrici:\n");
+				mat_dim = getIntegerFromInput();
 
-				printf("Inserisci la quantita' di righe della matrice:\n");
-				rows = getIntegerFromInput();
-
-				if (rows < 1) {
-					printf("Devi inserire almeno una riga!\n");
+				if (mat_dim < 1) {
+					printf("Devi inserire una dimensione maggiore di 1!\n");
 					printf("Applicazione terminata.\n");
 					exit(MATRIX_DIMENSION_ERROR);
 				}
 
-				printf("Inserisci la quantita' di colonne della matrice:\n");
-				cols = getIntegerFromInput();
+				A_rows = A_cols = B_rows = B_cols = mat_dim;
 
-				if (cols < 1) {
-					printf("Devi inserire almeno una colonna!\n");
-					printf("Applicazione terminata.\n");
-					exit(MATRIX_DIMENSION_ERROR);
-				}
+				/*	*********************************************************** */
+				//	SCELTA DELL'INPUT
 
-				createPBS(rows, cols, 1, test, OK_TIME_CALC, pbs_count++);
-				createPBS(rows, cols, 2, test, OK_TIME_CALC, pbs_count++);
-				createPBS(rows, cols, 4, test, OK_TIME_CALC, pbs_count++);
-				createPBS(rows, cols, 7, test, OK_TIME_CALC, pbs_count++);
-				createPBS(rows, cols, 8, test, OK_TIME_CALC, pbs_count++);
+				printf("Scegli il tipo di input: \n");
+				printf("%d. \t Input da linea di comando (fino a %d elementi).\n", VALUES_FROM_INPUT, OP_MAX_QUANTITY);
+				printf("%d. \t Input da file .csv.\n", VALUES_FROM_CSV);
+				input = getIntegerFromInput();
+
+				/* ************************************************************ */
+				// CREAZIONE DEL FILE DI ESECUZIONE .PBS
+
+				createPBS(A_rows, A_cols, B_rows, B_cols, 9, input, test, NO_TIME_CALC, pbs_count++);
 
 				break;
-				
 			}
-			case MULTIPLICATION_ONE_TEST:
-			case MULTIPLICATION_SINGLE_NUMBER_TEST:
-			case MULTIPLICATION_EIGENVECTOR_TEST:
+			case TESTING_SUITE:
 			{
+				/*	*********************************************************** */
+				//	APPLICAZIONE DELLA SUITE DI TESTING
+
+				/*
+					Nell'eseguire la suite di testing, il programma fornira':
+					-	il risultato del prodotto matrice-matrice;
+					-	il tempo di esecuzione relativo all'esecuzione
+						del solo prodotto.
+					-	un valore booleano che indica se il risultato in
+						output e' corretto, in base al test scelto.
+				*/
+
+				printf("Scegli un test da eseguire: \n");
+				printf("%d. \t Calcolo del prodotto con la matrice identita'.\n", MULTIPLICATION_IDENTITY_TEST);
+				printf("%d. \t Confronto di T(AB) con T(B)•T(A), dove T(-) e' la matrice trasposta.\n", MULTIPLICATION_TRANSPOSE_TEST);
+				printf("%d. \t Confronto di tr(AB) e tr(BA), dove tr(-) e' la traccia della matrice.\n", MULTIPLICATION_TRACE_TEST);
+				printf("%d. \t Chiudere la suite di testing.\n\n", EXIT_TEST);
+				test = getIntegerFromInput();
+				checkScelta(test, MULTIPLICATION_IDENTITY_TEST, EXIT_TEST);
 
 				for (i = OP_MIN_EXP_TEST; i <= OP_MAX_EXP_TEST; i++) {
-					
-					rows = cols = pow(10, i);
 
-					createPBS(rows, cols, 1, test, OK_TIME_CALC, pbs_count++);
-					createPBS(rows, cols, 2, test, OK_TIME_CALC, pbs_count++);
-					createPBS(rows, cols, 4, test, OK_TIME_CALC, pbs_count++);
-					createPBS(rows, cols, 7, test, OK_TIME_CALC, pbs_count++);
-					createPBS(rows, cols, 8, test, OK_TIME_CALC, pbs_count++);
+					/*	*********************************************************** */
+					//	SCELTA DELLA DIMENSIONE DELLE MATRICI
+
+					A_rows = A_cols = B_rows = B_cols = pow(10, i);
+
+					/* ************************************************************ */
+					// CREAZIONE DEL FILE DI ESECUZIONE .PBS
+
+					createPBS(A_rows, A_cols, B_rows, B_cols, 1, test, OK_TIME_CALC, pbs_count++);
+					createPBS(A_rows, A_cols, B_rows, B_cols, 4, test, OK_TIME_CALC, pbs_count++);
+					createPBS(A_rows, A_cols, B_rows, B_cols, 9, test, OK_TIME_CALC, pbs_count++);
 				}
-				
+
 				break;
 			}
-			case EXIT_TEST:
+			case EXIT_APPLICATION:
 			default:
 				break;
 		}
 
-	} while (test != EXIT_TEST);
+	} while (scelta != EXIT_APPLICATION);
 
 	/*	*********************************************************************** */
 	//	USCITA DALL'APPLICATIVO

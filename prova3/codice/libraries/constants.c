@@ -89,64 +89,84 @@
 #define FILE_OPENING_ERROR 9
 
 /*
-	OVERFLOW_ERROR: int
-	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma e' stata terminata siccome il file .csv letto in
-	input contiene dei valori float con una maggior precisione
-	di quella descritta dalla costante CSV_FIELD_PRECISION.
-*/
-
-#define OVERFLOW_ERROR 10
-
-/*
 	MATRIX_DIMENSION_ERROR: int
 	Si utilizza per segnalare all'utente che l'esecuzione del
     programma e' stata terminata siccome ha inserito delle dimensioni
 	per la matrice piu' grandi di quelle del file .csv.
 */
 
-#define MATRIX_DIMENSION_ERROR 11
-
-/*
-	VECTOR_DIMENSION_ERROR: int
-	Si utilizza per segnalare all'utente che l'esecuzione del
-    programma e' stata terminata siccome ha inserito una dimensione
-	per il vettore piu' grande di quella del file .csv.
-*/
-
-#define VECTOR_DIMENSION_ERROR 12
+#define MATRIX_DIMENSION_ERROR 10
 
 /* **************************************************************************** */
 // ENUMERAZIONI E COSTANTI
 
+#define DEFAULT_SCELTA 0
 
 /*
-    Le seguenti 6 costanti sono valori interi che rappresentano
+	NO_TEST: int
+	Si utilizza per calcolare il prodotto matrice-matrice sul cluster senza
+	riservare un processore per ogni nodo. Questa strategia d'esecuzione e'
+	riservata per i casi di test dove e' necessario calcolare anche
+	i tempi di esecuzione.
+*/
+
+#define NO_TEST 1
+
+/*
+
+	TESTING_SUITE: int
+	Si utilizza per eseguire la suite di testing progettata per verificare
+	la correttezza dell'algoritmo del calcolo del prodotto matrice-matrice.
+
+*/
+
+#define TESTING_SUITE 2
+
+#define EXIT_APPLICATION 3
+
+/*
+    Le seguenti 4 costanti sono valori interi che rappresentano
     le possibili scelte che può inserire l'utente nel menu'
     della suite di test dell'applicazione.
 */
 
 /*
-    Si utilizza per eseguire l'algoritmo del calcolo del prodotto
-	matrice-vettore utilizzando i valori degli operandi scelti
-	dall'utente oppure generati in modo casuale.
+    MULTIPLICATION_IDENTITY_TEST : int
+    MULTIPLICATION_TRANSPOSE_TEST : int
+    MULTIPLICATION_TRACE_TEST : int
+    Indicano l'esecuzione di tre diversi casi di test:
+	-	verifica della correttezza del prodotto con la matrice identita'.
+	-	verifica delle proprieta' del prodotto rispetto alle matrici trasposte.
+	-	verifica delle proprieta' del prodotto rispetto alle tracce.
 */
 
-#define MULTIPLICATION_INPUT_TEST 1
+#define DEFAULT_TEST 0
+#define MULTIPLICATION_IDENTITY_TEST 1
+#define MULTIPLICATION_TRANSPOSE_TEST 2
+#define MULTIPLICATION_TRACE_TEST 3
 
-#define MULTIPLICATION_CSV_TEST 2
-#define MULTIPLICATION_ONE_TEST 3
-#define MULTIPLICATION_SINGLE_NUMBER_TEST 4
-#define MULTIPLICATION_EIGENVECTOR_TEST 5
-#define EXIT_TEST 6
+#define EXIT_TEST 4
+
+/*
+    VALUES_FROM_INPUT : int
+    VALUES_FROM_CSV : int
+	Si utilizzano per eseguire l'algoritmo del calcolo
+	del prodotto matrice-matrice utilizzando esclusivamente:
+	-	valori scelti dall'utente (o generati in modo pseudo-casuale).
+	-	valori recuperati da un file .csv.
+*/
+
+#define DEFAULT_INPUT 0
+#define VALUES_FROM_INPUT 1
+#define VALUES_FROM_CSV 2
 
 /*
     OP_MAX_QUANTITY: int
     Si utilizza per specificare il massimo numero di operandi
-	che l'utente può inserire manualmente.
+	che l'utente può inserire manualmente
 */
 
-#define OP_MAX_QUANTITY 25
+#define OP_MAX_QUANTITY 32
 
 /*
     OP_MIN_EXP_TEST: int
@@ -176,15 +196,6 @@
 #define OK_TIME_CALC 1
 
 /*
-	TIME_PRECISION: double
-	Si utilizza per modificare la sensibilità dei tempi di esecuzione
-	recuperati durante l'esecuzione del programma. In questo caso, il
-	valore 1000000.0 indica che il tempo sarà misurato in secondi.
-*/
-
-#define TIME_PRECISION 1000000.0
-
-/*
 	NOME_PROVA: char*
 	Si utilizza nella funzione createPBS() per personalizzare il
 	file .pbs con il nome della prova corrente.
@@ -208,7 +219,7 @@
 	per l'esecuzione del programma.
 */
 
-#define NODE_PROCESS "1"
+#define NODE_PROCESS "8"
 
 /*
 	MKDIR_PATH: char*
@@ -255,7 +266,7 @@
 	della matrice quando si sceglie la lettura da file .csv.
 */
 
-#define CSV_FIELD_PRECISION 12
+#define CSV_FIELD_PRECISION 10
 
 /*
 	PATH_MAX_LENGTH: int
