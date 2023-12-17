@@ -238,6 +238,22 @@
 #define RM_PATH "/bin/rm"
 
 /*
+	COMPILER_PATH: char*
+	Si utilizza per indicare alla funzione createPBS() il percorso
+	sul cluster del compilatore 'mpicc'.
+*/
+
+#define COMPILER_PATH "/usr/lib64/openmpi/1.4-gcc/bin/mpicc"
+
+/*
+	EXECUTE_PATH: char*
+	Si utilizza per indicare alla funzione createPBS() il percorso
+	sul cluster del programma 'mpiexec' per eseguire jobs in Open MPI.
+*/
+
+#define EXECUTE_PATH "/usr/lib64/openmpi/1.4-gcc/bin/mpiexec"
+
+/*
 	CSV_TIME_PATH: char*
 	E' il path del file .csv nella quale sono memorizzate tutte le informazioni
 	necessarie allo studio dei casi di test. In particolare, la sua struttura

@@ -146,18 +146,24 @@ void checkScelta(int scelta, int lim_inf, int lim_sup) {
 	}
 }
 
-void createPBS(int rows, int cols, int threads, int test, int time_calc, int pbs_count) {
+void createPBS(
+	int A_rows, int A_cols, int B_rows, int B_cols,
+	int n_proc,
+	int input, int test, int time_calc,
+	int pbs_count)
+{
 
 	char pbs_path[PATH_MAX_LENGTH] = {};
 	FILE *pbs_file;
 
-	int i = 0, j = 0, q_num = 0;
+	int i = 0, j = 0;
+	int A_num = 0, B_num = 0;
 	int int_op = 0;
 	double double_op = 0.0;
 
 	char *buffer = NULL;
-	char mat_csv[PATH_MAX_LENGTH] = {};
-	char vet_csv[PATH_MAX_LENGTH] = {};
+	char A_mat_csv[PATH_MAX_LENGTH] = {};
+	char B_mat_csv[PATH_MAX_LENGTH] = {};
 	size_t bufsize = 0;
 	ssize_t chars_read;
 
@@ -178,7 +184,14 @@ void createPBS(int rows, int cols, int threads, int test, int time_calc, int pbs
 				"#!/bin/bash\n"
 				"\n"
 				"#PBS -q studenti\n"
-				"#PBS -l nodes=" NODE_NUMBER ":ppn=" NODE_PROCESS
+				"#PBS -l nodes=" NODE_NUMBER
+	);
+
+	if (time_calc == OK_TIME_CALC) {
+		fprintf(pbs_file, ":ppn=" NODE_PROCESS);
+	}
+	
+	fprintf(pbs_file,
 				"\n#PBS -N " NOME_PROVA "_%03d\n"
 				"#PBS -o ../output/" NOME_PROVA "_%03d.out\n"
 				"#PBS -e ../output/" NOME_PROVA "_%03d.err\n"
@@ -192,111 +205,119 @@ void createPBS(int rows, int cols, int threads, int test, int time_calc, int pbs
 		);
 	}
 
+	fprintf(pbs_file, "echo --- \n");
+
+	if (time_calc == OK_TIME_CALC) {
+		fprintf(pbs_file, "sort -u $PBS_NODEFILE > hostlist\n");
+	}
+	
 	fprintf(pbs_file,
-				"echo --- \n\n"
 				"PBS_O_WORKDIR=$PBS_O_HOME/" NOME_PROVA "/codice\n"
 				"\n"
-				"echo PBS: la directory di lavoro e\\' $PBS_O_WORKDIR\n\n"
-				"export OMP_NUM_THREADS=%d\n"
-				"export PSC_OMP_AFFINITY=TRUE\n\n"
+				"echo PBS: la directory di lavoro e\\' $PBS_O_WORKDIR\n"
 				"echo PBS: Compilazione in esecuzione...\n"
-				"gcc -fopenmp -lgomp -o $PBS_O_WORKDIR/" NOME_PROVA "_%03d -lm $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
+				COMPILER_PATH " -o $PBS_O_WORKDIR/" NOME_PROVA "_%03d -lm $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
 				"echo PBS: Compilazione completata.\n"
 				"\n"
-				"echo 'PBS: Job in esecuzione su un pool di %d threads...'\n"
+				"echo 'PBS: Job in esecuzione su %d cpu...'\n"
 				"echo '>>>'\n",
-	threads, pbs_count, threads);
+	pbs_count, n_proc);
 
 	if (time_calc == OK_TIME_CALC) {
 		fprintf(pbs_file,
 				"for i in $(seq 10)\n"
 				"do\n"
-				"\t"
-		);
+				"\t" EXECUTE_PATH " -machinefile hostlist -np %d ",
+		n_proc);
+	} else {
+		fprintf(pbs_file, EXECUTE_PATH " -machinefile $PBS_NODEFILE -n %d ", n_proc);
 	}
 
-	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA "_%03d %d %d %d %d %d",
-		pbs_count, rows, cols, threads, test, time_calc);
+	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA "_%03d %d %d %d %d %d %d %d %d",
+		pbs_count, A_rows, A_cols, B_rows, B_cols, input, n_proc, test, time_calc);
 
 	/*
-		Nella suite di testing progettata, se il numero di elementi della
-		matrice e' minore o uguale a 20, allora il valore di ogni elemento
-		deve essere specificato dall'utente.
+		Nella suite di testing progettata, se il numero totale di elementi
+		delle due matrici e' minore o uguale a OP_MAX_QUANTITY, allora il 
+		valore di ogni elemento deve essere specificato dall'utente
+		da linea di comando.
 	*/
 
-	q_num = rows * cols;
+	A_num = A_rows * A_cols;
+	B_num = B_rows * B_cols;
 
 	switch(test) {
-		case MULTIPLICATION_INPUT_TEST: {
-			if (q_num <= OP_MAX_QUANTITY) {
-				printf("Inserimento degli elementi della matrice.\n");
-				for (i = 1; i <= rows; i++) {
-					for (j = 1; j <= cols; j++) {
-						printf("Inserisci il %do elemento sulla %da riga:\n", j, i);
-						double_op = getNumberFromInput();
-						fprintf(pbs_file, " %f", double_op);
+		case DEFAULT_TEST: {
+			if (input == VALUES_FROM_INPUT) {
+				if ((A_num+B_num) <= OP_MAX_QUANTITY) {
+
+					printf("Inserimento di %d elementi nella matrice A.\n", A_num);
+					for (i = 1; i <= A_rows; i++) {
+						for (j = 1; j <= A_cols; j++) {
+							printf("Inserisci il %do elemento sulla %da riga:\n", j, i);
+							double_op = getNumberFromInput();
+							fprintf(pbs_file, " %f", double_op);
+						}
+					}
+
+					printf("Inserimento di %d elementi nella matrice B.\n", B_num);
+					for (i = 1; i <= B_rows; i++) {
+						for (j = 1; j <= B_cols; j++) {
+							printf("Inserisci il %do elemento sulla %da riga:\n", j, i);
+							double_op = getNumberFromInput();
+							fprintf(pbs_file, " %f", double_op);
+						}
+					}
+
+				}
+			} else if (input == VALUES_FROM_CSV) {
+
+				printf("Inserimento di %d elementi nella matrice A.\n", A_num);
+				printf("Inserisci il percorso del file .csv:\n");
+				chars_read = getline(&buffer, &bufsize, stdin);
+				printf("\n");
+
+				if (chars_read < 0 || chars_read > PATH_MAX_LENGTH) {
+					printf("Errore nella lettura dell'input!");
+					printf("Applicazione terminata.\n");
+					free(buffer);
+					exit(INPUT_LINE_ERROR);
+				}
+
+				for (i = 0; i < chars_read; i++) {
+					if (buffer[i] != 10) {
+						A_mat_csv[i] = buffer[i];
 					}
 				}
 
-				printf("Inserimento degli elementi del vettore.\n");
-				for (j = 1; j <= cols; j++) {
-					printf("Inserisci il %do elemento:\n", j);
-					double_op = getNumberFromInput();
-					fprintf(pbs_file, " %f", double_op);
-				}
-			}
-			break;
-		}
-		case MULTIPLICATION_CSV_TEST: {
-			printf("Inserimento degli elementi della matrice.\n");
-			printf("Inserisci il percorso del file .csv:\n");
-			chars_read = getline(&buffer, &bufsize, stdin);
-			printf("\n");
+				printf("Inserimento di %d elementi nella matrice B.\n", B_num);
+				printf("Inserisci il percorso del file .csv:\n");
+				chars_read = getline(&buffer, &bufsize, stdin);
+				printf("\n");
 
-			if (chars_read < 0 || chars_read > PATH_MAX_LENGTH) {
-				printf("Errore nella lettura dell'input!");
-				printf("Applicazione terminata.\n");
+				if (chars_read < 0 || chars_read > PATH_MAX_LENGTH) {
+					printf("Errore nella lettura dell'input!");
+					printf("Applicazione terminata.\n");
+					free(buffer);
+					exit(INPUT_LINE_ERROR);
+				}
+
+				for (i = 0; i < chars_read; i++) {
+					if (buffer[i] != 10) {
+						B_mat_csv[i] = buffer[i];
+					}
+				}
+
+				fprintf(pbs_file, " %s %s", A_mat_csv, B_mat_csv);
+
 				free(buffer);
-				exit(INPUT_LINE_ERROR);
 			}
 
-			for (i = 0; i < chars_read; i++) {
-				if (buffer[i] != 10) {
-					mat_csv[i] = buffer[i];
-				}
-			}
-
-			printf("Inserimento degli elementi del vettore.\n");
-			printf("Inserisci il percorso del file .csv:\n");
-			chars_read = getline(&buffer, &bufsize, stdin);
-			printf("\n");
-
-			if (chars_read < 0 || chars_read > PATH_MAX_LENGTH) {
-				printf("Errore nella lettura dell'input!");
-				printf("Applicazione terminata.\n");
-				free(buffer);
-				exit(INPUT_LINE_ERROR);
-			}
-
-			for (i = 0; i < chars_read; i++) {
-				if (buffer[i] != 10) {
-					vet_csv[i] = buffer[i];
-				}
-			}
-
-			fprintf(pbs_file, " %s %s", mat_csv, vet_csv);
-
-			free(buffer);
 			break;
 		}
-		case MULTIPLICATION_SINGLE_NUMBER_TEST:
-		{
-			printf("Inserimento degli elementi del vettore.\n");
-			printf("Inserisci l'unico valore per tutti gli elementi:\n");
-			int_op = getIntegerFromInput();
-			fprintf(pbs_file, " %d", int_op);
-			break;
-		}
+		case MULTIPLICATION_IDENTITY_TEST:
+		case MULTIPLICATION_TRANSPOSE_TEST:
+		case MULTIPLICATION_TRACE_TEST:
 		default:
 			break;
 	}

@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
 				/* ************************************************************ */
 				// CREAZIONE DEL FILE DI ESECUZIONE .PBS
 
-				createPBS(A_rows, A_cols, B_rows, B_cols, 9, input, test, NO_TIME_CALC, pbs_count++);
+				createPBS(A_rows, A_cols, B_rows, B_cols, 9, input, DEFAULT_TEST, NO_TIME_CALC, pbs_count++);
 
 				break;
 			}
@@ -100,19 +100,21 @@ int main(int argc, char **argv) {
 				test = getIntegerFromInput();
 				checkScelta(test, MULTIPLICATION_IDENTITY_TEST, EXIT_TEST);
 
-				for (i = OP_MIN_EXP_TEST; i <= OP_MAX_EXP_TEST; i++) {
+				if (test != EXIT_TEST) {
+					for (i = OP_MIN_EXP_TEST; i <= OP_MAX_EXP_TEST; i++) {
 
-					/*	*********************************************************** */
-					//	SCELTA DELLA DIMENSIONE DELLE MATRICI
+						/*	*************************************************** */
+						//	SCELTA DELLA DIMENSIONE DELLE MATRICI
 
-					A_rows = A_cols = B_rows = B_cols = pow(10, i);
+						A_rows = A_cols = B_rows = B_cols = pow(10, i);
 
-					/* ************************************************************ */
-					// CREAZIONE DEL FILE DI ESECUZIONE .PBS
+						/* **************************************************** */
+						// CREAZIONE DEL FILE DI ESECUZIONE .PBS
 
-					createPBS(A_rows, A_cols, B_rows, B_cols, 1, test, OK_TIME_CALC, pbs_count++);
-					createPBS(A_rows, A_cols, B_rows, B_cols, 4, test, OK_TIME_CALC, pbs_count++);
-					createPBS(A_rows, A_cols, B_rows, B_cols, 9, test, OK_TIME_CALC, pbs_count++);
+						createPBS(A_rows, A_cols, B_rows, B_cols, 1, DEFAULT_INPUT, test, OK_TIME_CALC, pbs_count++);
+						createPBS(A_rows, A_cols, B_rows, B_cols, 4, DEFAULT_INPUT, test, OK_TIME_CALC, pbs_count++);
+						createPBS(A_rows, A_cols, B_rows, B_cols, 9, DEFAULT_INPUT, test, OK_TIME_CALC, pbs_count++);
+					}
 				}
 
 				break;
