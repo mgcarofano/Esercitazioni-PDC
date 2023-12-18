@@ -3,9 +3,9 @@
 #include <time.h>
 #include "mpi.h"
 
-#include "../../prova1/codice/libraries/menufunc.c"
+#include "../prova2/codice/libraries/menufunc.c"
 
-void esercizio1(int n_proc, int rows) {
+void esercizio1(int n_proc, int grid_rows) {
 
 	/* ************************************************************************
 		ESERCIZIO 1
@@ -18,28 +18,26 @@ void esercizio1(int n_proc, int rows) {
 	// INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
 
 	int id_grid = 0;
-	int cols = 0;
+	int grid_cols = 0;
 	int dim = 2, *n_dim;
 	int reorder = 0, *period, *coords;
 
 	MPI_Comm comm_grid;
 
 	/* ************************************************************************ */
+	// CREAZIONE DELLA GRIGLIA BIDIMENSIONALE
 
-	cols = n_proc / rows;
+	grid_cols = n_proc / grid_rows;
 
 	coords = (int*) calloc(dim, sizeof(int));
 
 	n_dim = (int*) calloc(dim, sizeof(int));
-	n_dim[0] = rows;
-	n_dim[1] = cols;
+	n_dim[0] = grid_rows;
+	n_dim[1] = grid_cols;
 
 	period = (int*) calloc(dim, sizeof(int));
 	period[0] = 0;
 	period[1] = 0;
-
-	/* ************************************************************************ */
-	// CREAZIONE DELLA GRIGLIA BIDIMENSIONALE
 
 	MPI_Cart_create(MPI_COMM_WORLD, dim, n_dim, period, reorder, &comm_grid);
 	MPI_Comm_rank(comm_grid, &id_grid);
@@ -48,7 +46,9 @@ void esercizio1(int n_proc, int rows) {
 	/* ************************************************************************ */
 	// STAMPA DEGLI IDENTIFICATIVI E DELLE COORDINATE DEI PROCESSORI
 
-	printf("Sono il processore %d (%d, %d)\n", id_grid, *coords, *(coords+1));
+	printf("Sono il processore %d (%d, %d)\n", id_grid, coords[0], coords[1]);
+	
+	/* ************************************************************************ */
 
 	free(coords);
 	free(n_dim);
@@ -79,6 +79,20 @@ void esercizio2(int id_proc, int n_proc, int q_num, double *op) {
 	double *op_loc, *op_tmp;
 	MPI_Status status;
 
+	FILE *out_file;
+	char out_path[PATH_MAX_LENGTH] = {};
+
+	/* 	*********************************************************************** */
+
+	// system(MKDIR_PATH" -p /output");
+	sprintf(out_path, "./esercizio-mpi/output/esercizio2/proc_%02d.out", id_proc);
+
+	if ((out_file = fopen(out_path, "w")) == NULL) {
+		printf("Errore durante l'esecuzione!\n");
+		printf("Applicazione terminata.\n");
+		exit(FILE_OPENING_ERROR);
+	}
+
 	/* 	*********************************************************************** */
 	//	ALLOCAZIONE DEI VETTORI LOCALI
 
@@ -93,42 +107,7 @@ void esercizio2(int id_proc, int n_proc, int q_num, double *op) {
 
 	op_loc = (double*)calloc (q_loc, sizeof(double));
 
-	/* 	*********************************************************************** */
-	//	DISTRIBUZIONE DEGLI OPERANDI CON MPI_SEND e MPI_RECV
-
-	// if (id_proc == 0) {
-	
-	// 	tmp = q_loc;
-
-	// 	// printf("id_proc: %d, tmp: %d, j: %d\n", i, tmp, j);
-
-	// 	for (j=0; j < tmp; j++) {
-	// 		op_loc[j] = op[j];
-	// 	}
-
-	// 	for (i=1; i < n_proc; i++) {
-
-	// 		if (rest != 0 && i == rest) {
-	// 			tmp--;
-	// 		}
-
-	// 		tag = i + 25;
-	// 		MPI_Send(&op[j], tmp, MPI_DOUBLE, i, tag, MPI_COMM_WORLD);
-
-	// 		j += tmp;
-	// 		// printf("id_proc: %d, tmp: %d, j: %d, tag: %d\n, ", i, tmp, j, tag);
-
-	// 	}
-
-	// 	// printf("\n");
-		
-	// } else {
-	// 	tag = id_proc + 25;
-	// 	// printf("id_proc: %d, tag: %d\n", id_proc, tag);
-	// 	MPI_Recv(op_loc, q_loc, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD, &status);
-	// }
-
-	/* ************************************************************************ */
+	/*	*********************************************************************** */
 	//	ALTERNATIVA: DISTRIBUZIONE DEGLI OPERANDI CON MPI_SCATTER
 
 	/*
@@ -176,6 +155,67 @@ void esercizio2(int id_proc, int n_proc, int q_num, double *op) {
 	for (i = 0; i < q_loc; i++) {
 		MPI_Scatter(&op[n_proc * i], 1, MPI_DOUBLE, &op_loc[i], 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 	}
+
+	/*	*********************************************************************** */
+	//	STAMPA DEI VETTORI LOCALI E PULIZIA DELLA MEMORIA
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	// fprintf(out_file, "Indirizzo del vettore: %p\n", &op);
+	fprintf(out_file, "id_grid: %d, q_loc: %d\n", id_proc, q_loc);
+
+	if (id_proc == 0) {
+		fprintf(out_file, "Vettore globale di dimensione %d:\n", q_num);
+		for (i = 0; i < q_num; i++) {
+			fprintf(out_file, "%1.2f\n", op[i]);
+		}
+		fprintf(out_file, "\n");
+	}
+
+	fprintf(out_file, "Vettore locale di dimensione %d:\n", q_loc);
+	for (i = 0; i < q_loc; i++) {
+		fprintf(out_file, "%1.2f\n", op_loc[i]);
+	}
+
+	fclose(out_file);
+	free(op_loc);
+
+	/* 	*********************************************************************** */
+	//	DISTRIBUZIONE DEGLI OPERANDI CON MPI_SEND e MPI_RECV
+
+	// if (id_proc == 0) {
+	
+	// 	tmp = q_loc;
+
+	// 	// printf("id_proc: %d, tmp: %d, j: %d\n", i, tmp, j);
+
+	// 	for (j=0; j < tmp; j++) {
+	// 		op_loc[j] = op[j];
+	// 	}
+
+	// 	for (i=1; i < n_proc; i++) {
+
+	// 		if (rest != 0 && i == rest) {
+	// 			tmp--;
+	// 		}
+
+	// 		tag = i + 25;
+	// 		MPI_Send(&op[j], tmp, MPI_DOUBLE, i, tag, MPI_COMM_WORLD);
+
+	// 		j += tmp;
+	// 		// printf("id_proc: %d, tmp: %d, j: %d, tag: %d\n, ", i, tmp, j, tag);
+
+	// 	}
+
+	// 	// printf("\n");
+		
+	// } else {
+	// 	tag = id_proc + 25;
+	// 	// printf("id_proc: %d, tag: %d\n", id_proc, tag);
+	// 	MPI_Recv(op_loc, q_loc, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD, &status);
+	// }
+
+	/* ************************************************************************ */
 
 	/*
 	
@@ -238,59 +278,49 @@ void esercizio2(int id_proc, int n_proc, int q_num, double *op) {
 			
 	*/
 
-	if (id_proc == 0) {
-		// op_tmp = (double*)calloc (q_loc * n_proc, sizeof(double));
-		op_tmp = (double*)calloc (q_num, sizeof(double));
-	}
+	// if (id_proc == 0) {
+	// 	// op_tmp = (double*)calloc (q_loc * n_proc, sizeof(double));
+	// 	op_tmp = (double*)calloc (q_num, sizeof(double));
+	// }
 	
 	// tmp = q_loc;
 	// if (id_proc >= rest) {
 	// 	tmp++;
 	// }
 
-	tmp = q_loc;
-	if (id_proc < rest) {
-		tmp--;
-	}
-
-	for (i = 0; i < tmp; i++) {
-		MPI_Gather(&op_loc[i], 1, MPI_DOUBLE, &op_tmp[n_proc * i], 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	}
-
-	// MPI_Barrier(MPI_COMM_WORLD);
-	if (id_proc >= rest) {
-		MPI_Send(&op_loc[i], 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-	}
-
-	i *= n_proc;
-	if (id_proc == 0) {
-		for (j = rest; j < n_proc; j++) {
-			printf("j: %d, rest: %d, n_proc: %d\n", j, rest, n_proc);
-			MPI_Recv(&op_tmp[i], 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &status);
-			i++;
-		}
-	}
-
-	/* ************************************************************************ */
-	//	STAMPA DEI VETTORI LOCALI E PULIZIA DELLA MEMORIA
-
-	// MPI_Barrier(MPI_COMM_WORLD);
-	// for (j=0; j < q_loc; j++) {
-	//     printf("Processore %d, op_loc[%d]: %f\n", id_proc, j, op_loc[j]);
+	// tmp = q_loc;
+	// if (id_proc < rest) {
+	// 	tmp--;
 	// }
 
-	MPI_Barrier(MPI_COMM_WORLD);
-	if (id_proc == 0) {
-		for (j=0; j < q_num; j++) {
-			printf("Processore %d, op_tmp[%d]: %f\n", id_proc, j, op_tmp[j]);
-		}
-	}
+	// for (i = 0; i < tmp; i++) {
+	// 	MPI_Gather(&op_loc[i], 1, MPI_DOUBLE, &op_tmp[n_proc * i], 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	// }
 
-	free(op_loc);
+	// // MPI_Barrier(MPI_COMM_WORLD);
+	// if (id_proc >= rest) {
+	// 	MPI_Send(&op_loc[i], 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+	// }
 
-	if (id_proc == 0) {
-		free(op_tmp);
-	}
+	// i *= n_proc;
+	// if (id_proc == 0) {
+	// 	for (j = rest; j < n_proc; j++) {
+	// 		printf("j: %d, rest: %d, n_proc: %d\n", j, rest, n_proc);
+	// 		MPI_Recv(&op_tmp[i], 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &status);
+	// 		i++;
+	// 	}
+	// }
+
+	// MPI_Barrier(MPI_COMM_WORLD);
+	// if (id_proc == 0) {
+	// 	for (j=0; j < q_num; j++) {
+	// 		printf("Processore %d, op_tmp[%d]: %f\n", id_proc, j, op_tmp[j]);
+	// 	}
+	// }
+
+	// if (id_proc == 0) {
+	// 	free(op_tmp);
+	// }
 
 	/*	***********************************************************************
 		RIFERIMENTI
@@ -305,7 +335,7 @@ void esercizio2(int id_proc, int n_proc, int q_num, double *op) {
 
 }
 
-void esercizio3() {
+void esercizio3(const int n_proc, int grid_rows, double* mat, int mat_rows, int mat_cols) {
 
 	/* ************************************************************************
 		ESERCIZIO 3
@@ -317,10 +347,154 @@ void esercizio3() {
 			coordinate corrispondenti.
 	*/
 
+	/* ************************************************************************ */
+	// INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
+
+	int id_grid = 0;
+	int grid_cols = 0;
+	int dim = 2, *n_dim = NULL;
+	int reorder = 0, *period = NULL, *coords = NULL;
+
+	MPI_Comm comm_grid;
+
+	int i = 0, j = 0, k = 0, l = 0;
+	int loc_rows = 0, loc_cols = 0;
+	int tmp_rows = 0, tmp_cols = 0, rest_rows = 0, rest_cols = 0;
+
+	int *send_counts = NULL, *displs = NULL;
+    MPI_Datatype type_block;
+
+	double *mat_loc = NULL;
+
+	FILE *out_file;
+	char out_path[PATH_MAX_LENGTH] = {};
+
+	/*	*********************************************************************** */
+	//	1) CREAZIONE DELLA GRIGLIA BIDIMENSIONALE
+
+	grid_cols = n_proc / grid_rows;
+
+	if (n_proc != (grid_rows * grid_cols)) {
+        fprintf(stderr,
+			"Attenzione! "
+			"I processori non possono essere inseriti "
+			"in una griglia bidimensionale unifo.\n"
+		);
+        MPI_Finalize();
+        exit(-1);
+    }
+
+	coords = (int*) calloc(dim, sizeof(int));
+
+	n_dim = (int*) calloc(dim, sizeof(int));
+	n_dim[0] = grid_rows;
+	n_dim[1] = grid_cols;
+
+	period = (int*) calloc(dim, sizeof(int));
+	period[0] = 0;
+	period[1] = 0;
+
+	MPI_Cart_create(MPI_COMM_WORLD, dim, n_dim, period, reorder, &comm_grid);
+	MPI_Comm_rank(comm_grid, &id_grid);
+	MPI_Cart_coords(comm_grid, id_grid, dim, coords);
+
+	/*	*********************************************************************** */
+
+	// system(MKDIR_PATH" -p /output");
+	sprintf(out_path, "./esercizio-mpi/output/esercizio3/proc%d_%02d_%02d.out", id_grid, coords[0], coords[1]);
+
+	if ((out_file = fopen(out_path, "w")) == NULL) {
+		printf("Errore durante l'esecuzione!\n");
+		printf("Applicazione terminata.\n");
+		exit(FILE_OPENING_ERROR);
+	}
+
+	/*	*********************************************************************** */
+	//	2) DIVISIONE DELLA MATRICE IN SOTTOBLOCCHI
+
+	// Si distribuisce equamente il numero di righe e colonne tra tutti i processori.
+	loc_rows = mat_rows / n_dim[0];
+	loc_cols = mat_cols / n_dim[1];
+
+	//	Gli operandi rimanenti sono distribuiti tra i primi 'rest' processori.
+	rest_rows = mat_rows % n_dim[0];
+	if (coords[0] < rest_rows) {
+		loc_rows++;
+	}
+
+	rest_cols = mat_cols % n_dim[1];
+	if (coords[1] < rest_cols) {
+		loc_cols++;
+	}
+
+	mat_loc = (double*) calloc(loc_rows * loc_cols, sizeof(double*));
+
+	/*	*********************************************************************** */
+	//	3) ASSEGNAZIONE DEI SOTTOBLOCCHI AI PROCESSORI DELLA GRIGLIA
+
+	MPI_Type_vector(loc_rows, loc_cols, mat_cols, MPI_DOUBLE, &type_block);
+    MPI_Type_create_resized(type_block, 0, loc_rows*sizeof(double), &type_block);
+    MPI_Type_commit(&type_block);
+
+	// Il numero di elementi da distribuire a ogni processore
+    send_counts = (int*) calloc(grid_rows * grid_cols, sizeof(int*));
+
+    // La posizione nella matrice "linearizzata" da dove iniziare la distribuzione
+    // dei 'count' elementi corrispondenti
+    displs = (int*) calloc(grid_rows * grid_cols, sizeof(int*));
+
+    for (int i = 0; i < grid_rows; i++) {
+        for (int j = 0; j < grid_cols; j++) {
+            send_counts[i*grid_cols + j] = 1;
+            displs[i*grid_cols + j] = ((i * mat_cols * loc_rows) + (j * loc_cols)) / loc_cols;
+        }
+    }
+
+	MPI_Scatterv(
+        mat, send_counts, displs, type_block,
+        mat_loc, loc_rows * loc_cols,
+        MPI_DOUBLE, 0, comm_grid
+    );
+
+	MPI_Barrier(comm_grid);
+	// if (id_grid == 0) fprintf(out_file, "Indirizzo della matrice: %p\n", &(**mat));
+	// if (id_grid == 0) fprintf(out_file, "Primo elemento della matrice: %f\n", **mat);
+	fprintf(out_file, "id_grid: %d, loc_rows: %d, loc_cols: %d\n",
+		id_grid, loc_rows, loc_cols
+	);
+
+	if (id_grid == 0) {
+		fprintf(out_file, "Matrice globale di dimensione %d x %d:\n", mat_rows, mat_cols);
+		for (i = 0; i < mat_rows; i++) {
+			for (j = 0; j < mat_cols; j++) {
+				fprintf(out_file, "%1.2f\t", mat[i*mat_cols + j]);
+			}
+			fprintf(out_file, "\n");
+		}
+		fprintf(out_file, "\n");
+	}
+
+	fprintf(out_file, "Matrice locale di dimensione %d x %d:\n", loc_rows, loc_cols);
+	for (i = 0; i < loc_rows; i++) {
+		for (j = 0; j < loc_cols; j++) {
+			fprintf(out_file, "%1.2f\t", mat_loc[i*loc_cols + j]);
+		}
+		fprintf(out_file, "\n");
+	}
+
+	fclose(out_file);
+
+	free(mat_loc);
+
 	/*	***********************************************************************
 		RIFERIMENTI
 
-		
+		https://www.open-mpi.org/doc/v1.4/man3/MPI_Type_vector.3.php
+		https://www.open-mpi.org/doc/v1.4/man3/MPI_Type_create_resized.3.php
+		https://www.open-mpi.org/doc/v1.4/man3/MPI_Scatterv.3.php
+		https://stackoverflow.com/questions/7549316/mpi-partition-matrix-into-blocks
+		https://engineering.purdue.edu/~smidkiff/ece563/slides/MPI2.pdf
+
 	*/
 
 }
@@ -332,14 +506,18 @@ int main (int argc, char **argv) {
 
 	int exercise = 0, id_proc = 0, n_proc = 0;
 
-	int rows = 0;
+	// ESERCIZIO 1
+	int grid_rows = 0;
 
+	// ESERCIZIO 2
 	int q_num = 0, i = 0, j = 0;
 	int int_rand = 0;
 	double double_rand = 0.0; 
-	double *op;
+	double *op = NULL;
 
-	// variabili esercizio 3 ...
+	// ESERCIZIO 3
+	double *mat = NULL;
+	int mat_rows = 0, mat_cols = 0;
 
 	srand(time(NULL));
 
@@ -366,13 +544,13 @@ int main (int argc, char **argv) {
 		case 1:
 		{
 			if (id_proc == 0) {
-				printf("Inserisci il numero di righe della griglia: \n");
-				rows = getIntegerFromInput();
+				printf("Inserisci il numero di righe della griglia di processori: \n");
+				grid_rows = getIntegerFromInput();
 			}
 
-			MPI_Bcast(&rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
+			MPI_Bcast(&grid_rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
+			esercizio1(n_proc, grid_rows);
 
-			esercizio1(n_proc, rows);
 			break;
 		}
 		case 2:
@@ -395,6 +573,8 @@ int main (int argc, char **argv) {
 
 					// printf("op[%d]: %f\n", j, op[j]);
 				}
+
+				// printf("Indirizzo del vettore: %p\n", &op);
 			}
 
 			MPI_Bcast(&q_num, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -408,7 +588,79 @@ int main (int argc, char **argv) {
 		}
 		case 3:
 		{
-			esercizio3();
+
+			/*
+			
+				Attenzione!
+				
+				Funziona per matrici quadrate e matrici rettangolari per cui
+				il numero di righe e colonne è multiplo del numero di processori
+				sulle righe / colonne della griglia.
+
+				Funziona solo per griglie di processori bidimensionali quadrate.
+
+			*/
+
+			if (id_proc == 0) {
+
+				printf("Inserisci la quantita' di righe della matrice:\n");
+				mat_rows = getIntegerFromInput();
+
+				if (mat_rows < 1) {
+					printf("Devi inserire almeno una riga!\n");
+					printf("Applicazione terminata.\n");
+					exit(MATRIX_DIMENSION_ERROR);
+				}
+
+				printf("Inserisci la quantita' di colonne della matrice:\n");
+				mat_cols = getIntegerFromInput();
+
+				if (mat_cols < 1) {
+					printf("Devi inserire almeno una colonna!\n");
+					printf("Applicazione terminata.\n");
+					exit(MATRIX_DIMENSION_ERROR);
+				}
+
+				printf("Inserisci il numero di righe della griglia di processori: \n");
+				grid_rows = getIntegerFromInput();
+
+				if (grid_rows < 1) {
+					printf("Devi inserire almeno una riga di processori!\n");
+					printf("Applicazione terminata.\n");
+					exit(MATRIX_DIMENSION_ERROR);
+				}
+
+				mat = (double*) calloc(mat_rows * mat_cols, sizeof(double*));
+
+				for (i = 0; i < mat_rows; i++) {
+					for (j = 0; j < mat_cols; j++) {
+						double_rand = (double)rand();
+						int_rand = (int)rand();
+
+						// Si genera un numero casuale reale compreso tra 0 e OP_MAX_VALUE
+						mat[i*mat_cols + j] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
+
+						// Si ha il 33% di possibilita che mat[i*mat_cols + j] < 0
+						if (int_rand % 3 == 0) {
+							mat[i*mat_cols + j] *= -1;
+						}
+					}
+				}
+
+				// printf("Indirizzo della matrice: %p\n", &(**mat));
+				// printf("Primo elemento della matrice: %f\n", **mat);
+
+			}
+
+			MPI_Bcast(&grid_rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
+			MPI_Bcast(&mat_rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
+			MPI_Bcast(&mat_cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
+			esercizio3(n_proc, grid_rows, mat, mat_rows, mat_cols);
+
+			if (id_proc == 0) {
+				free(mat);
+			}
+
 			break;
 		}
 		case 4:

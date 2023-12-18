@@ -1,9 +1,9 @@
 folder = ./prova2/codice
-file = prova2
+file = 1108_lezione13
 login = CRFMGB01R
 home=/project
 work=$(home)/prova1/codice
-prova2=$(home)/prova2/esercizio-mpi
+prova2=$(home)/esercizio-mpi
 
 scope:
 	ssh $(login)@ui-studenti.scope.unina.it
