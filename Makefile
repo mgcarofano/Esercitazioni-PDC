@@ -23,6 +23,9 @@ mpirun:
 	mpiexec -machinefile $(home)/hostfile -np 9 $(prova2)/$(file)
 	rm -f $(prova2)/$(file)
 
+#	mpicc prova3.c -o prova3
+#	mpiexec -machinefile /project/hostfile -np 9 prova3 9 9 9 9 9 1 0 0
+
 #	Da utilizzare nella cartella 'prova1/jobs'
 mpirun_prova1:
 	mkdir -p $(home)/prova1/output

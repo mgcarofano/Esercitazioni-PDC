@@ -20,7 +20,6 @@ void getDimensionsFromCSV(const char* path, int* rows_csv, int* cols_csv) {
 
 	FILE* csv_file;
 	char c = 0;
-	int size = 0;
 
     *rows_csv = 0;
     *cols_csv = 0;
@@ -32,8 +31,7 @@ void getDimensionsFromCSV(const char* path, int* rows_csv, int* cols_csv) {
 	}
 
 	fseek(csv_file, 0, SEEK_END);
-    size = ftell(csv_file);
-	if (size == 0) {
+	if (ftell(csv_file) == 0) {
 		*rows_csv = 0;
 		*cols_csv = 0;
         return;
@@ -43,21 +41,27 @@ void getDimensionsFromCSV(const char* path, int* rows_csv, int* cols_csv) {
 
 	do {
 		c = fgetc(csv_file);
+		printf("%c", c);
+
+		if (c == EOF) {
+			break;
+		}
+
 		if (c == CSV_FIELDS_SEPARATOR) {
 			*cols_csv += 1;
 		}
+
         if (c == CSV_ROWS_SEPARATOR) {
             *cols_csv = 0;
 			*rows_csv += 1;
         }
-	} while (c != EOF);
+	} while (1);
 
 	*cols_csv += 1;
 	*rows_csv += 1;
-
 }
 
-void getMatrixFromCSV(const char* path, double** mat, int rows_mat, int cols_mat) {
+void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat) {
 	FILE *file;
 	char c, char_val[CSV_FIELD_PRECISION] = {};
 	int rows_csv = 0, cols_csv = 0;
@@ -87,21 +91,22 @@ void getMatrixFromCSV(const char* path, double** mat, int rows_mat, int cols_mat
 		c = fgetc(file);
 
 		// printf("%c", c);
-		if (c != 44) {
+		if (c != CSV_FIELDS_SEPARATOR) {
 			if (i < CSV_FIELD_PRECISION-1) {
 				char_val[i] = c;
 			}
 		}
 		
-		if (c == 44 || c == 10 || c == EOF) {
+		if (c == CSV_FIELDS_SEPARATOR || c == CSV_ROWS_SEPARATOR || c == EOF) {
 			char_val[i] = '\0';
-			mat[row_count][comma_count++] = argToDouble(char_val);
+			mat[row_count*cols_mat + comma_count] = argToDouble(char_val);
+			comma_count++;
 
 			if (c == EOF) {
 				break;
 			}
 			
-			if (c == 10 || comma_count == cols_mat) {
+			if (c == CSV_ROWS_SEPARATOR || comma_count == cols_mat) {
 				comma_count = 0;
 				row_count++;
 				if (row_count == rows_mat) {

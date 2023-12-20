@@ -15,6 +15,8 @@
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
+#include <math.h>
+#include <time.h>
 
 /*	**************************************************************************** */
 //	CODICE DELLE FUNZIONI DEFINITE IN 'auxfunc.h'
@@ -153,6 +155,65 @@ void getTransposeMatrix(double *A_mat, int A_rows, int A_cols, double *B_mat, in
 			B_mat[j*B_cols + i] = A_mat[i*A_cols + j];
 		}
 	}
+
+}
+
+double* scatterMatrixToGrid(
+	double *mat, int mat_rows, int mat_cols,
+	int *grid_dim, int* grid_coords, MPI_Comm comm_grid
+) {
+
+	// int i = 0, j = 0, k = 0;
+	// int loc_rows = 0, loc_cols = 0;
+	// int tmp_rows = 0, tmp_cols = 0, rest_rows = 0, rest_cols = 0;
+
+	// double *ret = NULL;
+
+	// int *send_counts = NULL, *displs = NULL;
+    // MPI_Datatype type_block;
+
+	// // Si distribuisce equamente il numero di righe e colonne tra tutti i processori.
+	// loc_rows = mat_rows / grid_dim[0];
+	// loc_cols = mat_cols / grid_dim[1];
+
+	// //	Gli operandi rimanenti sono distribuiti tra i primi 'rest' processori.
+	// rest_rows = mat_rows % grid_dim[0];
+	// if (grid_coords[0] < rest_rows) {
+	// 	loc_rows++;
+	// }
+
+	// rest_cols = mat_cols % grid_dim[1];
+	// if (grid_coords[1] < rest_cols) {
+	// 	loc_cols++;
+	// }
+
+	// ret = (double*) calloc(loc_rows * loc_cols, sizeof(double));
+
+	// MPI_Type_vector(loc_rows, loc_cols, mat_cols, MPI_DOUBLE, &type_block);
+    // MPI_Type_create_resized(type_block, 0, loc_rows*sizeof(double), &type_block);
+    // MPI_Type_commit(&type_block);
+
+	// // Il numero di elementi da distribuire a ogni processore
+    // send_counts = (int*) calloc(grid_dim[0] * grid_dim[1], sizeof(int*));
+
+    // // La posizione nella matrice "linearizzata" da dove iniziare la distribuzione
+    // // dei 'count' elementi corrispondenti
+    // displs = (int*) calloc(grid_dim[0] * grid_dim[1], sizeof(int*));
+
+    // for (int i = 0; i < grid_dim[0]; i++) {
+    //     for (int j = 0; j < grid_dim[1]; j++) {
+    //         send_counts[i*grid_dim[1] + j] = 1;
+    //         displs[i*grid_dim[1] + j] = ((i * mat_cols * loc_rows) + (j * loc_cols)) / loc_cols;
+    //     }
+    // }
+
+	// MPI_Scatterv(
+    //     mat, send_counts, displs, type_block,
+    //     ret, loc_rows * loc_cols,
+    //     MPI_DOUBLE, 0, comm_grid
+    // );
+
+	// return ret;
 
 }
 

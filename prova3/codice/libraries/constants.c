@@ -276,12 +276,7 @@
 	E' il path del file .csv nella quale sono memorizzate tutte le informazioni
 	necessarie allo studio dei casi di test. In particolare, la sua struttura
 	e' la seguente:
-	-	rows : int (indica il numero di righe della matrice)
-	-	cols : int (indica il numero di colonne della matrice e, quindi,
-		anche di elementi del vettore)
-	-	threads : int (indica il numero di threads parallelizzati)
-	-	test : int (indica il caso di test eseguito)
-	-	t_tot : double (indica il tempo di esecuzione impiegato)
+	-	...
 */
 
 #define CSV_TIME_PATH "../output"
@@ -295,12 +290,37 @@
 #define OP_MAX_VALUE 100
 
 /*
+	ARGS_QUANTITY: int
+	Indica il minimo numero di argomenti da passare in input al programma.
+*/
+
+#define ARGS_QUANTITY 8
+
+/*
 	CSV_FIELD_PRECISION: int
 	Si utilizza come limite massimo di cifre decimali dei valori
 	della matrice quando si sceglie la lettura da file .csv.
 */
 
 #define CSV_FIELD_PRECISION 10
+
+/*
+	CSV_FIELDS_SEPARATOR: int
+	Indica il carattere utilizzato nel file .csv per separare un campo
+	da quello successivo. Si utilizza il valore corrispondente nella
+	tabella ASCII.
+*/
+
+#define CSV_FIELDS_SEPARATOR 44
+
+/*
+	CSV_FIELDS_SEPARATOR: char
+	Indica il carattere utilizzato nel file .csv per separare una riga
+	da quella successiva. Si utilizza il valore corrispondente nella
+	tabella ASCII.
+*/
+
+#define CSV_ROWS_SEPARATOR 10
 
 /*
 	PATH_MAX_LENGTH: int
