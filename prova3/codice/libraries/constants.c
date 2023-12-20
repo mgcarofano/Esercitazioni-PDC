@@ -6,8 +6,8 @@
 
 */
 
-/* **************************************************************************** */
-// CODICI DI ERRORE
+/*	*************************************************************************** */
+//	CODICI DI ERRORE
 
 /*
 	NOT_ENOUGH_ARGS_ERROR: int
@@ -97,8 +97,26 @@
 
 #define MATRIX_DIMENSION_ERROR 10
 
-/* **************************************************************************** */
-// ENUMERAZIONI E COSTANTI
+/*
+	PROCESSOR_QUANTITY_ERROR: int
+	Si utilizza per segnalare all'utente che l'esecuzione del programma
+	e' stata terminata siccome ha scelto un numero di processori per il quale
+	non e' possibile generare una griglia bidimensionale uniforme.
+*/
+
+#define PROCESSOR_QUANTITY_ERROR 11
+
+/*
+	ALLOCATION_ERROR: int
+	Si utilizza per segnalare all'utente che l'esecuzione del programma
+	e' stata terminata siccome il programma non e' riuscito ad allocare
+	correttamente le matrici in memoria.
+*/
+
+#define ALLOCATION_ERROR 12
+
+/*	*************************************************************************** */
+//	ENUMERAZIONI E COSTANTI
 
 #define DEFAULT_SCELTA 0
 

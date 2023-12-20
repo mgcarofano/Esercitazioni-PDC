@@ -357,7 +357,7 @@ void esercizio3(const int n_proc, int grid_rows, double* mat, int mat_rows, int 
 
 	MPI_Comm comm_grid;
 
-	int i = 0, j = 0, k = 0, l = 0;
+	int i = 0, j = 0, k = 0;
 	int loc_rows = 0, loc_cols = 0;
 	int tmp_rows = 0, tmp_cols = 0, rest_rows = 0, rest_cols = 0;
 
@@ -378,7 +378,7 @@ void esercizio3(const int n_proc, int grid_rows, double* mat, int mat_rows, int 
         fprintf(stderr,
 			"Attenzione! "
 			"I processori non possono essere inseriti "
-			"in una griglia bidimensionale unifo.\n"
+			"in una griglia bidimensionale uniforme.\n"
 		);
         MPI_Finalize();
         exit(-1);
@@ -427,7 +427,7 @@ void esercizio3(const int n_proc, int grid_rows, double* mat, int mat_rows, int 
 		loc_cols++;
 	}
 
-	mat_loc = (double*) calloc(loc_rows * loc_cols, sizeof(double*));
+	mat_loc = (double*) calloc(loc_rows * loc_cols, sizeof(double));
 
 	/*	*********************************************************************** */
 	//	3) ASSEGNAZIONE DEI SOTTOBLOCCHI AI PROCESSORI DELLA GRIGLIA
@@ -630,7 +630,7 @@ int main (int argc, char **argv) {
 					exit(MATRIX_DIMENSION_ERROR);
 				}
 
-				mat = (double*) calloc(mat_rows * mat_cols, sizeof(double*));
+				mat = (double*) calloc(mat_rows * mat_cols, sizeof(double));
 
 				for (i = 0; i < mat_rows; i++) {
 					for (j = 0; j < mat_cols; j++) {

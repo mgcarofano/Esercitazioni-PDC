@@ -6,8 +6,8 @@
 
 */
 
-/* **************************************************************************** */
-// LIBRERIE
+/*	**************************************************************************** */
+//	LIBRERIE
 
 #include "constants.c"
 #include <stdio.h>
@@ -15,11 +15,9 @@
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
-#include <time.h>
-#include <sys/time.h>
 
-/* **************************************************************************** */
-// CODICE DELLE FUNZIONI DEFINITE IN 'auxfunc.h'
+/*	**************************************************************************** */
+//	CODICE DELLE FUNZIONI DEFINITE IN 'auxfunc.h'
 
 int argToInt(char *arg) {
 	
@@ -37,6 +35,7 @@ int argToInt(char *arg) {
 	if (strlen(arg) == 0) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
+		MPI_Finalize();
 		exit(EMPTY_ARG_ERROR);
 	}
 
@@ -56,6 +55,7 @@ int argToInt(char *arg) {
 	if (*p != '\0' || errno != 0) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
+		MPI_Finalize();
 		exit(INPUT_ARG_ERROR);
 	}
 
@@ -67,6 +67,7 @@ int argToInt(char *arg) {
 	if (out_long < INT_MIN || out_long > INT_MAX) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
+		MPI_Finalize();
 		exit(NOT_INT_ARG_ERROR);
 	}
 	
@@ -83,6 +84,7 @@ double argToDouble(char *arg) {
 	if (strlen(arg) == 0) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
+		MPI_Finalize();
 		exit(EMPTY_ARG_ERROR);
 	}
 
@@ -91,17 +93,70 @@ double argToDouble(char *arg) {
 	if (*p != '\0' || errno != 0) {
 		printf("Errore nella lettura degli argomenti di input!\n\n");
 		printf("Esecuzione terminata.\n");
+		MPI_Finalize();
 		exit(INPUT_ARG_ERROR);
 	}
 	
 	return out_double;
 }
 
-/* **************************************************************************** */
-/* RIFERIMENTI
+void getRandomMatrix(double *mat, int mat_rows, int mat_cols) {
 
-	https://stackoverflow.com/questions/13566082/how-to-check-if-a-file-has-content-or-not-using-c
-	https://bl831.als.lbl.gov/~gmeigs/scripting_help/printf_awk_notes.txt
-	https://www.tutorialspoint.com/how-can-we-return-multiple-values-from-a-function-in-c-cplusplus
+	int i = 0, j = 0;
+	double double_rand = 0.0;
+	int int_rand = 0;
+
+	for (i = 0; i < mat_rows; i++) {
+		for (j = 0; j < mat_cols; j++) {
+			double_rand = (double)rand();
+			int_rand = (int)rand();
+
+			// Si genera un numero casuale reale compreso tra 0 e OP_MAX_VALUE
+			mat[i*mat_cols + j] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
+
+			// Si ha il 33% di possibilita che mat[i*mat_cols + j] < 0
+			if (int_rand % 3 == 0) {
+				mat[i*mat_cols + j] *= -1;
+			}
+		}
+	}
+	
+}
+
+void getIdentityMatrix(double *mat, int mat_rows, int mat_cols) {
+
+	int i = 0, j = 0;
+
+	for (i = 0; i < mat_rows; i++) {
+		for (j = 0; j < mat_cols; j++) {
+			if (i == j) {
+				mat[i*mat_cols + j] = 1;
+			}
+		}
+	}
+
+}
+
+void getTransposeMatrix(double *A_mat, int A_rows, int A_cols, double *B_mat, int B_rows, int B_cols) {
+
+	int i = 0, j = 0;
+
+	if (A_rows != B_cols || A_cols != B_rows) {
+		printf("Errore nella costruzione della matrice trasposta!\n\n");
+		printf("Esecuzione terminata!\n");
+		MPI_Finalize();
+		exit(MATRIX_DIMENSION_ERROR);
+	}
+
+	for (j = 0; j < A_cols; j++) {
+		for (i = 0; i < A_rows; i++) {
+			B_mat[j*B_cols + i] = A_mat[i*A_cols + j];
+		}
+	}
+
+}
+
+/*	***************************************************************************
+	RIFERIMENTI
 	
 */

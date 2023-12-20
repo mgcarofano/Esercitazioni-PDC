@@ -6,23 +6,15 @@
 
 */
 
-/* **************************************************************************** */
-// LIBRERIE
+/*	*************************************************************************** */
+//	LIBRERIE
 
 #include "constants.c"
 #include <stdio.h>
 #include <stdlib.h>
 
-/* **************************************************************************** */
-// CODICE DELLE FUNZIONI DEFINITE IN 'csvfunc.h'
-
-void freeMatrix(double** mat, int rows) {
-	int i = 0;
-    for (i = 0; i < rows; i++) {
-        free(mat[i]);
-    }
-    free(mat);
-}
+/*	*************************************************************************** */
+//	CODICE DELLE FUNZIONI DEFINITE IN 'csvfunc.h'
 
 void getDimensionsFromCSV(const char* path, int* rows_csv, int* cols_csv) {
 
@@ -157,7 +149,7 @@ void getMatrixFromCSV(const char* path, double** mat, int rows_mat, int cols_mat
 
 // }
 
-/* **************************************************************************** */
-/* RIFERIMENTI
+/*	***************************************************************************
+	RIFERIMENTI
 	
 */
