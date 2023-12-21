@@ -23,6 +23,8 @@ void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat)
 
 /*	*************************************************************************** */
 
+void read_matrix(char* filecsv, double **matrix, int *rows, int *cols, int world_rank, int world_size);
+
 #include "csvfunc.c"
 #endif
 

@@ -12,6 +12,7 @@
 #include "constants.c"
 #include <stdio.h>
 #include <stdlib.h>
+#include "auxfunc.h"
 
 /*	*************************************************************************** */
 //	CODICE DELLE FUNZIONI DEFINITE IN 'csvfunc.h'
@@ -153,6 +154,44 @@ void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat)
 // 	printf("%s aggiornato con successo!\n\n", out_path);
 
 // }
+
+// in input: file da cui leggere, matrice in cui salvare, dimensioni, processore, size processore
+void read_matrix(char* filecsv, double **matrix, int *rows, int *cols, int world_rank, int world_size) {
+    MPI_File file;
+    FILE *file_ptr;
+    MPI_Status status;
+    MPI_Offset filesize, disp;
+    int size, read_rows, read_cols;
+    double *buf;
+
+    if (world_rank == 0) { // il processore 0
+        if ((file_ptr = fopen(filecsv, "r")) == NULL) {
+            fprintf(stderr, "Unable to open the file '%s'\n", filecsv);
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+        fseek(file_ptr, 0, SEEK_END);
+        filesize = ftell(file_ptr);
+        fclose(file_ptr);
+
+        size = sizeof(double);
+        MPI_File_open(MPI_COMM_WORLD, filecsv, MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
+        MPI_File_read(file, &read_rows, 1, MPI_INT, &status);
+        MPI_File_read(file, &read_cols, 1, MPI_INT, &status);
+        *rows = read_rows;
+        *cols = read_cols;
+
+        MPI_File_close(&file);
+
+        buf = (double *)malloc(read_rows * read_cols * size);
+
+        MPI_Scatter(buf, read_rows * read_cols, MPI_DOUBLE, buf, read_rows * read_cols, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+        *matrix = buf;
+    } else {
+        MPI_Scatter(NULL, 0, MPI_DOUBLE, *matrix, *rows * *cols, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    }
+}
+
 
 /*	***************************************************************************
 	RIFERIMENTI
