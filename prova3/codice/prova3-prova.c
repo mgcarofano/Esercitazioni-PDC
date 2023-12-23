@@ -15,522 +15,152 @@
 
 /* **************************************************************************** */
 void random_matrix(int dim, double **mat);
+void multiply(double **matA, double **matB, double **matResult, int dim);
+double** initialize_matrix(int dim);
+void send_matrix(double* matrix, int dim_matrix, int dim_submat, MPI_Comm grid, int mpi_size);
+void receive_matrix(double* sub_matrix, int dim_submat, int mpi_rank);
 
+//Riscrivo il codice non considerando il menù e la matrice come vera matrice...
 int main(int argc, char **argv) {
+	int i, j;
+	int mpi_rank, mpi_size;
+	double time_start, time_end, time_diff, time_seq;
 
-	/* ************************************************************************ */
-	// INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
+	int dim_mat;
+	double **matA, **matB, **matResult;
 
-	int strategia = NO_STRATEGY, q_num = 0;
-	int test = NO_TEST, time_calc = NO_TIME_CALC;
-	
-	int id_proc = 0, n_proc = 0, rest = 0;
-	int q_loc = 0, tag = 0;
-	int tmp = 0, i = 0, j = 0;
-	int dim = 0;
+	int dim_submat;
+	double **sub_matA, **sub_matB, **sub_matResult;
 
-	double t_start = 0.0, t_end = 0.0, t_tot = 0.0;
+	int periods[2]={0};
+	int coords[2];
+	int n_proc;
 
-	double **mat1, **mat2;
-	double **multiplication;
-
-	MPI_Status status;
-
-	srand(time(NULL));
-
-	/* ************************************************************************ */
-	// INIZIALIZZAZIONE DELL'AMBIENTE MPI
-
-	/*
-		--- int MPI_Init(int *argc, char ***argv) ---
-		Definisce l'insieme dei processori attivati (contesto),
-		assegnandone un identificativo
-	*/
+	int dim_grid;
+	MPI_Comm grid, sub_row_grid, sub_cols_grid;
 
 	MPI_Init(&argc, &argv);
-	
-	/*
-		--- int MPI_Comm_rank(MPI_Comm comm, int *rank) ---
-		Assegna ad ogni processore del communicator l'identificativo
-		'id_proc' (sempre associato al contesto).
-		MPI_COMM_WORLD indica il communicator a cui appartengono tutti
-		i processori attivati (non puo' essere alterato).
-	*/
+	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
-	MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
-	
-	/*
-		--- int MPI_Comm_size(MPI_Comm comm, int *size) ---
-		Restituisce ad ogni processore di MPI_COMM_WORLD
-		il numero di processori nel contesto.
-	*/
+	if (mpi_rank == 0){ // Processore 0
+		//Verifica degli argomenti passati in input
+		//MPI_Abort(MPI_COMM_WORLD, 401); // 401 Errore no argomenti
+		//MPI_Abort(MPI_COMM_WORLD, 402); // 402 Errore argomenti sbagliati
+	}
 
-	MPI_Comm_size(MPI_COMM_WORLD, &n_proc);
-
-	/* ************************************************************************ */
-	// LETTURA DEI DATI
-	
-	if (id_proc == 0) {
-		printf("Inizio esecuzione.\n\n");
-
-		/*
-			Si affida al primo processore con id_proc == 0 il compito
-			di leggere gli argomenti in input 'argv[]'.
-		*/
-
-		if (argc < 4) {
-			printf("Errore nella lettura degli argomenti di input!\n\n");
-			printf("Esecuzione terminata.\n");
-			MPI_Finalize();
-			exit(NOT_ENOUGH_ARGS_ERROR);
-		}
-
-		/*
-			--- int argToInt(char *arg) ---
-			Si utilizza la funzione 'argToInt' definita in 'auxfunc.h'
-			per leggere gli argomenti contenuti nel vettore di 
-			stringhe 'argv[]' e convertirli in valori interi.
-		*/
-
-		dim = argToInt(argv[1]);
-		n_proc = argToInt(argv[2]);
-		test = argToInt(argv[3]);
-		time_calc = argToInt(argv[4]);
-
-		/*
-			Come richiesto dalle specifiche dell'algoritmo, 
-            se la dimensione delle matrici quadrate non è multiplo della radice del numero dei processori
-            l'esecuzione deve terminare.
-		*/
-
-		if (sqrt(n_proc) == floor(sqrt(n_proc))){ // se non è un quadrato perfetto non andare oltre (?)
-            printf("Il numero dei processori non è un quadrato perfetto!\n\n");
-			printf("Esecuzione terminata.\n");
-			MPI_Finalize();
-			exit(); // Creare codice di errore utile
-        } else if (dim % sqrt(n_proc) != 0){
-            printf("La dimensione delle matrici non è multiplo della radice del numero dei processori!\n\n");
-			printf("Esecuzione terminata.\n");
-			MPI_Finalize();
-			exit(); // Creare codice di errore utile
+	if (mpi_rank == 0){ // Processore 0
+		dim_mat = argToInt(argv[1]); // dimensione delle matrici quadrate
+		n_proc = argToInt(argv[2]); // numero processori
+		if (n_proc == mpi_size){
+			dim_grid = sqrt(n_proc); // dimensione griglia
 		} else {
-            //allocazione delle matrici e riempimento con numeri pseudo-random
-            mat1 = (double**) calloc(dim, sizeof(double*));
-            mat2 = (double**) calloc(dim, sizeof(double*));
-            multiplication = (double**) calloc(dim, sizeof(double*));
-            for (i = 0; i < dim; i++) {
-                mat1[i] = (double*) calloc(dim, sizeof(double));
-                mat2[i] = (double*) calloc(dim, sizeof(double));
-                multiplication[i] = (double*) calloc(dim, sizeof(double));
-            }
-		
-            //TODO: Creare griglia di processori in base a n_proc
-        
-        }
+			//segnalare che il numero di processori non è uguale a mpi_size
+			MPI_Abort(MPI_COMM_WORLD, 403); // 403 Errore n_proc != mpi_size
+		}
+		dim_submat = dim_mat / dim_grid; // dimensione sottomatrici
 	}
 
-	/*
-		--- int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
-							int root, MPI_Comm comm) ---
-		Si utilizza questa funzione per inviare gli argomenti letti dal
-		processore 0 (root) a tutti i processori del contesto, incluso se' stesso.
-		Cioè, i valori di 'strategia', 'q_num' e 'time_calc' (interi di dimensione 1)
-		saranno copiati in tutti i processori del communicator MPI_COMM_WORLD.
-	*/
-
-	MPI_Bcast(&dim, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&dim_mat, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&n_proc, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&test, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&time_calc, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&dim_grid, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&dim_submat, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-	/* ************************************************************************ */
-	// DISTRIBUZIONE DEGLI OPERANDI
+	if (mpi_rank == 0){ // Processore 0
+		srand(time(NULL));
+		matA = initialize_matrix(dim_mat);
+		matB = initialize_matrix(dim_mat);
+		random_matrix(dim_mat, matA);
+		random_matrix(dim_mat, matB);
+		if (!matA || !matB){
+			//segnalare che le matrici non sono state allocate
+			MPI_Abort(MPI_COMM_WORLD, 404); // 404 Errore no memoria allocata
+		}
 
-	// Si distribuisce equamente il numero di operandi tra tutti i processori.
-	sub_dim = dim / n_proc;
+	}
 
-	/*
-		--- void* calloc (size_t num, size_t size) ---
-		Si utilizza questa funzione per allocare in memoria un vettore
-		di 'num' elementi per memorizzare gli operandi locali.
-		Ciascun elemento ha una dimensione del vettore ha una dimensione
-		pari a 'size', e sara' inizializzato con tutti i suoi bit a 0.
-	*/
+	if (mpi_size == 1){ // Singolo processore - Algoritmo sequenziale
+		time_start = MPI_Wtime();
 
-    //si creano le sottomatrici
-	mat1_loc = (double**) calloc(sub_dim, sizeof(double*));
-    mat2_loc = (double**) calloc(sub_dim, sizeof(double*));
-    for (i = 0; i < sub_dim; i++) {
-        mat1_loc[i] = (double*) calloc(sub_dim, sizeof(double));
-        mat2_loc[i] = (double*) calloc(sub_dim, sizeof(double));
-    }
+		matResult = initialize_matrix(dim_mat);
+		if (!matResult){
+			//segnalare che la matrice non è stata allocata
+			MPI_Abort(MPI_COMM_WORLD, 404); // 404 Errore no memoria allocata
+		}
+		multiply(matA, matB, matResult, dim_mat);
 
-    //da qui in poi va riscritto tutto, o quasi, per il corretto prodotto matrice-matrice
+		time_end = MPI_WTime();
+		time_seq = time_end - time_start;
 
-	if (id_proc == 0) {
+	} else { // Multiprocessore - Algoritmo parallelo
+		//Creazione griglia
+		create_grid(&grid, &sub_row_grid, &sub_cols_grid, mpi_rank, mpi_size, dim_grid, periods, 0, coords);
 
-		/*
-			Come prima, si affida al primo processore il compito di leggere
-			gli operandi del prodotto (da argv[] se q_num <= 20) oppure di
-			assegnarne un valore random.
-		*/
+		//Creazione sottomatrici
+		sub_matA = initialize_matrix(dim_submat);
+		sub_matB = initialize_matrix(dim_submat);
+		sub_matResult = initialize_matrix(dim_submat);
+
+		if(mpi_rank == 0){ // Processore 0
+			if(!sub_matA || !sub_matB || !sub_matResult){
+				//segnalare che le matrici non sono state allocate
+				MPI_Abort(MPI_COMM_WORLD, 404); // 404 Errore no memoria allocata
+			}
+		}
+
+		if(mpi_rank == 0){ // Processore 0 distribuisce le matrici
+			send_matrix(matA, dim_mat, dim_submat, grid, mpi_size);
+			send_matrix(matB, dim_mat, dim_submat, grid, mpi_size);
+			for (i=0; i<dim_submat; i++){
+				for (j=0; j<dim_submat; j++){
+					sub_matA[i][j] = matA[i][j];
+					sub_matB[i][j] = matB[i][j]; 
+				}
+			}
+		} else { // Altri processori ricevono le matrici
+			receive_matrix(sub_matA, dim_submat, mpi_rank);
+			receive_matrix(sub_matB, dim_submat, mpi_rank);
+		}
+
+		MPI_Barrier(MPI_COMM_WORLD); // Sincronizzazzione processori
+		time_start = MPI_WTime();
+
+		// Strategia BMR
+		broadcast_multiply_rolls(
+			sub_matA, sub_matB, sub_matResult, dim_submat,
+			grid, sub_row_grid, sub_cols_grid, dim_grid, mpi_rank);
+		// Ricomposizione matrice finale
+		merge(matResult, dim_mat, sub_matResult, dim_submat, grid, mpi_size, mpi_rank);
+
+		// Calcolo tempo
+		time_end = MPI_WTime();
+		time_diff = time_end - time_start;
+		MPI_Reduce(&time_diff, &time_seq, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+	}
+
+	// Stampa matrici input e calcolata
+	// Stampa tempo
 	
-		for (i=0; i < n_proc; i++) {
-
-			/*
-				Il seguente controllo serve per aggiornare il processore
-				con id_proc == 0 sulla quantita' locale di operandi di
-				tutti gli altri processori.
-			*/
-
-			op_tmp = (double *)calloc (tmp, sizeof(double));
-
-			switch(test) {
-				case NO_TEST: {
-					if (q_num <= 20) {
-						for (i=0; i < dim; i++) {
-                            for (j=0; j < dim; j++){
-                                //provvisoriamente le due matrici sono uguali quando inserite dall'utente
-                                mat1[i][j] = argToDouble(argv[j+5]);
-                                mat2[i][j] = argToDouble(argv[j+5]);
-                            }
-						}
-					} else { //pseudorandom altrimenti
-                        random_matrix(dim, mat1);
-                        random_matrix(dim, mat2);
-					}
-					break;
-				}
-				case MAT_MAT_ONE_TEST: {
-                    for (i=0; i < dim; i++) {
-                        for (j=0; j < dim; j++){
-                            //TUTTI 1
-                            mat1[i][j] = 1;
-                            mat2[i][j] = 1;
-                        }
-                    }
-					break;
-				}
-				case MAT_MAT_SINGLE_NUMBER_TEST: {
-						/*
-							Ad ogni posizione del vettore degli operandi e'
-							assegnato lo stesso valore reale, passato come
-							argomento 'argv[5]' al programma.
-						*/
-                    for (i=0; i < dim; i++) {
-                        for (j=0; j < dim; j++){
-                            mat1[i][j] = argToDouble(argv[5]);
-                            mat2[i][j] = argToDouble(argv[5]);
-                        }
-					}
-					break;
-				}
-				case SUM_OPPOSITE_NUMBER_TEST: {
-                    //TODO: Fare qualcosa
-					break;
-				}
-				case GAUSS_TEST: {
-					//TODO: Fare qualcosa
-					break;
-                }
-			}
-
-			if (i == 0) {
-                // MODIFICARE... Assegnare alle sottomatrici la matrice...
-				// Si assegnano gli operandi locali del processore con id_proc == 0
-				for (j=0; j < tmp; j++) {
-					op_loc[j] = op_tmp[j];
-				}
-
-			} else {
-
-				/*
-					Si distribuiscono equamente gli operandi rimanenti a tutti
-					gli altri processori utilizzando la funzione MPI_Send().
-				*/
-                
-                // il numero dei valori distribuiti da p0 a ogni processore è pari al rapporto tra n e la grandezza della griglia dei processori ...
-                // ... quindi è pari a sub_dim
-				tag = i + DISTRIBUTION_TAG;
-
-				/*
-					--- int MPI_Send(void *buf, int count, MPI_Datatype datatype,
-										int dest, int tag, MPI_Comm comm) ---
-					Il processo che esegue questa funzione spedisce i primi 'count'
-					elementi di 'buf' di tipo 'datatype' al processo con
-					identificativo 'dest'. In particolare, l'identificativo 'tag'
-					individua univocamente l'invio nel contesto 'comm'.
-				*/
-
-				MPI_Send(&op_tmp[0], tmp, MPI_DOUBLE, i, tag, MPI_COMM_WORLD);
-			}
-
-			free(op_tmp);
-		}
-		
-	} else {
-		tag = id_proc + DISTRIBUTION_TAG;
-
-		/*
-			--- int MPI_Recv(void *buf, int count, MPI_Datatype datatype,
-								int source, int tag, MPI_Comm comm,
-								MPI_Status *status) ---
-			Il processo che esegue questa funzione riceve i primi 'count'
-			elementi di 'buf' di tipo 'datatype' dal processo con
-			identificativo 'source'. In particolare, l'identificativo 'tag'
-			individua univocamente la ricezione nel contesto 'comm', mentre
-			'status' ne racchiude alcune informazioni.
-		*/
-
-		MPI_Recv(op_loc, q_loc, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD, &status);
-	}
-
-  	/* ************************************************************************ */
-	// INIZIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
-
-	if (time_calc == OK_TIME_CALC) {
-
-		/*
-			--- int MPI_Barrier(MPI_Comm comm) ---
-			Si utilizza questa funzione per restituire il controllo al
-			chiamante solo dopo che tutti i processori del contesto 'comm'
-			hanno effettuato la chiamata.
-			Per calcolare correttamente i tempi di esecuzione in
-			sicurezza, si aspetta che tutti i processori siano sincronizzati.
-		*/
-
-		MPI_Barrier(MPI_COMM_WORLD);
-
-		/*
-			--- double MPI_Wtime() ---
-			Si utilizza per ottenere un valore di tempo in secondi
-			rispetto ad un tempo arbitrario nel passato.
-		*/
-
-		t_start = MPI_Wtime();
-	}
-
-	/* ************************************************************************ */
-	// CALCOLO DELLA SOMMA PARZIALE
-
-	sum = 0.0;
-	for(i=0; i < q_loc; i++) {
-		sum = sum + op_loc[i];
-	}
-
-	/* ************************************************************************ */
-	// APPLICAZIONE DELLA STRATEGIA
-
-	switch (strategia) {
-		case NO_STRATEGY: {
-			break;
-		}
-		case FIRST_STRATEGY: // Applicazione della strategia 1.
-		{
-			if (id_proc == 0) {
-				for(i=1; i < n_proc; i++) {
-					tag = i + FIRST_STRATEGY_TAG;
-					MPI_Recv(&sum_parz, 1, MPI_DOUBLE, i, tag, MPI_COMM_WORLD, &status);
-					sum = sum + sum_parz;
-				}
-			} else {
-				tag = id_proc + FIRST_STRATEGY_TAG;
-				MPI_Send(&sum, 1, MPI_DOUBLE, 0, tag, MPI_COMM_WORLD);
-			}
-			break;
-		}
-		case SECOND_STRATEGY: // Applicazione della strategia 2.
-		{
-
-			/*
-				Nella 2a strategia, il numero di passi di comunicazione
-				e' dato dal logaritmo in base 2 del numero di processori,
-				gia' calcolato precedentemente.
-			*/
-
-			for(i=0; i < log_proc; i++) {
-
-				/*
-					Si calcola l'identificativo di chi deve partecipare
-					alle comunicazioni all'i-esimo passo.
-				*/
-
-			 	pow_proc = pow(2, i);
-
-			 	if ((id_proc % pow_proc) == 0) {
-
-					/*
-						Si calcola l'identificativo di chi deve ricevere
-						dalle comunicazioni dell'i-esimo passo.
-					*/
-
-					pow_tmp = pow(2, i+1);
-
-					if ((id_proc % pow_tmp) == 0) {
-
-						/*
-							Questi processori hanno il compito di ricevere la
-							somma parziale da chi esegue la MPI_Send().
-							In questo caso, sia 'tag' che 'tmp' si riferiscono
-							allo stesso processore (chi invia).
-						*/
-
-						tmp = id_proc + pow(2, i);
-						tag = tmp + SECOND_STRATEGY_TAG;
-						MPI_Recv(&sum_parz, 1, MPI_DOUBLE, tmp, tag, MPI_COMM_WORLD, &status);
-						sum = sum + sum_parz;
-
-					} else {
-
-						/*
-							I processori rimanenti avranno il solo compito di
-							inviare la propria somma parziale. In quest'altro
-							caso, 'tag' e 'tmp' hanno valori diversi:
-							-	tag: si riferisce a se' stesso (chi invia);
-							-	tmp: si riferisce al ricevente (chi riceve).
-						*/
-
-						tmp = id_proc - pow(2, i);
-						tag = id_proc + SECOND_STRATEGY_TAG;
-						MPI_Send(&sum, 1, MPI_DOUBLE, tmp, tag, MPI_COMM_WORLD);
-
-					}
-				}
-			}
-			break;
-		}
-		case THIRD_STRATEGY: // Applicazione della strategia 3.
-		{
-
-			/*
-				Nella 3a strategia, il numero di passi di comunicazione
-				e' lo stesso della 2a strategia, ma al termine dell'esecuzione
-				tutti i processori saranno a conoscenza della somma totale.
-			*/
-
-			for(i=0; i < log_proc; i++) {
-
-				/*
-					Rispetto alla 2a strategia, tutti i processori partecipano
-					ad ogni passo di comunicazione. Operativamente, si rimuove
-					il primo controllo '(id_proc % pow_tmp) == 0'.
-
-					Quindi, tutti i processori hanno il compito di inviare le
-					proprie somme parziali e, al contempo, ricevere le somme
-					parziali dagli altri processori in modo tale che tutti
-					calcolino localmente la somma totale.
-					
-					Operativamente, le operazioni di MPI_Send() e MPI_Recv()
-					sono in comune a tutti i processori, cambia solo
-					l'identificativo di chi ha inviato / riceve.
-				*/
-
-				pow_proc = pow(2, i+1);
-				pow_tmp = pow(2, i);
-
-				if ((id_proc % pow_proc) < pow_tmp) {
-					tmp = id_proc + pow_tmp;
-				} else {
-					tmp = id_proc - pow_tmp;
-				}
-
-				tag = id_proc + THIRD_STRATEGY_TAG;
-				MPI_Send(&sum, 1, MPI_DOUBLE, tmp, tag, MPI_COMM_WORLD);
-
-				tag = tmp + THIRD_STRATEGY_TAG;
-				MPI_Recv(&sum_parz, 1, MPI_DOUBLE, tmp, tag, MPI_COMM_WORLD, &status);
-				sum = sum + sum_parz;
-			}
-			break;
-		}
-		default:
-		{
-			printf("Comando non riconosciuto!\n");
-			break;
-		}
-	}
-
-	/* ************************************************************************ */
-	// SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
-
-	if (time_calc == OK_TIME_CALC) {
-		t_end = MPI_Wtime();
-
-		// Si calcola la distanza di tempo tra l'istante iniziale e quello finale.
-		t_loc = t_end - t_start;
-
-		/*
-			--- int MPI_Reduce(void *sendbuf, void *recvbuf, int count,
-    				MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm) ---
-			Si utilizza questa funzione per eseguire un'operazione collettiva
-			su tutti i processori del contesto. In questo caso, si desidera 
-			calcolare il massimo tempo tra tutti i tempi calcolati localmente.
-		*/
-
-		MPI_Reduce(&t_loc, &t_tot, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-
-		if (id_proc == 0) {
-			printf("\nApplicazione della strategia %d terminata in %e sec\n", strategia, t_tot);
-			writeTimeCSV(test, strategia, n_proc, q_num, t_tot);
-		}
-	}
-
-  	/* ************************************************************************ */
-	// STAMPA DELL'OUTPUT
-
-	switch (strategia) {
-		case NO_STRATEGY:
-		case FIRST_STRATEGY:
-		{
-			if (id_proc == 0) {
-				printf("\nLa somma totale e' %f\n", sum);
-			}
-			break;
-		}
-		case SECOND_STRATEGY:
-		case THIRD_STRATEGY:
-		{
-			printf("\nProcesso n.%d\n", id_proc);
-			printf("La somma totale e' %f\n", sum);
-			break;
-		}
-		default:
-			printf("Errore nella stampa dell'output!\n");
-			break;
-	}
-
-  	/* ************************************************************************ */
-	// TERMINAZIONE DELL'ESECUZIONE
-
-	/*
-		Attendiamo che tutti i processori abbiano portato a termine
-		correttamente il loro carico di lavoro.
-	*/
-
-	MPI_Barrier(MPI_COMM_WORLD);
-
-	// Al termine dell'esecuzione, si libera lo spazio allocato in memoria.
-	free(op_loc);
-
-	if (id_proc == 0) {
-		printf("\nEsecuzione terminata.\n");
-	}
-
-	/*
-		--- int MPI_Finalize() ---
-		Determina la fine del programma MPI.
-		Da questo punto in poi non e' possibile richiamare altre funzioni MPI.
-	*/
-
 	MPI_Finalize();
+
 	return 0;
 }
 
+double** initialize_matrix(int dim){
+	double** matrix = (double**) calloc(dim, sizeof(double));
+	for (int i = 0; i < dim; i++) {
+        matrix[i] = (double *) calloc(dim,sizeof(double));
+    }
+	return matrix;
+}
+
 void random_matrix(int dim, double **mat){
+	int i,j;
     for (i = 0; i < dim; i++) {
         for (j = 0; j < dim; j++) {
-            double_rand = (double)rand();
-            int_rand = (int)rand();
+            double double_rand = (double)rand();
+            int int_rand = (int)rand();
 
             // Si genera un numero casuale reale compreso tra 0 e 100
             mat[i][j] = (double_rand / RAND_MAX) * OP_MAX_VALUE;
@@ -541,6 +171,49 @@ void random_matrix(int dim, double **mat){
             }
         }
     }
+}
+
+void multiply(double **matA, double **matB, double **matResult, int dim){
+	int i,j,k;
+	for(i = 0; i < dim; i++)
+			for(j = 0; j < dim; j++)
+				for(k = 0; k < dim; k++)
+					matResult[i][j] += (matA[i][k] * matB[k][j]);
+}
+
+void create_grid(MPI_Comm* grid, MPI_Comm* sub_row_grid, MPI_Comm* sub_cols_grid, int mpi_rank, int mpi_size, int dim_grid, int* periods, int reorder, int* coords) {
+	
+	int dimensions[2] = {dim_grid, dim_grid};
+	MPI_Cart_create(MPI_COMM_WORLD, 2, dimensions, periods, reorder, grid);
+	MPI_Cart_coords(*grid, mpi_rank, 2, coords);
+	int remains[2] = {0, 1};
+	MPI_Cart_sub(*grid, remains, sub_row_grid);
+	remains[0] = 1;
+	remains[1] = 0;
+	MPI_Cart_sub(*grid, remains, sub_cols_grid);
+
+}
+
+void send_matrix(double* matrix, int dim_matrix, int dim_submat, MPI_Comm grid, int mpi_size) {
+	
+	int coords[2];
+	int start_row;
+	int start_column;
+	
+	for(int processor = 1; processor < mpi_size; processor++) {
+		MPI_Cart_coords(grid, processor, 2, coords);
+		start_row = coords[0] * dim_submat;
+		start_column = coords[1] * dim_submat;
+		for(int row_offset = 0; row_offset < dim_submat; row_offset++)
+			MPI_Send(&matrix[(start_row+row_offset)][start_column],dim_submat, MPI_DOUBLE, processor, processor, MPI_COMM_WORLD);
+	}
+}
+
+void receive_matrix(double* sub_matrix, int dim_submat, int mpi_rank) {
+
+	MPI_Status status;
+	for(int row = 0; row < dim_submat; row++)
+		MPI_Recv(&sub_matrix[row*dim_submat], dim_submat, MPI_DOUBLE,  0, mpi_rank, MPI_COMM_WORLD, &status);
 }
 
 
