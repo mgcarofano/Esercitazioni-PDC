@@ -297,7 +297,15 @@ int main(int argc, char **argv) {
 	//	APPLICAZIONE DELLA STRATEGIA
 
 	/*	******************************************************************** */
-	//	CALCOLO DEL PRODOTTO MATRICE-MATRICE
+	//	CALCOLO DEL PRODOTTO MATRICE-MATRICE // hanno le stesse dimensioni le matrici... uso indifferentemente A_rows
+	//	for (i = 0; i < A_rows; i++) {
+    //		for (j = 0; j < A_rows; j++) {
+	//			for (k = 0; k < A_rows; k++) {
+	//				//precedentemente dichiarata da qualche parte
+	//				mat_result[i*A_rows +j] += ( loc_A_mat[i*A_rows +k] * loc_B_mat[k*A_rows +j] );
+	//			}
+	//		}
+	//	}
 
 	/*	******************************************************************** */
 	//	SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
