@@ -285,7 +285,25 @@
 	E' il path del file .csv nella quale sono memorizzate tutte le informazioni
 	necessarie allo studio dei casi di test. In particolare, la sua struttura
 	e' la seguente:
-	-	...
+	-	A_rows : int
+		Indica il numero di righe della matrice A in input.
+	-	A_cols : int
+		Indica il numero di colonne della matrice A in input.
+	-	B_rows : int
+		Indica il numero di righe della matrice B in input.
+	-	B_cols : int
+		Indica il numero di colonne della matrice B in input.
+	-	n_proc : int
+		Indica il numero di processori nel contesto.
+	-	input : int
+		Indica la provenienza dei valori di input se non e' stato attivato
+		nessun caso di test (puo' essere VALUES_FROM_INPUT o VALUES_FROM_CSV).
+	-	test : int
+		Indica il caso di test eseguito.
+	-	t_tot : double
+		Indica il tempo di esecuzione impiegato per il solo calcolo
+		del prodotto matrice-matrice.
+	 
 */
 
 #define CSV_TIME_PATH "../output"
@@ -303,7 +321,7 @@
 	Indica il minimo numero di argomenti da passare in input al programma.
 */
 
-#define ARGS_QUANTITY 8
+#define ARGS_QUANTITY 7
 
 /*
 	CSV_FIELD_PRECISION: int

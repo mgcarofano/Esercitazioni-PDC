@@ -148,10 +148,9 @@ void checkScelta(int scelta, int lim_inf, int lim_sup) {
 
 void createPBS(
 	int A_rows, int A_cols, int B_rows, int B_cols,
-	int n_proc,
-	int input, int test, int time_calc,
-	int pbs_count)
-{
+	int n_proc, int input, int test, int time_calc,
+	int pbs_count
+) {
 
 	char pbs_path[PATH_MAX_LENGTH] = {};
 	FILE *pbs_file;
@@ -233,8 +232,8 @@ void createPBS(
 		fprintf(pbs_file, EXECUTE_PATH " -machinefile $PBS_NODEFILE -n %d ", n_proc);
 	}
 
-	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA "_%03d %d %d %d %d %d %d %d %d",
-		pbs_count, A_rows, A_cols, B_rows, B_cols, input, n_proc, test, time_calc);
+	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA "_%03d %d %d %d %d %d %d %d",
+		pbs_count, A_rows, A_cols, B_rows, B_cols, input, test, time_calc);
 
 	/*
 		Nella suite di testing progettata, se il numero totale di elementi

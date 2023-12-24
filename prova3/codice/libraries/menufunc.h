@@ -27,8 +27,7 @@ void checkScelta(int scelta, int lim_inf, int lim_sup);
 
 void createPBS(
 	int A_rows, int A_cols, int B_rows, int B_cols,
-	int n_proc,
-	int input, int test, int time_calc,
+	int n_proc, int input, int test, int time_calc,
 	int pbs_count
 );
 

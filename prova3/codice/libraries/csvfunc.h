@@ -21,7 +21,14 @@ void getDimensionsFromCSV(FILE* csv_file, int* size, int* rows_csv, int* cols_cs
 
 void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat, MPI_Comm comm);
 
-// void writeTimeCSV(const char* path, int rows, int cols, int threads, int test, double t_tot);
+void writeTimeCSV(
+	const char* out_path,
+	int A_rows, int A_cols,
+	int B_rows, int B_cols,
+	int n_proc, int input, int test,
+	double t_tot,
+	MPI_Comm comm
+);
 
 /*	*************************************************************************** */
 

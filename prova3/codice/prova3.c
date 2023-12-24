@@ -99,7 +99,6 @@ int main(int argc, char **argv) {
 		B_rows = argToInt(argv[3]);
 		B_cols = argToInt(argv[4]);
 
-		n_proc = argToInt(argv[5]);
 		grid_tmp = sqrt(n_proc);
 
 		if (n_proc != 0 && grid_tmp != floor(grid_tmp)) {
@@ -117,9 +116,9 @@ int main(int argc, char **argv) {
 			MPI_Abort(MPI_COMM_WORLD, MATRIX_DIMENSION_ERROR);
 		}
 
-		input = argToInt(argv[6]);
-		test = argToInt(argv[7]);
-		time_calc = argToInt(argv[8]);
+		input = argToInt(argv[5]);
+		test = argToInt(argv[6]);
+		time_calc = argToInt(argv[7]);
 
 	}
 
@@ -242,7 +241,7 @@ int main(int argc, char **argv) {
 		fprintf(out_file, "Matrice A di dimensione %d x %d:\n", A_rows, A_cols);
 		for (i = 0; i < A_rows; i++) {
 			for (j = 0; j < A_cols; j++) {
-				fprintf(out_file, "%1.2f\t", A_mat[i*A_cols + j]);
+				fprintf(out_file, "%f\t", A_mat[i*A_cols + j]);
 			}
 			fprintf(out_file, "\n");
 		}
@@ -251,7 +250,7 @@ int main(int argc, char **argv) {
 		fprintf(out_file, "Matrice B di dimensione %d x %d:\n", B_rows, B_cols);
 		for (i = 0; i < B_rows; i++) {
 			for (j = 0; j < B_cols; j++) {
-				fprintf(out_file, "%1.2f\t", B_mat[i*B_cols + j]);
+				fprintf(out_file, "%f\t", B_mat[i*B_cols + j]);
 			}
 			fprintf(out_file, "\n");
 		}
@@ -268,35 +267,37 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 	// 	INIZIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
 
-	// if (time_calc == OK_TIME_CALC) {
+	if (time_calc == OK_TIME_CALC) {
 
-	// 	/*
-	// 		--- int MPI_Barrier(MPI_Comm comm) ---
-	// 		Si utilizza questa funzione per restituire il controllo al
-	// 		chiamante solo dopo che tutti i processori del contesto 'comm'
-	// 		hanno effettuato la chiamata.
-	// 		Per calcolare correttamente i tempi di esecuzione in
-	// 		sicurezza, si aspetta che tutti i processori siano sincronizzati.
-	// 	*/
+		/*
+			--- int MPI_Barrier(MPI_Comm comm) ---
+			Si utilizza questa funzione per restituire il controllo al
+			chiamante solo dopo che tutti i processori del contesto 'comm'
+			hanno effettuato la chiamata.
+			Per calcolare correttamente i tempi di esecuzione in
+			sicurezza, si aspetta che tutti i processori siano sincronizzati.
+		*/
 
-	// 	MPI_Barrier(comm_grid);
+		MPI_Barrier(comm_grid);
 
-	// 	/*
-	// 		--- double MPI_Wtime() ---
-	// 		Si utilizza per ottenere un valore di tempo in secondi
-	// 		rispetto ad un tempo arbitrario nel passato.
-	// 	*/
+		/*
+			--- double MPI_Wtime() ---
+			Si utilizza per ottenere un valore di tempo in secondi
+			rispetto ad un tempo arbitrario nel passato.
+		*/
 
-	// 	t_start = MPI_Wtime();
-	// }
+		t_start = MPI_Wtime();
+	}
 
 	/*	******************************************************************** */
 	//	APPLICAZIONE DELLA STRATEGIA
 
-
+	// ...
 
 	/*	******************************************************************** */
 	//	CALCOLO DEL PRODOTTO MATRICE-MATRICE
+
+	C_mat = (double*) calloc(A_rows * B_cols, sizeof(double));
 
 	//	for (i = 0; i < A_rows; i++) {
     //		for (j = 0; j < A_rows; j++) {
@@ -310,40 +311,49 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 	//	SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
 
-	// if (time_calc == OK_TIME_CALC) {
-	// 	t_end = MPI_Wtime();
+	if (time_calc == OK_TIME_CALC) {
+		t_end = MPI_Wtime();
 
-	// 	// Si calcola la distanza di tempo tra l'istante iniziale e quello finale.
-	// 	t_loc = t_end - t_start;
+		// Si calcola la distanza di tempo tra l'istante iniziale e quello finale.
+		t_loc = t_end - t_start;
 
-	// 	/*
-	// 		--- int MPI_Reduce(void *sendbuf, void *recvbuf, int count,
-    // 				MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm) ---
-	// 		Si utilizza questa funzione per eseguire un'operazione collettiva
-	// 		su tutti i processori del contesto. In questo caso, si desidera 
-	// 		calcolare il massimo tempo tra tutti i tempi calcolati localmente.
-	// 	*/
+		/*
+			--- int MPI_Reduce(void *sendbuf, void *recvbuf, int count,
+    				MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm) ---
+			Si utilizza questa funzione per eseguire un'operazione collettiva
+			su tutti i processori del contesto. In questo caso, si desidera 
+			calcolare il massimo tempo tra tutti i tempi calcolati localmente.
+		*/
 
-	// 	MPI_Reduce(&t_loc, &t_tot, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+		MPI_Reduce(&t_loc, &t_tot, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
-	// 	if (id_grid == 0) {
-	// 		printf("\nCalcolo del prodotto matrice-matrice terminato in %e sec\n", t_tot);
-	// 		// writeTimeCSV(CSV_TIME_PATH"/"NOME_PROVA"_time.csv", rows, cols, threads, test, t_tot);
-	// 	}
-	// }
+		if (id_grid == 0) {
+			printf("\nCalcolo del prodotto matrice-matrice terminato in %e sec\n", t_tot);
+			writeTimeCSV(
+				CSV_TIME_PATH"/"NOME_PROVA"_time.csv",
+				A_rows, A_cols,
+				B_rows, B_cols,
+				n_proc, input, test,
+				t_tot,
+				comm_grid
+			);
+		}
+	}
 
   	/*	******************************************************************** */
 	//	STAMPA DELL'OUTPUT
 
-	// if (id_grid == 0) {
-	// 	printf("Risultato:\n");
-	// 	for (i = 0; i < A_rows; i++) {
-	// 		for (j = 0; j < B_cols; j++) {
-	// 			printf("%f\t", C_mat[i*B_cols + j]);
-	// 		}
-	// 		printf("\n");
-	// 	}
-	// }
+	if (id_grid == 0) {
+		fprintf(out_file, "Risultato:\n");
+		fprintf(out_file, "Matrice C di dimensione %d x %d:\n", A_rows, B_cols);
+		for (i = 0; i < A_rows; i++) {
+			for (j = 0; j < B_cols; j++) {
+				fprintf(out_file, "%f\t", C_mat[i*B_cols + j]);
+			}
+			fprintf(out_file, "\n");
+		}
+		fprintf(out_file, "\n");
+	}
 
   	/*	******************************************************************** */
 	//	TERMINAZIONE DELL'ESECUZIONE
@@ -360,11 +370,11 @@ int main(int argc, char **argv) {
 	free(B_mat);
 
 	if (id_grid == 0) {
-		
+
 		if (fclose(out_file) != 0) {
 			printf("Errore durante l'esecuzione!\n");
 			printf("Applicazione terminata.\n");
-			MPI_Abort(comm, FILE_CLOSING_ERROR);
+			MPI_Abort(comm_grid, FILE_CLOSING_ERROR);
 		}
 
 		printf("\nEsecuzione terminata.\n");

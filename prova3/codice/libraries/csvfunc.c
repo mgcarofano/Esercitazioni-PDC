@@ -128,39 +128,47 @@ void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat,
 
 }
 
-// void writeTimeCSV(const char* out_path, int rows, int cols, int threads, int test, double t_tot) {
+void writeTimeCSV(
+	const char* out_path,
+	int A_rows, int A_cols,
+	int B_rows, int B_cols,
+	int n_proc, int input, int test,
+	double t_tot,
+	MPI_Comm comm
+) {
 
-// 	FILE *csv_file;
-// 	int size = 0;
+	FILE *csv_file;
+	int size = 0;
 
-// 	system(MKDIR_PATH" -p "CSV_TIME_PATH);
+	system(MKDIR_PATH" -p "CSV_TIME_PATH);
 
-// 	if ((csv_file = fopen(out_path, "a")) == NULL) {
-// 		printf("Errore durante l'esecuzione!\n");
-// 		printf("Applicazione terminata.\n");
-// 		MPI_Abort(comm, FILE_OPENING_ERROR);
-// 	}
+	if ((csv_file = fopen(out_path, "a")) == NULL) {
+		printf("Errore durante l'esecuzione!\n");
+		printf("Applicazione terminata.\n");
+		MPI_Abort(comm, FILE_OPENING_ERROR);
+	}
 
-// 	// Se il file e' vuoto, allora non inserire '\n'
-// 	fseek(csv_file, 0, SEEK_END);
-//     size = ftell(csv_file);
-// 	if (size != 0) {
-// 		fprintf(csv_file, "\n");
-// 	}
+	// Se il file e' vuoto, allora non inserire '\n'
+	fseek(csv_file, 0, SEEK_END);
+    size = ftell(csv_file);
+	if (size != 0) {
+		fprintf(csv_file, "\n");
+	}
 
-// 	fseek(csv_file, 0, SEEK_SET);
-// 	fprintf(csv_file, "%d,%d,%d,%d,%1.9f",
-// 		rows, cols, threads, test, t_tot);
+	fseek(csv_file, 0, SEEK_SET);
+	fprintf(csv_file, "%d,%d,%d,%d,%d,%d,%d,%1.9f",
+		A_rows, A_cols, B_rows, B_cols, n_proc, input, test, t_tot
+	);
 
-// 	if (fclose(file) != 0) {
-// 		printf("Errore durante l'esecuzione!\n");
-// 		printf("Applicazione terminata.\n");
-// 		MPI_Abort(comm, FILE_CLOSING_ERROR);
-// 	}
+	if (fclose(csv_file) != 0) {
+		printf("Errore durante l'esecuzione!\n");
+		printf("Applicazione terminata.\n");
+		MPI_Abort(comm, FILE_CLOSING_ERROR);
+	}
 
-// 	printf("%s aggiornato con successo!\n\n", out_path);
+	printf("%s aggiornato con successo!\n\n", out_path);
 
-// }
+}
 
 /*	***************************************************************************
 	RIFERIMENTI
