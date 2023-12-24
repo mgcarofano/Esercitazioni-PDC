@@ -36,8 +36,8 @@ int main(int argc, char **argv) {
 
 	MPI_Comm comm_grid;
 
-	// FILE* out_file;
-	// char out_path[PATH_MAX_LENGTH] = {};
+	FILE* out_file;
+	char out_path[PATH_MAX_LENGTH] = {};
 
 	srand(time(NULL));
 
@@ -158,15 +158,15 @@ int main(int argc, char **argv) {
 
 	if (id_grid == 0) {
 
-		// sprintf(out_path, "../output/proc%d_%02d_%02d.out",
-		// 	id_grid, grid_coords[0], grid_coords[1]
-		// );
+		sprintf(out_path, "../output/proc%d_%02d_%02d.out",
+			id_grid, grid_coords[0], grid_coords[1]
+		);
 
-		// if ((out_file = fopen(out_path, "w")) == NULL) {
-		// 	printf("Errore durante l'esecuzione!\n");
-		// 	printf("Esecuzione terminata.\n");
-		// 	MPI_Abort(comm_grid, FILE_OPENING_ERROR);
-		// }
+		if ((out_file = fopen(out_path, "w")) == NULL) {
+			printf("Errore durante l'esecuzione!\n");
+			printf("Esecuzione terminata.\n");
+			MPI_Abort(comm_grid, FILE_OPENING_ERROR);
+		}
 
 		A_mat = (double*) calloc(A_rows * A_cols, sizeof(double));
 		B_mat = (double*) calloc(B_rows * B_cols, sizeof(double));
@@ -208,9 +208,8 @@ int main(int argc, char **argv) {
 					}
 					case VALUES_FROM_CSV:
 					{
-						// Utilizzare MPI_File :(
-						// getMatrixFromCSV(argv[ARGS_QUANTITY+1], A_mat, A_rows, A_cols);
-						// getMatrixFromCSV(argv[ARGS_QUANTITY+2], B_mat, B_rows, B_cols);
+						getMatrixFromCSV(argv[ARGS_QUANTITY+1], A_mat, A_rows, A_cols, comm_grid);
+						getMatrixFromCSV(argv[ARGS_QUANTITY+2], B_mat, B_rows, B_cols, comm_grid);
 						break;
 					}
 					default:
@@ -240,25 +239,23 @@ int main(int argc, char **argv) {
 				break;
 		}
 
-		// fprintf(out_file, "Matrice A di dimensione %d x %d:\n", A_rows, A_cols);
-		// for (i = 0; i < A_rows; i++) {
-		// 	for (j = 0; j < A_cols; j++) {
-		// 		fprintf(out_file, "%1.2f\t", A_mat[i*A_cols + j]);
-		// 	}
-		// 	fprintf(out_file, "\n");
-		// }
-		// fprintf(out_file, "\n");
+		fprintf(out_file, "Matrice A di dimensione %d x %d:\n", A_rows, A_cols);
+		for (i = 0; i < A_rows; i++) {
+			for (j = 0; j < A_cols; j++) {
+				fprintf(out_file, "%1.2f\t", A_mat[i*A_cols + j]);
+			}
+			fprintf(out_file, "\n");
+		}
+		fprintf(out_file, "\n");
 
-		// fprintf(out_file, "Matrice B di dimensione %d x %d:\n", B_rows, B_cols);
-		// for (i = 0; i < B_rows; i++) {
-		// 	for (j = 0; j < B_cols; j++) {
-		// 		fprintf(out_file, "%1.2f\t", B_mat[i*B_cols + j]);
-		// 	}
-		// 	fprintf(out_file, "\n");
-		// }
-		// fprintf(out_file, "\n");
-
-		// fclose(out_file);
+		fprintf(out_file, "Matrice B di dimensione %d x %d:\n", B_rows, B_cols);
+		for (i = 0; i < B_rows; i++) {
+			for (j = 0; j < B_cols; j++) {
+				fprintf(out_file, "%1.2f\t", B_mat[i*B_cols + j]);
+			}
+			fprintf(out_file, "\n");
+		}
+		fprintf(out_file, "\n");
 
 	}
 
@@ -296,8 +293,11 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 	//	APPLICAZIONE DELLA STRATEGIA
 
+
+
 	/*	******************************************************************** */
-	//	CALCOLO DEL PRODOTTO MATRICE-MATRICE // hanno le stesse dimensioni le matrici... uso indifferentemente A_rows
+	//	CALCOLO DEL PRODOTTO MATRICE-MATRICE
+
 	//	for (i = 0; i < A_rows; i++) {
     //		for (j = 0; j < A_rows; j++) {
 	//			for (k = 0; k < A_rows; k++) {
@@ -360,6 +360,13 @@ int main(int argc, char **argv) {
 	free(B_mat);
 
 	if (id_grid == 0) {
+		
+		if (fclose(out_file) != 0) {
+			printf("Errore durante l'esecuzione!\n");
+			printf("Applicazione terminata.\n");
+			MPI_Abort(comm, FILE_CLOSING_ERROR);
+		}
+
 		printf("\nEsecuzione terminata.\n");
 	}
 

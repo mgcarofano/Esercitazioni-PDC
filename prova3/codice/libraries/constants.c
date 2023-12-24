@@ -89,13 +89,22 @@
 #define FILE_OPENING_ERROR 9
 
 /*
+	FILE_CLOSING_ERROR: int
+	Si utilizza per segnalare all'utente che l'esecuzione del
+    programma e' stata terminata a causa di un errore durante
+    la chiusura di un file.
+*/
+
+#define FILE_CLOSING_ERROR 10
+
+/*
 	MATRIX_DIMENSION_ERROR: int
 	Si utilizza per segnalare all'utente che l'esecuzione del
     programma e' stata terminata siccome ha inserito delle dimensioni
 	per la matrice piu' grandi di quelle del file .csv.
 */
 
-#define MATRIX_DIMENSION_ERROR 10
+#define MATRIX_DIMENSION_ERROR 11
 
 /*
 	PROCESSOR_QUANTITY_ERROR: int
@@ -104,7 +113,7 @@
 	non e' possibile generare una griglia bidimensionale uniforme.
 */
 
-#define PROCESSOR_QUANTITY_ERROR 11
+#define PROCESSOR_QUANTITY_ERROR 12
 
 /*
 	ALLOCATION_ERROR: int
@@ -113,7 +122,7 @@
 	correttamente le matrici in memoria.
 */
 
-#define ALLOCATION_ERROR 12
+#define ALLOCATION_ERROR 13
 
 /*	*************************************************************************** */
 //	ENUMERAZIONI E COSTANTI

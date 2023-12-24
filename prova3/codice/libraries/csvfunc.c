@@ -7,32 +7,20 @@
 */
 
 /*	*************************************************************************** */
-//	LIBRERIE
-
-#include "constants.c"
-#include <stdio.h>
-#include <stdlib.h>
-#include "auxfunc.h"
-
-/*	*************************************************************************** */
 //	CODICE DELLE FUNZIONI DEFINITE IN 'csvfunc.h'
 
-void getDimensionsFromCSV(const char* path, int* rows_csv, int* cols_csv) {
+void getDimensionsFromCSV(FILE* csv_file, int* size, int* rows_csv, int* cols_csv) {
 
-	FILE* csv_file;
 	char c = 0;
+	int file_pointer = -1;
 
+	*size = 0;
     *rows_csv = 0;
     *cols_csv = 0;
 
-	if ((csv_file = fopen(path, "r")) == NULL) {
-		printf("Errore durante l'esecuzione!\n");
-		printf("Applicazione terminata.\n");
-		exit(FILE_OPENING_ERROR);
-	}
-
 	fseek(csv_file, 0, SEEK_END);
-	if (ftell(csv_file) == 0) {
+	*size = ftell(csv_file);
+	if (*size == 0) {
 		*rows_csv = 0;
 		*cols_csv = 0;
         return;
@@ -41,12 +29,8 @@ void getDimensionsFromCSV(const char* path, int* rows_csv, int* cols_csv) {
 	fseek(csv_file, 0, SEEK_SET);
 
 	do {
+		file_pointer++;
 		c = fgetc(csv_file);
-		printf("%c", c);
-
-		if (c == EOF) {
-			break;
-		}
 
 		if (c == CSV_FIELDS_SEPARATOR) {
 			*cols_csv += 1;
@@ -56,38 +40,43 @@ void getDimensionsFromCSV(const char* path, int* rows_csv, int* cols_csv) {
             *cols_csv = 0;
 			*rows_csv += 1;
         }
-	} while (1);
+	} while (file_pointer < *size);
 
 	*cols_csv += 1;
 	*rows_csv += 1;
+
+	fseek(csv_file, 0, SEEK_SET);
 }
 
-void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat) {
+void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat, MPI_Comm comm) {
+
 	FILE *file;
 	char c, char_val[CSV_FIELD_PRECISION] = {};
-	int rows_csv = 0, cols_csv = 0;
+	int size = 0, rows_csv = 0, cols_csv = 0;
 
-	int i = -1;
+	int i = -1, file_pointer = -1;
 	int row_count = 0, comma_count = 0;
 
 	if ((file = fopen(path, "r")) == NULL) {
 		printf("Errore durante l'esecuzione!\n");
 		printf("Applicazione terminata.\n");
-		exit(FILE_OPENING_ERROR);
+		MPI_Abort(comm, FILE_OPENING_ERROR);
 	}
 
-	getDimensionsFromCSV(path, &rows_csv, &cols_csv);
+	getDimensionsFromCSV(file, &size, &rows_csv, &cols_csv);
 
+	// printf("size: %d\n", size);
 	// printf("rows_csv: %d, cols_csv: %d\n", rows_csv, cols_csv);
 	// printf("rows_mat: %d, cols_mat: %d\n", rows_mat, cols_mat);
 
 	if ((rows_mat > rows_csv) || (cols_mat > cols_csv)) {
 		printf("La dimensione della matrice non e' corretta!\n");
 		printf("Applicazione terminata.\n");
-		exit(MATRIX_DIMENSION_ERROR);
+		MPI_Abort(comm, MATRIX_DIMENSION_ERROR);
 	}
 
 	do {
+		++file_pointer;
 		++i;
 		c = fgetc(file);
 
@@ -97,15 +86,21 @@ void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat)
 				char_val[i] = c;
 			}
 		}
+
+		/*
+
+			Si utilizza il controllo "file_pointer == size" per evitare di
+			leggere il carattere "End Of File" (EOF) che non e' riconosciuto
+			correttamente dalla libreria MPI.
 		
-		if (c == CSV_FIELDS_SEPARATOR || c == CSV_ROWS_SEPARATOR || c == EOF) {
+		*/
+
+		if (file_pointer == size || c == CSV_FIELDS_SEPARATOR || c == CSV_ROWS_SEPARATOR) {
 			char_val[i] = '\0';
+			// printf("%s\n", char_val);
+
 			mat[row_count*cols_mat + comma_count] = argToDouble(char_val);
 			comma_count++;
-
-			if (c == EOF) {
-				break;
-			}
 			
 			if (c == CSV_ROWS_SEPARATOR || comma_count == cols_mat) {
 				comma_count = 0;
@@ -122,7 +117,15 @@ void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat)
 
 			i = -1;
 		}
-	} while (1);
+
+	} while (file_pointer < size);
+
+	if (fclose(file) != 0) {
+		printf("Errore durante l'esecuzione!\n");
+		printf("Applicazione terminata.\n");
+		MPI_Abort(comm, FILE_CLOSING_ERROR);
+	}
+
 }
 
 // void writeTimeCSV(const char* out_path, int rows, int cols, int threads, int test, double t_tot) {
@@ -135,7 +138,7 @@ void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat)
 // 	if ((csv_file = fopen(out_path, "a")) == NULL) {
 // 		printf("Errore durante l'esecuzione!\n");
 // 		printf("Applicazione terminata.\n");
-// 		exit(FILE_OPENING_ERROR);
+// 		MPI_Abort(comm, FILE_OPENING_ERROR);
 // 	}
 
 // 	// Se il file e' vuoto, allora non inserire '\n'
@@ -149,51 +152,19 @@ void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat)
 // 	fprintf(csv_file, "%d,%d,%d,%d,%1.9f",
 // 		rows, cols, threads, test, t_tot);
 
-// 	fclose(csv_file);
+// 	if (fclose(file) != 0) {
+// 		printf("Errore durante l'esecuzione!\n");
+// 		printf("Applicazione terminata.\n");
+// 		MPI_Abort(comm, FILE_CLOSING_ERROR);
+// 	}
 
 // 	printf("%s aggiornato con successo!\n\n", out_path);
 
 // }
 
-// in input: file da cui leggere, matrice in cui salvare, dimensioni, processore, size processore
-void read_matrix(char* filecsv, double **matrix, int *rows, int *cols, int world_rank, int world_size) {
-    MPI_File file;
-    FILE *file_ptr;
-    MPI_Status status;
-    MPI_Offset filesize, disp;
-    int size, read_rows, read_cols;
-    double *buf;
-
-    if (world_rank == 0) { // il processore 0
-        if ((file_ptr = fopen(filecsv, "r")) == NULL) {
-            fprintf(stderr, "Unable to open the file '%s'\n", filecsv);
-            MPI_Abort(MPI_COMM_WORLD, 1);
-        }
-        fseek(file_ptr, 0, SEEK_END);
-        filesize = ftell(file_ptr);
-        fclose(file_ptr);
-
-        size = sizeof(double);
-        MPI_File_open(MPI_COMM_WORLD, filecsv, MPI_MODE_RDONLY, MPI_INFO_NULL, &file);
-        MPI_File_read(file, &read_rows, 1, MPI_INT, &status);
-        MPI_File_read(file, &read_cols, 1, MPI_INT, &status);
-        *rows = read_rows;
-        *cols = read_cols;
-
-        MPI_File_close(&file);
-
-        buf = (double *)malloc(read_rows * read_cols * size);
-
-        MPI_Scatter(buf, read_rows * read_cols, MPI_DOUBLE, buf, read_rows * read_cols, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-        *matrix = buf;
-    } else {
-        MPI_Scatter(NULL, 0, MPI_DOUBLE, *matrix, *rows * *cols, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    }
-}
-
-
 /*	***************************************************************************
 	RIFERIMENTI
 	
+	https://rookiehpc.org/mpi/docs/mpi_file_open/index.html
+	https://stackoverflow.com/questions/27667758/mpi-file-read-is-not-ending
 */
