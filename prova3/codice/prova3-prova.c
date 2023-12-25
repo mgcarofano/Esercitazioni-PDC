@@ -231,3 +231,98 @@ https://www.educative.io/answers/how-to-check-if-a-number-is-a-power-of-2-in-cpp
 http://www.vdepetris.it/t10/Text10.htm
 
 */
+
+/*
+void bmr( double* loc_A_mat, double* loc_B_mat, double* loc_C_mat, int loc_mat_dim,
+	MPI_Comm grid, MPI_Comm grid_rows, MPI_Comm grid_cols, int grid_dim[2], int coords[2]) {	
+
+	MPI_Request request;
+	MPI_Status status;
+
+	int loc_A_mat_broadcaster_coords[2];
+	int loc_A_mat_broadcaster_rank;
+	
+	//Matrice di appoggio per il broadcasting in cui copio loc_A_mat
+	
+	double* tmp_matrix = initialize_matrix(loc_mat_dim);
+			
+	// Calcolo rank sotto griglia colonna del receiver della sotto matrice B
+	
+	int loc_B_mat_receiver_rank;
+	int loc_B_mat_receiver_coords[2] = {
+		(coords[0] + grid_dim[0] - 1) % grid_dim[0],
+		coords[1]
+	};
+	MPI_Cart_rank(grid_cols, loc_B_mat_receiver_coords, &loc_B_mat_receiver_rank);
+		
+	// Calcolo rank sotto griglia colonna del sender della sotto matrice B 
+	
+	int loc_B_mat_sender_rank;
+	int loc_B_mat_sender_coords[2] = {
+		(coords[0] + 1) % grid_dim[0],
+		loc_B_mat_sender_coords[1] = coords[1]
+	};
+    MPI_Cart_rank(grid_cols, loc_B_mat_sender_coords, &loc_B_mat_sender_rank);
+    
+    // Calcolo rank nella sotto griglia colonna del processore chiamante
+    
+	int rank_cgrid;
+	MPI_Cart_rank(grid_cols, coords, &rank_cgrid);
+	
+	// Inizio BMR 
+	
+	for(int step = 0; step < grid_dim[0]; step++) {
+	
+		// Coordinate del processore che deve inviare la sotto matrice A
+		
+		loc_A_mat_broadcaster_coords[0] = coords[0];
+	        loc_A_mat_broadcaster_coords[1] = (coords[0] + step) % grid_dim[0];
+		
+		
+		if(!step) {		// Primo passo
+			
+			// Broadcasting
+			
+			if(coords[0] == coords[1]){
+                		loc_A_mat_broadcaster_coords[1] = coords[1];
+                		memcpy(tmp_matrix, loc_A_mat, loc_mat_dim*loc_mat_dim*sizeof(double));
+            		}
+			
+			MPI_Cart_rank(grid_rows, loc_A_mat_broadcaster_coords, &loc_A_mat_broadcaster_rank);
+			
+			MPI_Bcast(tmp_matrix, loc_mat_dim*loc_mat_dim, MPI_DOUBLE, loc_A_mat_broadcaster_rank, grid_rows);
+			
+			// Moltiplica
+			
+		} else {	// Passi successivi
+			
+			// Broadcasting sulle diagonale superiori alla principale (k + step)
+			
+            if(coords[1] == loc_A_mat_broadcaster_coords[1]){
+		    	memcpy(tmp_matrix, loc_A_mat, loc_mat_dim*loc_mat_dim*sizeof(double));
+			}
+            loc_A_mat_broadcaster_rank = (loc_A_mat_broadcaster_rank+1)%grid_dim[0];
+
+            MPI_Bcast(tmp_matrix, loc_mat_dim*loc_mat_dim, MPI_DOUBLE, loc_A_mat_broadcaster_rank, grid_rows);
+
+			// Rolling
+            
+			MPI_Isend(loc_B_mat, loc_mat_dim*loc_mat_dim, MPI_DOUBLE, loc_B_mat_receiver_rank, D_TAG + loc_B_mat_receiver_rank, grid_cols, &request);
+			
+			MPI_Recv(loc_B_mat, loc_mat_dim*loc_mat_dim, MPI_DOUBLE, loc_B_mat_sender_rank, D_TAG + rank_cgrid, grid_cols, &status);
+		
+			// Moltiplica
+			
+		}
+		
+	}
+	
+}
+
+
+
+
+
+
+
+*/
