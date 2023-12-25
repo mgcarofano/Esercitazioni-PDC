@@ -20,11 +20,16 @@ int main(int argc, char **argv) {
 	//	INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
 
 	int input = DEFAULT_INPUT, test = DEFAULT_TEST, time_calc = NO_TIME_CALC;
-	int A_rows = 0, A_cols = 0, B_rows = 0, B_cols = 0;
 	int q_num = 0;
 
 	int i = 0, j = 0, k = 0;
-	double *A_mat = NULL, *B_mat = NULL, *C_mat = NULL;
+
+	double *A_mat = NULL, *B_mat = NULL;
+	int A_rows = 0, A_cols = 0, B_rows = 0, B_cols = 0;
+
+	double *loc_A_mat = NULL, *loc_B_mat = NULL, *loc_C_mat = NULL;
+	int loc_A_rows = 0, loc_A_cols = 0, loc_B_rows = 0, loc_B_cols = 0;
+	// int rest_rows = 0, rest_cols = 0;
 
 	double t_start = 0.0, t_end = 0.0;
 	double t_loc = 0.0, t_tot = 0.0;
@@ -157,16 +162,6 @@ int main(int argc, char **argv) {
 
 	if (id_grid == 0) {
 
-		sprintf(out_path, "../output/proc%d_%02d_%02d.out",
-			id_grid, grid_coords[0], grid_coords[1]
-		);
-
-		if ((out_file = fopen(out_path, "w")) == NULL) {
-			printf("Errore durante l'esecuzione!\n");
-			printf("Esecuzione terminata.\n");
-			MPI_Abort(comm_grid, FILE_OPENING_ERROR);
-		}
-
 		A_mat = (double*) calloc(A_rows * A_cols, sizeof(double));
 		B_mat = (double*) calloc(B_rows * B_cols, sizeof(double));
 
@@ -237,32 +232,63 @@ int main(int argc, char **argv) {
 			default:
 				break;
 		}
-
-		fprintf(out_file, "Matrice A di dimensione %d x %d:\n", A_rows, A_cols);
-		for (i = 0; i < A_rows; i++) {
-			for (j = 0; j < A_cols; j++) {
-				fprintf(out_file, "%f\t", A_mat[i*A_cols + j]);
-			}
-			fprintf(out_file, "\n");
-		}
-		fprintf(out_file, "\n");
-
-		fprintf(out_file, "Matrice B di dimensione %d x %d:\n", B_rows, B_cols);
-		for (i = 0; i < B_rows; i++) {
-			for (j = 0; j < B_cols; j++) {
-				fprintf(out_file, "%f\t", B_mat[i*B_cols + j]);
-			}
-			fprintf(out_file, "\n");
-		}
-		fprintf(out_file, "\n");
-
 	}
 
 	/*	******************************************************************** */
 	//	DISTRIBUZIONE DELLE MATRICI
 
-	// loc_A_mat = scatterMatrixToGrid(A_mat, A_rows, A_cols, grid_dim, grid_coords, comm_grid);
-	// loc_B_mat = scatterMatrixToGrid(B_mat, B_rows, B_cols, grid_dim, grid_coords, comm_grid);
+	sprintf(out_path, "../output/proc%d_%02d_%02d.out",
+		id_grid, grid_coords[0], grid_coords[1]
+	);
+
+	if ((out_file = fopen(out_path, "w")) == NULL) {
+		printf("Errore durante l'esecuzione!\n");
+		printf("Esecuzione terminata.\n");
+		MPI_Abort(comm_grid, FILE_OPENING_ERROR);
+	}
+
+	loc_A_mat = scatterMatrixToGrid(
+		A_mat, A_rows, A_cols,
+		&loc_A_rows, &loc_A_cols,
+		id_grid, grid_dim, grid_coords, comm_grid
+	);
+
+	loc_B_mat = scatterMatrixToGrid(
+		B_mat, B_rows, B_cols,
+		&loc_B_rows, &loc_B_cols,
+		id_grid, grid_dim, grid_coords, comm_grid
+	);
+
+	fprintf(out_file, "Matrice A di dimensione %d x %d:\n", loc_A_rows, loc_A_cols);
+	for (i = 0; i < loc_A_rows; i++) {
+		for (j = 0; j < loc_A_cols; j++) {
+			fprintf(out_file, "%f\t", loc_A_mat[i*loc_A_cols + j]);
+		}
+		fprintf(out_file, "\n");
+	}
+	fprintf(out_file, "\n");
+
+	fprintf(out_file, "Matrice B di dimensione %d x %d:\n", loc_B_rows, loc_B_cols);
+	for (i = 0; i < loc_B_rows; i++) {
+		for (j = 0; j < loc_B_cols; j++) {
+			fprintf(out_file, "%f\t", loc_B_mat[i*loc_B_cols + j]);
+		}
+		fprintf(out_file, "\n");
+	}
+	fprintf(out_file, "\n");
+
+	/*
+	
+		Non appena termina con successo la distribuzione delle matrici
+		"A_mat" e "B_mat" dal processore radice a tutti gli altri processori
+		della griglia, si puo' liberare la memoria allocata.
+
+	*/
+
+	if (id_grid == 0) {
+		free(A_mat);
+		free(B_mat);
+	}
 
 	/*	******************************************************************** */
 	// 	INIZIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
@@ -297,7 +323,7 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 	//	CALCOLO DEL PRODOTTO MATRICE-MATRICE
 
-	C_mat = (double*) calloc(A_rows * B_cols, sizeof(double));
+	loc_C_mat = (double*) calloc(loc_A_rows * loc_B_cols, sizeof(double));
 
 	//	for (i = 0; i < A_rows; i++) {
     //		for (j = 0; j < A_rows; j++) {
@@ -343,17 +369,17 @@ int main(int argc, char **argv) {
   	/*	******************************************************************** */
 	//	STAMPA DELL'OUTPUT
 
-	if (id_grid == 0) {
-		fprintf(out_file, "Risultato:\n");
-		fprintf(out_file, "Matrice C di dimensione %d x %d:\n", A_rows, B_cols);
-		for (i = 0; i < A_rows; i++) {
-			for (j = 0; j < B_cols; j++) {
-				fprintf(out_file, "%f\t", C_mat[i*B_cols + j]);
-			}
-			fprintf(out_file, "\n");
-		}
-		fprintf(out_file, "\n");
-	}
+	// if (id_grid == 0) {
+	// 	fprintf(out_file, "Risultato:\n");
+	// 	fprintf(out_file, "Matrice C di dimensione %d x %d:\n", A_rows, B_cols);
+	// 	for (i = 0; i < A_rows; i++) {
+	// 		for (j = 0; j < B_cols; j++) {
+	// 			fprintf(out_file, "%f\t", loc_C_mat[i*B_cols + j]);
+	// 		}
+	// 		fprintf(out_file, "\n");
+	// 	}
+	// 	fprintf(out_file, "\n");
+	// }
 
   	/*	******************************************************************** */
 	//	TERMINAZIONE DELL'ESECUZIONE
@@ -366,14 +392,15 @@ int main(int argc, char **argv) {
 	MPI_Barrier(comm_grid);
 
 	// Al termine dell'esecuzione, si libera lo spazio allocato in memoria.
-	free(A_mat);
-	free(B_mat);
+	free(loc_A_mat);
+	free(loc_B_mat);
+	free(loc_C_mat);
 
 	if (id_grid == 0) {
 
 		if (fclose(out_file) != 0) {
 			printf("Errore durante l'esecuzione!\n");
-			printf("Applicazione terminata.\n");
+			printf("Esecuzione terminata.\n");
 			MPI_Abort(comm_grid, FILE_CLOSING_ERROR);
 		}
 

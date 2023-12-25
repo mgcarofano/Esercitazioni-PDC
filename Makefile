@@ -1,5 +1,5 @@
 folder = ./prova2/codice
-file = 1108_lezione13
+file = 1108_esercizio3
 login = CRFMGB01R
 home=/project
 work=$(home)/prova1/codice

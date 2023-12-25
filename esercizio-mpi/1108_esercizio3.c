@@ -178,15 +178,15 @@
 #include <time.h>
 #include <mpi.h>
 
-#define mat_rows 6
-#define mat_cols 6
+#define mat_rows 9
+#define mat_cols 9
 
 int main(int argc, char **argv) {
 
     int p, rank;
 
-    const int grid_rows = 2;  /* number of rows in _decomposition_ */
-    const int grid_cols = 2;  /* number of cols in _decomposition_ */
+    const int grid_rows = 3;  /* number of rows in _decomposition_ */
+    const int grid_cols = 3;  /* number of cols in _decomposition_ */
     const int loc_rows = mat_rows / grid_rows;  /* number of rows in _block_ */
     const int loc_cols = mat_cols / grid_cols; /* number of cols in _block_ */
 
@@ -246,25 +246,30 @@ int main(int argc, char **argv) {
     MPI_Type_commit(&type_block);
 
     // Il numero di elementi da distribuire a ogni processore
-    send_counts = (int*) calloc(grid_rows * grid_cols, sizeof(int*));
+    send_counts = (int*) calloc(grid_rows * grid_cols, sizeof(int));
 
     // La posizione nella matrice "linearizzata" da dove iniziare la distribuzione
     // dei prossimi 'count' elementi
-    displs = (int*) calloc(grid_rows * grid_cols, sizeof(int*));
+    displs = (int*) calloc(grid_rows * grid_cols, sizeof(int));
 
     for (int i = 0; i < grid_rows; i++) {
+
+        // printf("%d - send: ", rank);
+        // printf("%d - displ: ", rank);
+
         for (int j = 0; j < grid_cols; j++) {
             // send_counts[i*grid_cols + j] = loc_cols; // Caso a.
             send_counts[i*grid_cols + j] = 1; // Caso b-e.
             // displs[i*grid_cols + j] = (i * mat_cols * loc_rows) + (j * loc_cols); // Caso a-d.
             displs[i*grid_cols + j] = ((i * mat_cols * loc_rows) + (j * loc_cols)) / loc_cols; // Caso e.
 
-            // printf("send: %d, recv: %d, displ: %d\n",
-            //     send_counts[i*grid_cols + j],
-            //     displs[i*grid_cols + j]
-            // );
+            // printf("%d ", send_counts[i*grid_cols + j]);
+            // printf("%d ", displs[i*grid_cols + j]);
         }
+
+        // printf("\n");
     }
+    // printf("\n");
 
     // a. Scatterv per distribuire elementi singoli (type = MPI_DOUBLE)
     // MPI_Scatterv(mat, send_counts, displs, MPI_DOUBLE, loc, mat_cols, MPI_DOUBLE, 0, MPI_COMM_WORLD);
