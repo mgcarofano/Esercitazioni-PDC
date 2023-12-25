@@ -281,6 +281,33 @@
 #define EXECUTE_PATH "/usr/lib64/openmpi/1.4-gcc/bin/mpiexec"
 
 /*
+	PBS_OUTPUT: char*
+	Si utilizza per indicare alla funzione createPBS() il percorso
+	sul cluster della directory dove saranno salvati tutti i file di
+	output e/o di errore dell'esecuzione.
+*/
+
+#define PBS_OUTPUT "$PBS_O_HOME/" NOME_PROVA "/output"
+
+/*
+	PBS_WORKDIR: char*
+	Si utilizza per indicare alla funzione createPBS() il percorso
+	sul cluster della directory dove e' memorizzato il codice del programma
+	da compilare.
+*/
+
+#define PBS_WORKDIR "$PBS_O_HOME/" NOME_PROVA "/codice"
+
+/*
+	PBS_EXECUTABLE: char*
+	Si utilizza per indicare alla funzione createPBS() il percorso
+	sul cluster della directory dove saranno salvati tutti gli eseguibili
+	generati dalla compilazione.
+*/
+
+#define PBS_EXECUTABLE "$PBS_O_HOME/" NOME_PROVA "/bin"
+
+/*
 	CSV_TIME_PATH: char*
 	E' il path del file .csv nella quale sono memorizzate tutte le informazioni
 	necessarie allo studio dei casi di test. In particolare, la sua struttura
@@ -321,7 +348,7 @@
 	Indica il minimo numero di argomenti da passare in input al programma.
 */
 
-#define ARGS_QUANTITY 7
+#define ARGS_QUANTITY 8
 
 /*
 	CSV_FIELD_PRECISION: int

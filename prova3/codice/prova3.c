@@ -20,16 +20,16 @@ int main(int argc, char **argv) {
 	//	INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
 
 	int input = DEFAULT_INPUT, test = DEFAULT_TEST, time_calc = NO_TIME_CALC;
-	int q_num = 0;
+	int pbs_count = 0;
 
 	int i = 0, j = 0, k = 0;
 
 	double *A_mat = NULL, *B_mat = NULL;
 	int A_rows = 0, A_cols = 0, B_rows = 0, B_cols = 0;
+	int q_num = 0;
 
 	double *loc_A_mat = NULL, *loc_B_mat = NULL, *loc_C_mat = NULL;
 	int loc_A_rows = 0, loc_A_cols = 0, loc_B_rows = 0, loc_B_cols = 0;
-	// int rest_rows = 0, rest_cols = 0;
 
 	double t_start = 0.0, t_end = 0.0;
 	double t_loc = 0.0, t_tot = 0.0;
@@ -125,6 +125,8 @@ int main(int argc, char **argv) {
 		test = argToInt(argv[6]);
 		time_calc = argToInt(argv[7]);
 
+		pbs_count = argToInt(argv[8]);
+
 	}
 
 	MPI_Bcast(&A_rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -132,13 +134,14 @@ int main(int argc, char **argv) {
 	MPI_Bcast(&B_rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&B_cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-	MPI_Bcast(&n_proc, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&grid_rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&grid_cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	MPI_Bcast(&input, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&test, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Bcast(&time_calc, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	MPI_Bcast(&pbs_count, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	/*	******************************************************************** */
 	//	CREAZIONE DELLA GRIGLIA BIDIMENSIONALE
@@ -237,8 +240,8 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 	//	DISTRIBUZIONE DELLE MATRICI
 
-	sprintf(out_path, "../output/proc%d_%02d_%02d.out",
-		id_grid, grid_coords[0], grid_coords[1]
+	sprintf(out_path, "../output/" NOME_PROVA "_%03d/proc%d_%02d_%02d.out",
+		pbs_count, id_grid, grid_coords[0], grid_coords[1]
 	);
 
 	if ((out_file = fopen(out_path, "w")) == NULL) {

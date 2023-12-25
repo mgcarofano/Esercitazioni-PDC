@@ -1,0 +1,28 @@
+#!/bin/bash
+
+PBS_O_OUTPUT=$PBS_O_HOME/prova3/output/prova3_001
+PBS_O_WORKDIR=$PBS_O_HOME/prova3/codice
+PBS_O_EXECUTABLE=$PBS_O_HOME/prova3/bin
+
+#PBS -q studenti
+#PBS -l nodes=8
+#PBS -N prova3_001
+#PBS -o $PBS_O_OUTPUT/std.out
+#PBS -e $PBS_O_OUTPUT/std.err
+
+rm -fr $PBS_O_OUTPUT
+mkdir -p $PBS_O_OUTPUT
+
+echo --- 
+
+echo PBS: la directory di lavoro e\' $PBS_O_WORKDIR
+echo PBS: Compilazione in esecuzione...
+/usr/lib64/openmpi/1.4-gcc/bin/mpicc -o $PBS_O_EXECUTABLE/prova3_001 -lm $PBS_O_WORKDIR/prova3.c
+echo PBS: Compilazione completata.
+
+echo 'PBS: Job in esecuzione su 9 cpu...'
+echo '>>>'
+/usr/lib64/openmpi/1.4-gcc/bin/mpiexec -machinefile $PBS_NODEFILE -n 9 $PBS_O_EXECUTABLE/prova3_001 9 9 9 9 1 0 0 1
+echo '>>>'
+echo PBS: Job completato.
+echo --- 

@@ -169,6 +169,7 @@ void createPBS(
 	if (pbs_count <= 1) {
 		system(RM_PATH" -rf ../jobs");
 		system(MKDIR_PATH" -p ../jobs");
+		system(MKDIR_PATH" -p ../bin");
 	}
 
 	sprintf(pbs_path, "../jobs/"NOME_PROVA"_%03d.pbs", pbs_count);
@@ -182,9 +183,13 @@ void createPBS(
 	fprintf(pbs_file,
 				"#!/bin/bash\n"
 				"\n"
+				"PBS_O_OUTPUT=" PBS_OUTPUT "/" NOME_PROVA "_%03d\n"
+				"PBS_O_WORKDIR=" PBS_WORKDIR "\n"
+				"PBS_O_EXECUTABLE=" PBS_EXECUTABLE "\n"
+				"\n"
 				"#PBS -q studenti\n"
-				"#PBS -l nodes=" NODE_NUMBER
-	);
+				"#PBS -l nodes=" NODE_NUMBER,
+	pbs_count);
 
 	if (time_calc == OK_TIME_CALC) {
 		fprintf(pbs_file, ":ppn=" NODE_PROCESS);
@@ -192,15 +197,16 @@ void createPBS(
 	
 	fprintf(pbs_file,
 				"\n#PBS -N " NOME_PROVA "_%03d\n"
-				"#PBS -o ../output/" NOME_PROVA "_%03d.out\n"
-				"#PBS -e ../output/" NOME_PROVA "_%03d.err\n"
+				"#PBS -o $PBS_O_OUTPUT/std.out\n"
+				"#PBS -e $PBS_O_OUTPUT/std.err\n"
 				"\n",
 	pbs_count, pbs_count, pbs_count);
 
 	if (pbs_count <= 1) {
 		fprintf(pbs_file,
-				"rm -fr $PBS_O_HOME/" NOME_PROVA "/output\n"
-				"mkdir -p $PBS_O_HOME/" NOME_PROVA "/output\n\n"
+				"rm -fr $PBS_O_OUTPUT\n"
+				"mkdir -p $PBS_O_OUTPUT\n"
+				"\n"
 		);
 	}
 
@@ -211,11 +217,10 @@ void createPBS(
 	}
 	
 	fprintf(pbs_file,
-				"PBS_O_WORKDIR=$PBS_O_HOME/" NOME_PROVA "/codice\n"
 				"\n"
 				"echo PBS: la directory di lavoro e\\' $PBS_O_WORKDIR\n"
 				"echo PBS: Compilazione in esecuzione...\n"
-				COMPILER_PATH " -o $PBS_O_WORKDIR/" NOME_PROVA "_%03d -lm $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
+				COMPILER_PATH " -o $PBS_O_EXECUTABLE/" NOME_PROVA "_%03d -lm $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
 				"echo PBS: Compilazione completata.\n"
 				"\n"
 				"echo 'PBS: Job in esecuzione su %d cpu...'\n"
@@ -232,8 +237,8 @@ void createPBS(
 		fprintf(pbs_file, EXECUTE_PATH " -machinefile $PBS_NODEFILE -n %d ", n_proc);
 	}
 
-	fprintf(pbs_file, "$PBS_O_WORKDIR/" NOME_PROVA "_%03d %d %d %d %d %d %d %d",
-		pbs_count, A_rows, A_cols, B_rows, B_cols, input, test, time_calc);
+	fprintf(pbs_file, "$PBS_O_EXECUTABLE/" NOME_PROVA "_%03d %d %d %d %d %d %d %d %d",
+		pbs_count, A_rows, A_cols, B_rows, B_cols, input, test, time_calc, pbs_count);
 
 	/*
 		Nella suite di testing progettata, se il numero totale di elementi
