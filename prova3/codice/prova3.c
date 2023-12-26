@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 
 	int input = DEFAULT_INPUT, test = DEFAULT_TEST, time_calc = NO_TIME_CALC;
-	int pbs_count = 0;
+	int pbs_count = 0, check_test = 0;
 
 	int i = 0, j = 0, k = 0, step = 0;
 
@@ -34,8 +34,6 @@ int main(int argc, char **argv) {
 	int loc_C_rows = 0, loc_C_cols = 0;
 
 	double *tmp_A_mat = NULL, *tmp_B_mat = NULL;
-	int tmp_A_rows = 0, tmp_A_cols = 0;
-	int tmp_B_rows = 0, tmp_B_cols = 0;
 
 	double t_start = 0.0, t_end = 0.0;
 	double t_loc = 0.0, t_tot = 0.0;
@@ -49,7 +47,7 @@ int main(int argc, char **argv) {
 	FILE* out_file;
 	char out_path[PATH_MAX_LENGTH] = {};
 
-	MPI_Comm comm, comm_rows, comm_cols;
+	MPI_Comm comm, comm_row, comm_col;
 
 	srand(time(NULL));
 
@@ -71,7 +69,7 @@ int main(int argc, char **argv) {
 		Assegna ad ogni processore del communicator l'identificativo
 		'id_proc' (sempre associato al contesto).
 		MPI_COMM_WORLD indica il communicator a cui appartengono tutti
-		i processori attivati (non puo' essere alterato).
+		i processori attivati.
 	*/
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
@@ -98,7 +96,7 @@ int main(int argc, char **argv) {
 		if (argc < ARGS_QUANTITY) {
 			printf("Errore nella lettura degli argomenti di input!\n\n");
 			printf("Esecuzione terminata.\n");
-			MPI_Abort(MPI_COMM_WORLD, NOT_ENOUGH_ARGS_ERROR);
+			MPI_Abort(comm, NOT_ENOUGH_ARGS_ERROR);
 		}
 
 		/*
@@ -116,7 +114,7 @@ int main(int argc, char **argv) {
 		if (B_rows != A_cols) {
 			printf("Le matrici A,B non sono compatibili!\n");
 			printf("Esecuzione terminata.\n");
-			MPI_Abort(MPI_COMM_WORLD, MATRIX_DIMENSION_ERROR);
+			MPI_Abort(comm, MATRIX_DIMENSION_ERROR);
 		}
 
 		grid_tmp = sqrt(n_proc);
@@ -125,7 +123,7 @@ int main(int argc, char **argv) {
 			printf("Il numero di processori (%d) non e' un quadrato perfetto.\n", n_proc);
 			printf("Impossibile costruire una griglia di processori bidimensionale quadrata.\n");
 			printf("Esecuzione terminata.\n");
-			MPI_Abort(MPI_COMM_WORLD, PROCESSOR_QUANTITY_ERROR);
+			MPI_Abort(comm, PROCESSOR_QUANTITY_ERROR);
 		}
 
 		grid_rows = grid_cols = floor(grid_tmp);
@@ -133,7 +131,7 @@ int main(int argc, char **argv) {
 		if ((A_cols % grid_cols != 0) || (B_cols % grid_cols != 0)) {
 			printf("Le matrici non sono compatibili con la griglia di processori!\n");
 			printf("Esecuzione terminata.\n");
-			MPI_Abort(MPI_COMM_WORLD, MATRIX_DIMENSION_ERROR);
+			MPI_Abort(comm, MATRIX_DIMENSION_ERROR);
 		}
 
 		input = argToInt(argv[5]);
@@ -144,19 +142,19 @@ int main(int argc, char **argv) {
 
 	}
 
-	MPI_Bcast(&A_rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&A_cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&B_rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&B_cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&A_rows, 1, MPI_INT, 0, comm);
+	MPI_Bcast(&A_cols, 1, MPI_INT, 0, comm);
+	MPI_Bcast(&B_rows, 1, MPI_INT, 0, comm);
+	MPI_Bcast(&B_cols, 1, MPI_INT, 0, comm);
 
-	MPI_Bcast(&grid_rows, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&grid_cols, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&grid_rows, 1, MPI_INT, 0, comm);
+	MPI_Bcast(&grid_cols, 1, MPI_INT, 0, comm);
 
-	MPI_Bcast(&input, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&test, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&time_calc, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&input, 1, MPI_INT, 0, comm);
+	MPI_Bcast(&test, 1, MPI_INT, 0, comm);
+	MPI_Bcast(&time_calc, 1, MPI_INT, 0, comm);
 
-	MPI_Bcast(&pbs_count, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&pbs_count, 1, MPI_INT, 0, comm);
 
 	//	CREAZIONE DELLA GRIGLIA BIDIMENSIONALE
 	/*	******************************************************************** */
@@ -182,11 +180,11 @@ int main(int argc, char **argv) {
 
 		remain_dims[0] = 0;
 		remain_dims[1] = 1;
-		MPI_Cart_sub(comm, remain_dims, &comm_rows);
+		MPI_Cart_sub(comm, remain_dims, &comm_row);
 	
 		remain_dims[0] = 1;
 		remain_dims[1] = 0;
-		MPI_Cart_sub(comm, remain_dims, &comm_cols);
+		MPI_Cart_sub(comm, remain_dims, &comm_col);
 
 	}
 
@@ -199,7 +197,7 @@ int main(int argc, char **argv) {
 		B_mat = (double*) calloc(B_rows * B_cols, sizeof(double));
 
 		if (!A_mat && !B_mat) {
-			printf("Le matrici non sono state allocate correttamente!\n");
+			printf("Le matrici globali non sono state allocate correttamente!\n");
 			printf("Esecuzione terminata.\n");
 			MPI_Abort(comm, ALLOCATION_ERROR);
 		}
@@ -312,32 +310,14 @@ int main(int argc, char **argv) {
 
 	}
 
-	fprintf(out_file, "Matrice A di dimensione %d x %d:\n", loc_A_rows, loc_A_cols);
-	for (i = 0; i < loc_A_rows; i++) {
-		for (j = 0; j < loc_A_cols; j++) {
-			fprintf(out_file, "%f\t", loc_A_mat[i*loc_A_cols + j]);
-		}
-		fprintf(out_file, "\n");
-	}
-	fprintf(out_file, "\n");
+	fprintf(out_file, "\nMatrice A di dimensione %d x %d:\n", loc_A_rows, loc_A_cols);
+	fprintfMatrix(out_file, loc_A_mat, loc_A_rows, loc_A_cols, "%f\t");
 
-	fprintf(out_file, "Matrice B di dimensione %d x %d:\n", loc_B_rows, loc_B_cols);
+	fprintf(out_file, "\nMatrice B di dimensione %d x %d:\n", loc_B_rows, loc_B_cols);
 	if (test == MULTIPLICATION_IDENTITY_TEST) {
-		for (i = 0; i < loc_B_rows; i++) {
-			for (j = 0; j < loc_B_cols; j++) {
-				fprintf(out_file, "%1.0f\t", loc_B_mat[i*loc_B_cols + j]);
-			}
-			fprintf(out_file, "\n");
-		}
-		fprintf(out_file, "\n");
+		fprintfMatrix(out_file, loc_B_mat, loc_B_rows, loc_B_cols, "%1.0f\t");
 	} else {
-		for (i = 0; i < loc_B_rows; i++) {
-			for (j = 0; j < loc_B_cols; j++) {
-				fprintf(out_file, "%f\t", loc_B_mat[i*loc_B_cols + j]);
-			}
-			fprintf(out_file, "\n");
-		}
-		fprintf(out_file, "\n");
+		fprintfMatrix(out_file, loc_B_mat, loc_B_rows, loc_B_cols, "%f\t");
 	}
 
 	/*
@@ -385,6 +365,12 @@ int main(int argc, char **argv) {
 	loc_C_cols = loc_B_cols;
 	loc_C_mat = (double*) calloc(loc_C_rows * loc_C_cols, sizeof(double));
 
+	if (!loc_C_mat) {
+		printf("La matrice del risultato non e' stata allocata correttamente!\n");
+		printf("Esecuzione terminata.\n");
+		MPI_Abort(comm, ALLOCATION_ERROR);
+	}
+
 	if (n_proc == 1) {
 		bmr_multiply(
 			loc_A_mat, loc_B_mat, loc_C_mat,
@@ -394,17 +380,71 @@ int main(int argc, char **argv) {
 			MPI_COMM_WORLD
 		);
 	} else {
-		for (step = 0; step < grid_dim[0]; step++) {
 
-			// bmr_broadcast();
+		tmp_A_mat = (double*) calloc(loc_A_rows * loc_A_cols, sizeof(double));
+		tmp_B_mat = (double*) calloc(loc_B_rows * loc_B_cols, sizeof(double));
 
-			// bmr_multiply();
-
-			// if (step != grid_dim[0]-1) {
-			// 	bmr_rolling();
-			// }
-
+		if (!tmp_A_mat && !tmp_B_mat) {
+			printf("Le matrici locali non sono state allocate correttamente!\n");
+			printf("Esecuzione terminata.\n");
+			MPI_Abort(comm, ALLOCATION_ERROR);
 		}
+
+		for (step = 0; step < grid_dim[1]; step++) {
+
+			// fprintf(out_file, "\n--- PASSO %d ---\n", step+1);
+
+			bmr_broadcast(
+				loc_A_mat, tmp_A_mat,
+				loc_A_rows, loc_A_cols,
+				step,
+				comm, comm_row
+			);
+
+			// fprintf(out_file, "\nBROADCAST:\n");
+			// fprintf(out_file, "Matrice tmp_A di dimensione %d x %d:\n", loc_A_rows, loc_A_cols);
+			// fprintfMatrix(out_file, tmp_A_mat, loc_A_rows, loc_A_cols, "%f\t");
+
+			if (step == 0) {
+
+				bmr_multiply(
+					tmp_A_mat, loc_B_mat, loc_C_mat,
+					loc_A_rows, loc_A_cols,
+					loc_B_rows, loc_B_cols,
+					loc_C_rows, loc_C_cols,
+					comm
+				);
+
+			} else {
+				bmr_rolling(
+					loc_B_mat, tmp_B_mat,
+					loc_B_rows, loc_B_cols,
+					step,
+					comm_col
+				);
+
+				// fprintf(out_file, "\nROLLING:\n");
+				// fprintf(out_file, "Matrice tmp_B di dimensione %d x %d:\n", loc_B_rows, loc_B_cols);
+				// fprintfMatrix(out_file, tmp_B_mat, loc_B_rows, loc_B_cols, "%f\t");
+
+				bmr_multiply(
+					tmp_A_mat, tmp_B_mat, loc_C_mat,
+					loc_A_rows, loc_A_cols,
+					loc_B_rows, loc_B_cols,
+					loc_C_rows, loc_C_cols,
+					comm
+				);
+			}
+
+			// fprintf(out_file, "\nMULTIPLY:\n");
+			// fprintf(out_file, "Matrice loc_C di dimensione %d x %d:\n", loc_C_rows, loc_C_cols);
+			// fprintfMatrix(out_file, loc_C_mat, loc_C_rows, loc_C_cols, "%f\t");
+
+			// fprintf(out_file, "\n-----\n", step);
+		}
+
+		free(tmp_A_mat);
+		free(tmp_B_mat);
 	}
 
 	//	SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
@@ -424,33 +464,51 @@ int main(int argc, char **argv) {
 			calcolare il massimo tempo tra tutti i tempi calcolati localmente.
 		*/
 
-		MPI_Reduce(&t_loc, &t_tot, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+		MPI_Reduce(&t_loc, &t_tot, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+
 
 		if (id_proc == 0) {
+
+			switch (test) {
+				case MULTIPLICATION_IDENTITY_TEST:
+				{
+					// ...
+					break;
+				}
+				case MULTIPLICATION_TRANSPOSE_TEST:
+				{
+					// ...
+					break;
+				}
+				case MULTIPLICATION_TRACE_TEST:
+				{
+					// ...
+					break;
+				}
+				default:
+					break;
+			}
+
 			printf("\nCalcolo del prodotto matrice-matrice terminato in %e sec\n", t_tot);
-			writeTimeCSV(
-				CSV_TIME_PATH"/"NOME_PROVA"_time.csv",
-				A_rows, A_cols,
-				B_rows, B_cols,
-				n_proc, input, test,
-				t_tot,
-				comm
-			);
+
+			if (check_test) {
+				writeTimeCSV(
+					CSV_TIME_PATH"/"NOME_PROVA"_time.csv",
+					A_rows, A_cols, B_rows, B_cols,
+					n_proc, input, test,
+					t_tot,
+					comm
+				);
+			}
 		}
 	}
 
 	//	STAMPA DELL'OUTPUT
   	/*	******************************************************************** */
 
-	fprintf(out_file, "Risultato:\n");
+	fprintf(out_file, "\nRisultato:\n");
 	fprintf(out_file, "Matrice C di dimensione %d x %d:\n", loc_C_rows, loc_C_cols);
-	for (i = 0; i < loc_C_rows; i++) {
-		for (j = 0; j < loc_C_cols; j++) {
-			fprintf(out_file, "%f\t", loc_C_mat[i*loc_C_cols + j]);
-		}
-		fprintf(out_file, "\n");
-	}
-	fprintf(out_file, "\n");
+	fprintfMatrix(out_file, loc_C_mat, loc_C_rows, loc_C_cols, "%f\t");
 
 	//	TERMINAZIONE DELL'ESECUZIONE
   	/*	******************************************************************** */
@@ -466,6 +524,15 @@ int main(int argc, char **argv) {
 	free(loc_A_mat);
 	free(loc_B_mat);
 	free(loc_C_mat);
+
+	if (n_proc > 1) {
+		free(grid_coords);
+		free(start_coords);
+		free(end_coords);
+		free(grid_dim);
+		free(period);
+		free(remain_dims);
+	}
 
 	if (id_proc == 0) {
 

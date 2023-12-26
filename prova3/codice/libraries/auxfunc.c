@@ -10,7 +10,6 @@
 //	LIBRERIE
 
 #include "constants.c"
-#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
@@ -193,7 +192,7 @@ double* scatterMatrixToGrid(
 	ret = (double*) calloc(*loc_rows * *loc_cols, sizeof(double));
 
 	if (!ret) {
-		printf("Errore nell'allocazione della matrice locale!\n");
+		printf("La matrice locale non e' stata allocata correttamente!\n");
 		printf("Esecuzione terminata.\n");
 		MPI_Abort(comm_grid, ALLOCATION_ERROR);
 	}
@@ -238,9 +237,58 @@ double* scatterMatrixToGrid(
 
 }
 
-void bmr_broadcast() {
+void fprintfMatrix(FILE* out_file, double* mat, int rows, int cols, const char* format) {
 
+	int i = 0, j = 0;
 
+	for (i = 0; i < rows; i++) {
+		for (j = 0; j < cols; j++) {
+			fprintf(out_file, format, mat[i*cols + j]);
+		}
+		fprintf(out_file, "\n");
+	}
+
+}
+
+void bmr_broadcast(
+	double* mat, double* tmp,
+	int rows, int cols,
+	int step,
+	MPI_Comm comm_grid, MPI_Comm comm_row
+) {
+
+	int grid_rank = 0, grid_coord[2] = {};
+	int row_size = 0, row_rank = 0;
+	int dest = 0;
+	int k = 0;
+
+	MPI_Status status;
+
+	MPI_Comm_rank(comm_grid, &grid_rank);
+	MPI_Cart_coords(comm_grid, grid_rank, 2, grid_coord);
+
+	// fprintf(out_file, "%d %d", grid_coord[0], grid_coord[1]);
+
+	MPI_Comm_size(comm_row, &row_size);
+	MPI_Comm_rank(comm_row, &row_rank);
+
+	if ((grid_coord[0]+step) % row_size == grid_coord[1]) {
+		// fprintf(out_file, "SEND - row_rank: %d\n", row_rank);
+		for (k = 0; k < row_size; k++) {
+			dest = (row_rank + k + 1) % row_size;
+			// fprintf(out_file, "dest: %d\n", dest);
+			if (dest == row_rank) {
+				// fprintf(out_file, "COPY\n");
+				memcpy(tmp, mat, rows * cols * sizeof(double));
+			} else {
+				// fprintf(out_file, "SEND\n");
+				MPI_Send(&(*mat), rows * cols, MPI_DOUBLE, dest, step * BROADCAST_TAG, comm_row);
+			}
+		}
+	} else {
+		// fprintf(out_file, "RECV - row_rank: %d\n", row_rank);
+		MPI_Recv(&(*tmp), rows * cols, MPI_DOUBLE, MPI_ANY_SOURCE, step * BROADCAST_TAG, comm_row, &status);
+	}
 	
 }
 
@@ -249,7 +297,7 @@ void bmr_multiply(
 	int A_rows, int A_cols,
 	int B_rows, int B_cols,
 	int C_rows, int C_cols,
-	MPI_Comm comm_grid
+	MPI_Comm comm
 ) {
 
 	int i = 0, j = 0, k = 0;
@@ -266,13 +314,13 @@ void bmr_multiply(
 	if (B_rows != A_cols) {
 		printf("Le matrici A,B non sono compatibili!\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Abort(comm_grid, MATRIX_DIMENSION_ERROR);
+		MPI_Abort(comm, MATRIX_DIMENSION_ERROR);
 	}
 
 	if ((C_rows != A_rows) || (C_cols != B_cols)) {
 		printf("Le matrici A,C non sono compatibili!\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Abort(comm_grid, MATRIX_DIMENSION_ERROR);
+		MPI_Abort(comm, MATRIX_DIMENSION_ERROR);
 	}
 
 	for (i = 0; i < A_rows; i++) {
@@ -285,13 +333,41 @@ void bmr_multiply(
 	
 }
 
-void bmr_rolling() {
+void bmr_rolling(
+	double* mat, double* tmp,
+	int rows, int cols,
+	int step,
+	MPI_Comm comm_col
+) {
 
+	int col_size = 0, col_rank = 0;
+	int dest = 0, source = 0;
+	MPI_Status status;
 
+	MPI_Comm_size(comm_col, &col_size);
+	MPI_Comm_rank(comm_col, &col_rank);
+
+	dest = (col_rank - 1) % col_size;
+	if (dest < 0) {
+		dest = (dest + col_size) % col_size;
+	}
+
+	source = (col_rank + 1) % col_size;
+	if (source < 0) {
+		source = (source + col_size) % col_size;
+	}
+
+	// fprintf(out_file, "col_size: %d, col_rank: %d, dest: %d, source: %d\n", col_size, col_rank, dest, source);
+
+	MPI_Send(&(*mat), rows * cols, MPI_DOUBLE, dest, step * ROLLING_TAG, comm_col);
+	MPI_Recv(&(*tmp), rows * cols, MPI_DOUBLE, source, step * ROLLING_TAG, comm_col, &status);
 	
 }
 
 /*	***************************************************************************
 	RIFERIMENTI
+
+	https://www.cs.csi.cuny.edu/~gu/teaching/courses/csc76010/slides/Matrix%20Multiplication%20by%20Nur.pdf
+	https://www.geeksforgeeks.org/modulus-on-negative-numbers/
 	
 */

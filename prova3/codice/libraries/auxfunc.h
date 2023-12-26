@@ -13,6 +13,7 @@
 #define AUXFUNCTIONS_H
 
 #include "mpi.h"
+#include <stdio.h>
 
 /*	**************************************************************************** */
 //	DEFINIZIONE DELLE FUNZIONI
@@ -33,17 +34,29 @@ double* scatterMatrixToGrid(
 	int id_grid, int* grid_dim, int* grid_coords, MPI_Comm comm_grid
 );
 
-void bmr_broadcast();
+void fprintfMatrix(FILE* out_file, double* mat, int rows, int cols, const char* format);
+
+void bmr_broadcast(
+	double* mat, double* tmp,
+	int rows, int cols,
+	int step,
+	MPI_Comm comm_grid, MPI_Comm comm_row
+);
 
 void bmr_multiply(
 	double* A_mat, double* B_mat, double* C_mat,
 	int A_rows, int A_cols,
 	int B_rows, int B_cols,
 	int C_rows, int C_cols,
-	MPI_Comm comm_grid
+	MPI_Comm comm
 );
 
-void bmr_rolling();
+void bmr_rolling(
+	double* mat, double* tmp,
+	int rows, int cols,
+	int step,
+	MPI_Comm comm_col
+);
 
 /*	**************************************************************************** */
 

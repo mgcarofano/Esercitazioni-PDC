@@ -337,11 +337,11 @@
 
 /*
 	OP_MAX_VALUE: int
-	Si utilizza come limite massimo dei valori della matrice o
-	del vettore quando si sceglie di utilizzare numeri reali casuali.
+	Si utilizza come limite massimo dei valori delle matrici quando si sceglie
+	di utilizzare numeri reali generati in modo pseudo-casuale.
 */
 
-#define OP_MAX_VALUE 100
+#define OP_MAX_VALUE 10
 
 /*
 	ARGS_QUANTITY: int
@@ -368,7 +368,7 @@
 #define CSV_FIELDS_SEPARATOR 44
 
 /*
-	CSV_FIELDS_SEPARATOR: char
+	CSV_ROWS_SEPARATOR: char
 	Indica il carattere utilizzato nel file .csv per separare una riga
 	da quella successiva. Si utilizza il valore corrispondente nella
 	tabella ASCII.
@@ -383,3 +383,19 @@
 */
 
 #define PATH_MAX_LENGTH 255
+
+/*
+	BROADCAST_TAG: int
+	Si utilizza per assegnare un identificativo unico alle
+	comunicazioni di MPI durante il broadcast delle sottomatrici.
+*/
+
+#define BROADCAST_TAG 101
+
+/*
+	ROLLING_TAG: int
+	Si utilizza per assegnare un identificativo unico alle
+	comunicazioni di MPI durante il rolling delle sottomatrici.
+*/
+
+#define ROLLING_TAG 103
