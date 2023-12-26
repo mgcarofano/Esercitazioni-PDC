@@ -24,8 +24,8 @@ mpirun:
 	rm -f $(prova2)/$(file)
 
 #	mpicc prova3.c -o prova3
-#	mpiexec -machinefile /project/hostfile -np 9 prova3 9 9 9 9 1 0 0
-#	mpiexec -machinefile /project/hostfile -np 9 prova3 9 9 9 9 2 0 0 ../input/A_mat.csv ../input/B_mat.csv
+#	mpiexec -machinefile /project/hostfile -np 9 prova3 9 9 9 9 1 0 0 1
+#	mpiexec -machinefile /project/hostfile -np 9 prova3 9 9 9 9 2 0 0 1 ../input/A_mat.csv ../input/B_mat.csv
 
 #	Da utilizzare nella cartella 'prova1/jobs'
 mpirun_prova1:

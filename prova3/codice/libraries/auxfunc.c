@@ -190,14 +190,13 @@ double* scatterMatrixToGrid(
 	// printf("%d - grid_dim[0]: %d, grid_dim[1]: %d\n", id_grid, grid_dim[0], grid_dim[1]);
 	// printf("%d - loc_rows: %d, loc_cols: %d\n", id_grid, loc_rows, loc_cols);
 
-	// Si verifica che la matrice locale non sia già stata allocata
-	// if (ret) {
-	// 	printf("Errore nell'allocazione della matrice locale!\n");
-	// 	printf("Esecuzione terminata.\n");
-	// 	MPI_Abort(comm_grid, ALLOCATION_ERROR);
-	// }
-
 	ret = (double*) calloc(*loc_rows * *loc_cols, sizeof(double));
+
+	if (!ret) {
+		printf("Errore nell'allocazione della matrice locale!\n");
+		printf("Esecuzione terminata.\n");
+		MPI_Abort(comm_grid, ALLOCATION_ERROR);
+	}
 
 	MPI_Type_vector(*loc_rows, *loc_cols, mat_cols, MPI_DOUBLE, &type_block);
     MPI_Type_create_resized(type_block, 0, *loc_rows * sizeof(double), &type_block);
@@ -237,6 +236,65 @@ double* scatterMatrixToGrid(
 
 	return ret;
 
+}
+
+void bmr_broadcast() {
+
+
+	
+}
+
+void bmr_multiply(
+	double* A_mat, double* B_mat, double* C_mat,
+	int A_rows, int A_cols,
+	int B_rows, int B_cols,
+	int C_rows, int C_cols,
+	MPI_Comm comm_grid
+) {
+
+	int i = 0, j = 0, k = 0;
+
+	/*
+	
+		Anche se questa funzione viene invocata in un punto dell'esecuzione
+		del programma nella quale le dimensioni delle matrici e della griglia
+		di processori sono state gia' verificate, si preferisce comunque
+		specificare i controlli sugli errori per migliorare la robustezza.
+
+	*/
+
+	if (B_rows != A_cols) {
+		printf("Le matrici A,B non sono compatibili!\n");
+		printf("Esecuzione terminata.\n");
+		MPI_Abort(comm_grid, MATRIX_DIMENSION_ERROR);
+	}
+
+	if ((C_rows != A_rows) || (C_cols != B_cols)) {
+		printf("Le matrici A,C non sono compatibili!\n");
+		printf("Esecuzione terminata.\n");
+		MPI_Abort(comm_grid, MATRIX_DIMENSION_ERROR);
+	}
+
+	for (i = 0; i < A_rows; i++) {
+		for (j = 0; j < B_rows; j++) {
+			for (k = 0; k < C_rows; k++) {
+				C_mat[i*C_cols + j] += (A_mat[i*A_cols + k] * B_mat[k*B_cols + j]);
+			}
+		}
+	}
+	
+}
+
+void bmr_rolling() {
+
+
+	
+}
+
+void bmr() {
+
+
+	
 }
 
 /*	***************************************************************************

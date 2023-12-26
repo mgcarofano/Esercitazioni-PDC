@@ -6,8 +6,8 @@
 
 */
 
-/*	************************************************************************ */
 //	LIBRERIE
+/*	************************************************************************ */
 
 #include "libraries/auxfunc.h"
 #include "libraries/csvfunc.h"
@@ -16,8 +16,8 @@
 
 int main(int argc, char **argv) {
 
-	/*	******************************************************************** */
 	//	INIZIALIZZAZIONE DELL'AMBIENTE DI LAVORO
+	/*	******************************************************************** */
 
 	int input = DEFAULT_INPUT, test = DEFAULT_TEST, time_calc = NO_TIME_CALC;
 	int pbs_count = 0;
@@ -29,7 +29,9 @@ int main(int argc, char **argv) {
 	int q_num = 0;
 
 	double *loc_A_mat = NULL, *loc_B_mat = NULL, *loc_C_mat = NULL;
-	int loc_A_rows = 0, loc_A_cols = 0, loc_B_rows = 0, loc_B_cols = 0;
+	int loc_A_rows = 0, loc_A_cols = 0;
+	int loc_B_rows = 0, loc_B_cols = 0;
+	int loc_C_rows = 0, loc_C_cols = 0;
 
 	double t_start = 0.0, t_end = 0.0;
 	double t_loc = 0.0, t_tot = 0.0;
@@ -46,8 +48,8 @@ int main(int argc, char **argv) {
 
 	srand(time(NULL));
 
-	/*	*********************************************************************** */
 	//	INIZIALIZZAZIONE DELL'AMBIENTE MPI
+	/*	*********************************************************************** */
 
 	/*
 		--- int MPI_Init(int *argc, char ***argv) ---
@@ -75,8 +77,8 @@ int main(int argc, char **argv) {
 
 	MPI_Comm_size(MPI_COMM_WORLD, &n_proc);
 
-	/*	******************************************************************** */
 	//	LETTURA DEI DATI
+	/*	******************************************************************** */
 
 	if (id_proc == 0) {
 		printf("Inizio esecuzione.\n\n");
@@ -104,6 +106,12 @@ int main(int argc, char **argv) {
 		B_rows = argToInt(argv[3]);
 		B_cols = argToInt(argv[4]);
 
+		if (B_rows != A_cols) {
+			printf("Le matrici A,B non sono compatibili!\n");
+			printf("Esecuzione terminata.\n");
+			MPI_Abort(MPI_COMM_WORLD, MATRIX_DIMENSION_ERROR);
+		}
+
 		grid_tmp = sqrt(n_proc);
 
 		if (n_proc != 0 && grid_tmp != floor(grid_tmp)) {
@@ -116,7 +124,7 @@ int main(int argc, char **argv) {
 		grid_rows = grid_cols = floor(grid_tmp);
 
 		if ((A_cols % grid_cols != 0) || (B_cols % grid_cols != 0)) {
-			printf("Le dimensioni delle matrici non sono compatibili con le dimensioni della griglia di processori!\n");
+			printf("Le matrici non sono compatibili con la griglia di processori!\n");
 			printf("Esecuzione terminata.\n");
 			MPI_Abort(MPI_COMM_WORLD, MATRIX_DIMENSION_ERROR);
 		}
@@ -143,8 +151,8 @@ int main(int argc, char **argv) {
 
 	MPI_Bcast(&pbs_count, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-	/*	******************************************************************** */
 	//	CREAZIONE DELLA GRIGLIA BIDIMENSIONALE
+	/*	******************************************************************** */
 
 	grid_coords = (int*) calloc(2, sizeof(int));
 
@@ -160,8 +168,8 @@ int main(int argc, char **argv) {
 	MPI_Comm_rank(comm_grid, &id_grid);
 	MPI_Cart_coords(comm_grid, id_grid, 2, grid_coords);
 
-	/*	******************************************************************** */
 	//	LETTURA E/O GENERAZIONE DEGLI ELEMENTI DELLA MATRICE
+	/*	******************************************************************** */
 
 	if (id_grid == 0) {
 
@@ -237,8 +245,8 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	/*	******************************************************************** */
 	//	DISTRIBUZIONE DELLE MATRICI
+	/*	******************************************************************** */
 
 	sprintf(out_path, "../output/" NOME_PROVA "_%03d/proc%d_%02d_%02d.out",
 		pbs_count, id_grid, grid_coords[0], grid_coords[1]
@@ -272,13 +280,23 @@ int main(int argc, char **argv) {
 	fprintf(out_file, "\n");
 
 	fprintf(out_file, "Matrice B di dimensione %d x %d:\n", loc_B_rows, loc_B_cols);
-	for (i = 0; i < loc_B_rows; i++) {
-		for (j = 0; j < loc_B_cols; j++) {
-			fprintf(out_file, "%f\t", loc_B_mat[i*loc_B_cols + j]);
+	if (test == MULTIPLICATION_IDENTITY_TEST) {
+		for (i = 0; i < loc_B_rows; i++) {
+			for (j = 0; j < loc_B_cols; j++) {
+				fprintf(out_file, "%1.0f\t", loc_B_mat[i*loc_B_cols + j]);
+			}
+			fprintf(out_file, "\n");
+		}
+		fprintf(out_file, "\n");
+	} else {
+		for (i = 0; i < loc_B_rows; i++) {
+			for (j = 0; j < loc_B_cols; j++) {
+				fprintf(out_file, "%f\t", loc_B_mat[i*loc_B_cols + j]);
+			}
+			fprintf(out_file, "\n");
 		}
 		fprintf(out_file, "\n");
 	}
-	fprintf(out_file, "\n");
 
 	/*
 	
@@ -292,9 +310,9 @@ int main(int argc, char **argv) {
 		free(A_mat);
 		free(B_mat);
 	}
-
-	/*	******************************************************************** */
+	
 	// 	INIZIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
+	/*	******************************************************************** */
 
 	if (time_calc == OK_TIME_CALC) {
 
@@ -318,27 +336,29 @@ int main(int argc, char **argv) {
 		t_start = MPI_Wtime();
 	}
 
+	//	APPLICAZIONE DEL BROADCAST MULTIPLY ROLLING PER IL CALCOLO DEL PRODOTTO MATRICE-MATRICE
 	/*	******************************************************************** */
-	//	APPLICAZIONE DELLA STRATEGIA
 
-	// ...
+	loc_C_rows = loc_A_rows;
+	loc_C_cols = loc_B_cols;
+	loc_C_mat = (double*) calloc(loc_C_rows * loc_C_cols, sizeof(double));
 
-	/*	******************************************************************** */
-	//	CALCOLO DEL PRODOTTO MATRICE-MATRICE
+	// if (n_proc == 1) {
 
-	loc_C_mat = (double*) calloc(loc_A_rows * loc_B_cols, sizeof(double));
+	// } else {
+		
+	// }
 
-	//	for (i = 0; i < A_rows; i++) {
-    //		for (j = 0; j < A_rows; j++) {
-	//			for (k = 0; k < A_rows; k++) {
-	//				//precedentemente dichiarata da qualche parte
-	//				mat_result[i*A_rows +j] += ( loc_A_mat[i*A_rows +k] * loc_B_mat[k*A_rows +j] );
-	//			}
-	//		}
-	//	}
+	bmr_multiply(
+		loc_A_mat, loc_B_mat, loc_C_mat,
+		loc_A_rows, loc_A_cols,
+		loc_B_rows, loc_B_cols,
+		loc_C_rows, loc_C_cols,
+		comm_grid
+	);
 
-	/*	******************************************************************** */
 	//	SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
+	/*	******************************************************************** */
 
 	if (time_calc == OK_TIME_CALC) {
 		t_end = MPI_Wtime();
@@ -369,23 +389,21 @@ int main(int argc, char **argv) {
 		}
 	}
 
-  	/*	******************************************************************** */
 	//	STAMPA DELL'OUTPUT
-
-	// if (id_grid == 0) {
-	// 	fprintf(out_file, "Risultato:\n");
-	// 	fprintf(out_file, "Matrice C di dimensione %d x %d:\n", A_rows, B_cols);
-	// 	for (i = 0; i < A_rows; i++) {
-	// 		for (j = 0; j < B_cols; j++) {
-	// 			fprintf(out_file, "%f\t", loc_C_mat[i*B_cols + j]);
-	// 		}
-	// 		fprintf(out_file, "\n");
-	// 	}
-	// 	fprintf(out_file, "\n");
-	// }
-
   	/*	******************************************************************** */
+
+	fprintf(out_file, "Risultato:\n");
+	fprintf(out_file, "Matrice C di dimensione %d x %d:\n", loc_C_rows, loc_C_cols);
+	for (i = 0; i < loc_C_rows; i++) {
+		for (j = 0; j < loc_C_cols; j++) {
+			fprintf(out_file, "%f\t", loc_C_mat[i*loc_C_cols + j]);
+		}
+		fprintf(out_file, "\n");
+	}
+	fprintf(out_file, "\n");
+
 	//	TERMINAZIONE DELL'ESECUZIONE
+  	/*	******************************************************************** */
 
 	/*
 		Attendiamo che tutti i processori abbiano portato a termine
@@ -412,9 +430,12 @@ int main(int argc, char **argv) {
 
 	MPI_Finalize();
 	return 0;
+
 }
 
-/*	************************************************************************ */
 /*	RIFERIMENTI
+	************************************************************************
+
+	https://code.visualstudio.com/docs/editor/codebasics#_fold-selection
 
 */
