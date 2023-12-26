@@ -41,14 +41,15 @@ int main(int argc, char **argv) {
 	double t_loc = 0.0, t_tot = 0.0;
 
 	double grid_tmp = 0;
-	int n_proc = 0, id_proc = 0, id_grid = 0;
+	int n_proc = 0, id_proc = 0;
 	int grid_cols = 0, grid_rows = 0;
-	int *grid_dim = NULL, *period = NULL, *grid_coords = NULL;
+	int *grid_dim = NULL, *period = NULL, *grid_coords = NULL, *remain_dims = NULL;
+	int *start_coords = NULL, *end_coords = NULL;
 	
 	FILE* out_file;
 	char out_path[PATH_MAX_LENGTH] = {};
 
-	MPI_Comm comm;
+	MPI_Comm comm, comm_rows, comm_cols;
 
 	srand(time(NULL));
 
@@ -161,25 +162,38 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 
 	if (n_proc > 1) {
-		grid_coords = (int*) calloc(2, sizeof(int));
 
-		grid_dim = (int*) calloc(2, sizeof(int));
+		grid_coords		= (int*) calloc(2, sizeof(int));
+		start_coords	= (int*) calloc(2, sizeof(int));
+		end_coords		= (int*) calloc(2, sizeof(int));
+		grid_dim		= (int*) calloc(2, sizeof(int));
+		period			= (int*) calloc(2, sizeof(int));
+		remain_dims		= (int*) calloc(2, sizeof(int));
+
 		grid_dim[0] = grid_rows;
 		grid_dim[1] = grid_cols;
 
-		period = (int*) calloc(2, sizeof(int));
 		period[0] = 1;
 		period[1] = 1;
 
 		MPI_Cart_create(MPI_COMM_WORLD, 2, grid_dim, period, 0, &comm);
-		MPI_Comm_rank(comm, &id_grid);
-		MPI_Cart_coords(comm, id_grid, 2, grid_coords);
+		// MPI_Comm_rank(comm, &id_grid);
+		MPI_Cart_coords(comm, id_proc, 2, grid_coords);
+
+		remain_dims[0] = 0;
+		remain_dims[1] = 1;
+		MPI_Cart_sub(comm, remain_dims, &comm_rows);
+	
+		remain_dims[0] = 1;
+		remain_dims[1] = 0;
+		MPI_Cart_sub(comm, remain_dims, &comm_cols);
+
 	}
 
 	//	LETTURA E/O GENERAZIONE DEGLI ELEMENTI DELLA MATRICE
 	/*	******************************************************************** */
 
-	if (id_grid == 0) {
+	if (id_proc == 0) {
 
 		A_mat = (double*) calloc(A_rows * A_cols, sizeof(double));
 		B_mat = (double*) calloc(B_rows * B_cols, sizeof(double));
@@ -262,7 +276,7 @@ int main(int argc, char **argv) {
 		);
 	} else {
 		sprintf(out_path, "../output/" NOME_PROVA "_%03d/proc%d_%02d_%02d.out",
-			pbs_count, id_grid, grid_coords[0], grid_coords[1]
+			pbs_count, id_proc, grid_coords[0], grid_coords[1]
 		);
 	}
 	
@@ -287,13 +301,13 @@ int main(int argc, char **argv) {
 		loc_A_mat = scatterMatrixToGrid(
 			A_mat, A_rows, A_cols,
 			&loc_A_rows, &loc_A_cols,
-			id_grid, grid_dim, grid_coords, comm
+			id_proc, grid_dim, grid_coords, comm
 		);
 
 		loc_B_mat = scatterMatrixToGrid(
 			B_mat, B_rows, B_cols,
 			&loc_B_rows, &loc_B_cols,
-			id_grid, grid_dim, grid_coords, comm
+			id_proc, grid_dim, grid_coords, comm
 		);
 
 	}
@@ -334,7 +348,7 @@ int main(int argc, char **argv) {
 
 	*/
 
-	if (n_proc > 1 && id_grid == 0) {
+	if (n_proc > 1 && id_proc == 0) {
 		free(A_mat);
 		free(B_mat);
 	}
@@ -412,7 +426,7 @@ int main(int argc, char **argv) {
 
 		MPI_Reduce(&t_loc, &t_tot, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
-		if (id_grid == 0) {
+		if (id_proc == 0) {
 			printf("\nCalcolo del prodotto matrice-matrice terminato in %e sec\n", t_tot);
 			writeTimeCSV(
 				CSV_TIME_PATH"/"NOME_PROVA"_time.csv",
@@ -453,7 +467,7 @@ int main(int argc, char **argv) {
 	free(loc_B_mat);
 	free(loc_C_mat);
 
-	if (id_grid == 0) {
+	if (id_proc == 0) {
 
 		if (fclose(out_file) != 0) {
 			printf("Errore durante l'esecuzione!\n");
