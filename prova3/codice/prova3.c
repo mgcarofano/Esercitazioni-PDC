@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
 	int input = DEFAULT_INPUT, test = DEFAULT_TEST, time_calc = NO_TIME_CALC;
 	int pbs_count = 0;
 
-	int i = 0, j = 0, k = 0;
+	int i = 0, j = 0, k = 0, step = 0;
 
 	double *A_mat = NULL, *B_mat = NULL;
 	int A_rows = 0, A_cols = 0, B_rows = 0, B_cols = 0;
@@ -33,6 +33,10 @@ int main(int argc, char **argv) {
 	int loc_B_rows = 0, loc_B_cols = 0;
 	int loc_C_rows = 0, loc_C_cols = 0;
 
+	double *tmp_A_mat = NULL, *tmp_B_mat = NULL;
+	int tmp_A_rows = 0, tmp_A_cols = 0;
+	int tmp_B_rows = 0, tmp_B_cols = 0;
+
 	double t_start = 0.0, t_end = 0.0;
 	double t_loc = 0.0, t_tot = 0.0;
 
@@ -40,16 +44,18 @@ int main(int argc, char **argv) {
 	int n_proc = 0, id_proc = 0, id_grid = 0;
 	int grid_cols = 0, grid_rows = 0;
 	int *grid_dim = NULL, *period = NULL, *grid_coords = NULL;
-
-	MPI_Comm comm_grid;
-
+	
 	FILE* out_file;
 	char out_path[PATH_MAX_LENGTH] = {};
+
+	MPI_Comm comm;
 
 	srand(time(NULL));
 
 	//	INIZIALIZZAZIONE DELL'AMBIENTE MPI
 	/*	*********************************************************************** */
+
+	comm = MPI_COMM_WORLD;
 
 	/*
 		--- int MPI_Init(int *argc, char ***argv) ---
@@ -154,19 +160,21 @@ int main(int argc, char **argv) {
 	//	CREAZIONE DELLA GRIGLIA BIDIMENSIONALE
 	/*	******************************************************************** */
 
-	grid_coords = (int*) calloc(2, sizeof(int));
+	if (n_proc > 1) {
+		grid_coords = (int*) calloc(2, sizeof(int));
 
-	grid_dim = (int*) calloc(2, sizeof(int));
-	grid_dim[0] = grid_rows;
-	grid_dim[1] = grid_cols;
+		grid_dim = (int*) calloc(2, sizeof(int));
+		grid_dim[0] = grid_rows;
+		grid_dim[1] = grid_cols;
 
-	period = (int*) calloc(2, sizeof(int));
-	period[0] = 1;
-	period[1] = 1;
+		period = (int*) calloc(2, sizeof(int));
+		period[0] = 1;
+		period[1] = 1;
 
-	MPI_Cart_create(MPI_COMM_WORLD, 2, grid_dim, period, 0, &comm_grid);
-	MPI_Comm_rank(comm_grid, &id_grid);
-	MPI_Cart_coords(comm_grid, id_grid, 2, grid_coords);
+		MPI_Cart_create(MPI_COMM_WORLD, 2, grid_dim, period, 0, &comm);
+		MPI_Comm_rank(comm, &id_grid);
+		MPI_Cart_coords(comm, id_grid, 2, grid_coords);
+	}
 
 	//	LETTURA E/O GENERAZIONE DEGLI ELEMENTI DELLA MATRICE
 	/*	******************************************************************** */
@@ -179,7 +187,7 @@ int main(int argc, char **argv) {
 		if (!A_mat && !B_mat) {
 			printf("Le matrici non sono state allocate correttamente!\n");
 			printf("Esecuzione terminata.\n");
-			MPI_Abort(comm_grid, ALLOCATION_ERROR);
+			MPI_Abort(comm, ALLOCATION_ERROR);
 		}
 
 		q_num = (A_rows * A_cols) + (B_rows * B_cols);
@@ -213,8 +221,8 @@ int main(int argc, char **argv) {
 					}
 					case VALUES_FROM_CSV:
 					{
-						getMatrixFromCSV(argv[ARGS_QUANTITY+1], A_mat, A_rows, A_cols, comm_grid);
-						getMatrixFromCSV(argv[ARGS_QUANTITY+2], B_mat, B_rows, B_cols, comm_grid);
+						getMatrixFromCSV(argv[ARGS_QUANTITY+1], A_mat, A_rows, A_cols, comm);
+						getMatrixFromCSV(argv[ARGS_QUANTITY+2], B_mat, B_rows, B_cols, comm);
 						break;
 					}
 					default:
@@ -248,27 +256,47 @@ int main(int argc, char **argv) {
 	//	DISTRIBUZIONE DELLE MATRICI
 	/*	******************************************************************** */
 
-	sprintf(out_path, "../output/" NOME_PROVA "_%03d/proc%d_%02d_%02d.out",
-		pbs_count, id_grid, grid_coords[0], grid_coords[1]
-	);
-
+	if (n_proc == 1) {
+		sprintf(out_path, "../output/" NOME_PROVA "_%03d/proc%d.out",
+			pbs_count, id_proc
+		);
+	} else {
+		sprintf(out_path, "../output/" NOME_PROVA "_%03d/proc%d_%02d_%02d.out",
+			pbs_count, id_grid, grid_coords[0], grid_coords[1]
+		);
+	}
+	
 	if ((out_file = fopen(out_path, "w")) == NULL) {
 		printf("Errore durante l'esecuzione!\n");
 		printf("Esecuzione terminata.\n");
-		MPI_Abort(comm_grid, FILE_OPENING_ERROR);
+		MPI_Abort(comm, FILE_OPENING_ERROR);
 	}
 
-	loc_A_mat = scatterMatrixToGrid(
-		A_mat, A_rows, A_cols,
-		&loc_A_rows, &loc_A_cols,
-		id_grid, grid_dim, grid_coords, comm_grid
-	);
+	if (n_proc == 1) {
 
-	loc_B_mat = scatterMatrixToGrid(
-		B_mat, B_rows, B_cols,
-		&loc_B_rows, &loc_B_cols,
-		id_grid, grid_dim, grid_coords, comm_grid
-	);
+		loc_A_mat = A_mat;
+		loc_A_rows = A_rows;
+		loc_A_cols = A_cols;
+		
+		loc_B_mat = B_mat;
+		loc_B_rows = B_rows;
+		loc_B_cols = B_cols;
+
+	} else {
+
+		loc_A_mat = scatterMatrixToGrid(
+			A_mat, A_rows, A_cols,
+			&loc_A_rows, &loc_A_cols,
+			id_grid, grid_dim, grid_coords, comm
+		);
+
+		loc_B_mat = scatterMatrixToGrid(
+			B_mat, B_rows, B_cols,
+			&loc_B_rows, &loc_B_cols,
+			id_grid, grid_dim, grid_coords, comm
+		);
+
+	}
 
 	fprintf(out_file, "Matrice A di dimensione %d x %d:\n", loc_A_rows, loc_A_cols);
 	for (i = 0; i < loc_A_rows; i++) {
@@ -306,7 +334,7 @@ int main(int argc, char **argv) {
 
 	*/
 
-	if (id_grid == 0) {
+	if (n_proc > 1 && id_grid == 0) {
 		free(A_mat);
 		free(B_mat);
 	}
@@ -325,7 +353,7 @@ int main(int argc, char **argv) {
 			sicurezza, si aspetta che tutti i processori siano sincronizzati.
 		*/
 
-		MPI_Barrier(comm_grid);
+		MPI_Barrier(comm);
 
 		/*
 			--- double MPI_Wtime() ---
@@ -343,19 +371,27 @@ int main(int argc, char **argv) {
 	loc_C_cols = loc_B_cols;
 	loc_C_mat = (double*) calloc(loc_C_rows * loc_C_cols, sizeof(double));
 
-	// if (n_proc == 1) {
+	if (n_proc == 1) {
+		bmr_multiply(
+			loc_A_mat, loc_B_mat, loc_C_mat,
+			loc_A_rows, loc_A_cols,
+			loc_B_rows, loc_B_cols,
+			loc_C_rows, loc_C_cols,
+			MPI_COMM_WORLD
+		);
+	} else {
+		for (step = 0; step < grid_dim[0]; step++) {
 
-	// } else {
-		
-	// }
+			// bmr_broadcast();
 
-	bmr_multiply(
-		loc_A_mat, loc_B_mat, loc_C_mat,
-		loc_A_rows, loc_A_cols,
-		loc_B_rows, loc_B_cols,
-		loc_C_rows, loc_C_cols,
-		comm_grid
-	);
+			// bmr_multiply();
+
+			// if (step != grid_dim[0]-1) {
+			// 	bmr_rolling();
+			// }
+
+		}
+	}
 
 	//	SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
 	/*	******************************************************************** */
@@ -384,7 +420,7 @@ int main(int argc, char **argv) {
 				B_rows, B_cols,
 				n_proc, input, test,
 				t_tot,
-				comm_grid
+				comm
 			);
 		}
 	}
@@ -410,7 +446,7 @@ int main(int argc, char **argv) {
 		correttamente il loro carico di lavoro.
 	*/
 
-	MPI_Barrier(comm_grid);
+	MPI_Barrier(comm);
 
 	// Al termine dell'esecuzione, si libera lo spazio allocato in memoria.
 	free(loc_A_mat);
@@ -422,7 +458,7 @@ int main(int argc, char **argv) {
 		if (fclose(out_file) != 0) {
 			printf("Errore durante l'esecuzione!\n");
 			printf("Esecuzione terminata.\n");
-			MPI_Abort(comm_grid, FILE_CLOSING_ERROR);
+			MPI_Abort(comm, FILE_CLOSING_ERROR);
 		}
 
 		printf("\nEsecuzione terminata.\n");

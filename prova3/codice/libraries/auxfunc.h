@@ -45,8 +45,6 @@ void bmr_multiply(
 
 void bmr_rolling();
 
-void bmr();
-
 /*	**************************************************************************** */
 
 #include "auxfunc.c"
