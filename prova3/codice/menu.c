@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
 				/* ************************************************************ */
 				// CREAZIONE DEL FILE DI ESECUZIONE .PBS
 
-				createPBS(A_rows, A_cols, B_rows, B_cols, 9, input, DEFAULT_TEST, NO_TIME_CALC, pbs_count++);
+				createPBS(A_rows, A_cols, B_rows, B_cols, 4, input, DEFAULT_TEST, NO_TIME_CALC, pbs_count++);
 
 				break;
 			}

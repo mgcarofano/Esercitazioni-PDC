@@ -167,15 +167,15 @@ void createPBS(
 	ssize_t chars_read;
 
 	if (pbs_count <= 1) {
-		system(RM_PATH" -rf ../jobs");
-		system(MKDIR_PATH" -p ../jobs");
-		system(MKDIR_PATH" -p ../bin");
+		system(RM_PATH" -rf " NOME_PROVA "/jobs");
+		system(MKDIR_PATH" -p " NOME_PROVA "/jobs");
+		system(MKDIR_PATH" -p " NOME_PROVA "/bin");
 	}
 
-	sprintf(pbs_path, "../jobs/"NOME_PROVA"_%03d.pbs", pbs_count);
+	sprintf(pbs_path, NOME_PROVA "/jobs/"NOME_PROVA"_%03d.pbs", pbs_count);
 
 	if ((pbs_file = fopen(pbs_path, "a")) == NULL) {
-		printf("Errore durante l'esecuzione!\n");
+		printf("Nessun file o directory con questo nome: %s\n", pbs_path);
 		printf("Applicazione terminata.\n");
 		exit(FILE_OPENING_ERROR);
 	}
@@ -204,7 +204,7 @@ void createPBS(
 				"PBS_O_WORKDIR=" PBS_WORKDIR "\n"
 				"PBS_O_EXECUTABLE=" PBS_EXECUTABLE "\n"
 				"\n",
-			pbs_count);
+	pbs_count);
 
 	if (pbs_count <= 1) {
 		fprintf(pbs_file,
@@ -338,18 +338,23 @@ void createPBS(
 	}
 
 	if (time_calc == OK_TIME_CALC) {
-		fprintf(pbs_file, "\ndone\n");
-	} else {
-		fprintf(pbs_file, "\n");
+		fprintf(pbs_file, "\ndone");
 	}
+	
+	fprintf(pbs_file, "\n");
 
 	fprintf(pbs_file,
-				"echo '>>>'\n"
-				"echo PBS: Job completato.\n"
-				"echo --- \n"
+		"echo '>>>'\n"
+		"echo PBS: Job completato.\n"
+		"echo --- \n"
 	);
 
-	fclose(pbs_file);
+	if (fclose(pbs_file) != 0) {
+		printf("Nessun file o directory con questo nome: %s\n", pbs_path);
+		printf("Esecuzione terminata.\n");
+		exit(FILE_CLOSING_ERROR);
+	}
+
 	printf("%s creato con successo!\n\n", pbs_path);
 }
 
