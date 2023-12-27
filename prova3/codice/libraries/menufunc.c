@@ -204,7 +204,7 @@ void createPBS(
 				"PBS_O_WORKDIR=" PBS_WORKDIR "\n"
 				"PBS_O_EXECUTABLE=" PBS_EXECUTABLE "\n"
 				"\n",
-	pbs_count, pbs_count, pbs_count);
+			pbs_count);
 
 	if (pbs_count <= 1) {
 		fprintf(pbs_file,
