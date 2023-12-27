@@ -101,12 +101,12 @@ int main(int argc, char **argv) {
 				checkScelta(test, MULTIPLICATION_IDENTITY_TEST, EXIT_TEST);
 
 				if (test != EXIT_TEST) {
-					for (i = OP_MIN_EXP_TEST; i <= OP_MAX_EXP_TEST; i++) {
+					for (i = MIN_COEFF_TEST; i <= MAX_COEFF_TEST; i++) {
 
 						/*	*************************************************** */
 						//	SCELTA DELLA DIMENSIONE DELLE MATRICI
 
-						A_rows = A_cols = B_rows = B_cols = pow(10, i);
+						A_rows = A_cols = B_rows = B_cols = 4 * 9 * i;
 
 						/* **************************************************** */
 						// CREAZIONE DEL FILE DI ESECUZIONE .PBS

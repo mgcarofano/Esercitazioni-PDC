@@ -183,32 +183,41 @@ void createPBS(
 	fprintf(pbs_file,
 				"#!/bin/bash\n"
 				"\n"
-				"PBS_O_OUTPUT=" PBS_OUTPUT "/" NOME_PROVA "_%03d\n"
-				"PBS_O_WORKDIR=" PBS_WORKDIR "\n"
-				"PBS_O_EXECUTABLE=" PBS_EXECUTABLE "\n"
-				"\n"
 				"#PBS -q studenti\n"
-				"#PBS -l nodes=" NODE_NUMBER,
-	pbs_count);
+				"#PBS -l nodes=" NODE_NUMBER
+	);
 
 	if (time_calc == OK_TIME_CALC) {
 		fprintf(pbs_file, ":ppn=" NODE_PROCESS);
 	}
 	
 	fprintf(pbs_file,
-				"\n#PBS -N " NOME_PROVA "_%03d\n"
-				"#PBS -o $PBS_O_OUTPUT/std.out\n"
-				"#PBS -e $PBS_O_OUTPUT/std.err\n"
+				"\n"
+				"#PBS -N " NOME_PROVA "_%03d\n"
+				"#PBS -o ../output/" NOME_PROVA "_%03d/std.out\n"
+				"#PBS -e ../output/" NOME_PROVA "_%03d/std.err\n",
+	pbs_count, pbs_count, pbs_count);
+
+	fprintf(pbs_file,
+				"\n"
+				"PBS_O_OUTPUT=$PBS_O_HOME/" NOME_PROVA "/output/" NOME_PROVA "_%03d\n"
+				"PBS_O_WORKDIR=" PBS_WORKDIR "\n"
+				"PBS_O_EXECUTABLE=" PBS_EXECUTABLE "\n"
 				"\n",
 	pbs_count, pbs_count, pbs_count);
 
 	if (pbs_count <= 1) {
 		fprintf(pbs_file,
-				"rm -fr $PBS_O_OUTPUT\n"
-				"mkdir -p $PBS_O_OUTPUT\n"
-				"\n"
+			RM_PATH " -fr $PBS_O_EXECUTABLE\n"
+			MKDIR_PATH " -p $PBS_O_EXECUTABLE\n"
+			"\n"
 		);
 	}
+	fprintf(pbs_file,
+		RM_PATH " -fr $PBS_O_OUTPUT\n"
+		MKDIR_PATH " -p $PBS_O_OUTPUT\n"
+		"\n"
+	);
 
 	fprintf(pbs_file, "echo --- \n");
 
@@ -218,7 +227,9 @@ void createPBS(
 	
 	fprintf(pbs_file,
 				"\n"
+				"echo PBS: la directory degli output e\\' $PBS_O_OUTPUT\n"
 				"echo PBS: la directory di lavoro e\\' $PBS_O_WORKDIR\n"
+				"echo PBS: la directory degli eseguibili e\\' $PBS_O_EXECUTABLE\n"
 				"echo PBS: Compilazione in esecuzione...\n"
 				COMPILER_PATH " -o $PBS_O_EXECUTABLE/" NOME_PROVA "_%03d -lm $PBS_O_WORKDIR/" NOME_PROVA ".c\n"
 				"echo PBS: Compilazione completata.\n"
