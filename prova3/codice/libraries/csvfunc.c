@@ -129,7 +129,7 @@ void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat,
 }
 
 void writeTimeCSV(
-	const char* out_path,
+	const char* csv_path,
 	int A_rows, int A_cols,
 	int B_rows, int B_cols,
 	int n_proc, int input, int test,
@@ -142,9 +142,9 @@ void writeTimeCSV(
 
 	system(MKDIR_PATH" -p "CSV_TIME_PATH);
 
-	if ((csv_file = fopen(out_path, "a")) == NULL) {
-		printf("Errore durante l'esecuzione!\n");
-		printf("Applicazione terminata.\n");
+	if ((csv_file = fopen(csv_path, "a")) == NULL) {
+		printf("Nessun file o directory con questo nome: %s\n", csv_path);
+		printf("Esecuzione terminata.\n");
 		MPI_Abort(comm, FILE_OPENING_ERROR);
 	}
 
@@ -160,13 +160,15 @@ void writeTimeCSV(
 		A_rows, A_cols, B_rows, B_cols, n_proc, input, test, t_tot
 	);
 
+	fprintf(csv_file, "\n");
+
 	if (fclose(csv_file) != 0) {
-		printf("Errore durante l'esecuzione!\n");
-		printf("Applicazione terminata.\n");
+		printf("Nessun file o directory con questo nome: %s\n", csv_path);
+		printf("Esecuzione terminata.\n");
 		MPI_Abort(comm, FILE_CLOSING_ERROR);
 	}
 
-	printf("%s aggiornato con successo!\n\n", out_path);
+	printf("%s aggiornato con successo!\n\n", csv_path);
 
 }
 
@@ -175,4 +177,5 @@ void writeTimeCSV(
 	
 	https://rookiehpc.org/mpi/docs/mpi_file_open/index.html
 	https://stackoverflow.com/questions/27667758/mpi-file-read-is-not-ending
+	
 */

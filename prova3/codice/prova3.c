@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 
 	int input = DEFAULT_INPUT, test = DEFAULT_TEST, time_calc = NO_TIME_CALC;
-	int pbs_count = 0, check_test = 0;
+	int pbs_count = 0, check_test = 1;
 
 	int i = 0, j = 0, k = 0, step = 0;
 
@@ -269,17 +269,17 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 
 	if (n_proc == 1) {
-		sprintf(out_path, "../output/" NOME_PROVA "_%03d/proc%d.out",
+		sprintf(out_path, NOME_PROVA "/output/" NOME_PROVA "_%03d/proc%d.out",
 			pbs_count, id_proc
 		);
 	} else {
-		sprintf(out_path, "../output/" NOME_PROVA "_%03d/proc%d_%02d_%02d.out",
+		sprintf(out_path, NOME_PROVA "/output/" NOME_PROVA "_%03d/proc%d_%02d_%02d.out",
 			pbs_count, id_proc, grid_coords[0], grid_coords[1]
 		);
 	}
 	
 	if ((out_file = fopen(out_path, "w")) == NULL) {
-		printf("Errore durante l'esecuzione!\n");
+		printf("Nessun file o directory con questo nome: %s\n", out_path);
 		printf("Esecuzione terminata.\n");
 		MPI_Abort(comm, FILE_OPENING_ERROR);
 	}
@@ -537,7 +537,7 @@ int main(int argc, char **argv) {
 	if (id_proc == 0) {
 
 		if (fclose(out_file) != 0) {
-			printf("Errore durante l'esecuzione!\n");
+			printf("Nessun file o directory con questo nome: %s\n", out_path);
 			printf("Esecuzione terminata.\n");
 			MPI_Abort(comm, FILE_CLOSING_ERROR);
 		}
@@ -554,5 +554,7 @@ int main(int argc, char **argv) {
 	************************************************************************
 
 	https://code.visualstudio.com/docs/editor/codebasics#_fold-selection
-
+	https://pubs.opengroup.org/onlinepubs/007904975/functions/getcwd.html
+	https://stackoverflow.com/questions/66397329/why-is-this-code-giving-a-stray-in-program-error
+	
 */
