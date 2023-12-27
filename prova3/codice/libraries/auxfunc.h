@@ -54,7 +54,6 @@ void bmr_multiply(
 void bmr_rolling(
 	double* mat, double* tmp,
 	int rows, int cols,
-	int step,
 	MPI_Comm comm_col
 );
 

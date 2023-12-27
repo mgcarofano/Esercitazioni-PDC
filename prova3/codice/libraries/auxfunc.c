@@ -336,32 +336,64 @@ void bmr_multiply(
 void bmr_rolling(
 	double* mat, double* tmp,
 	int rows, int cols,
-	int step,
 	MPI_Comm comm_col
 ) {
 
+	// int id_proc = 0;
 	int col_size = 0, col_rank = 0;
 	int dest = 0, source = 0;
 	MPI_Status status;
 
+	// MPI_Comm_rank(comm, &id_proc);
+
 	MPI_Comm_size(comm_col, &col_size);
 	MPI_Comm_rank(comm_col, &col_rank);
 
-	dest = (col_rank - 1) % col_size;
-	if (dest < 0) {
-		dest = (dest + col_size) % col_size;
-	}
+	/*
+	
+		Si calcolano gli identificativi dei processori nel comunicatore
+		di colonna alla quale inviare (dest) e dalla quale ricevere (source)
+		il blocco di matrice per la fase di rolling.
+
+	*/
 
 	source = (col_rank + 1) % col_size;
-	if (source < 0) {
-		source = (source + col_size) % col_size;
+	dest = (col_rank - 1) % col_size;
+
+	/*
+	
+		A questo punto si dividono due casi:
+		-	Se il modulo calcolato per l'identificativo 'dest' e' negativo,
+			allora il processore chiamante si trova ai confini della griglia.
+			In questo caso, si effettua prima l'operazione di MPI_Recv e poi
+			l'operazione di MPI_Send.
+		-	In caso opposto, si effettua prima l'operazione di MPI_Send e poi
+			l'operazione di MPI_Recv.
+		
+		E' stata implementata questa politica di comunicazione per evitare
+		un eventuale deadlock, cioe' una situazione in cui tutti i processori
+		invocano contemporaneamente una chiamata a MPI_Send o MPI_Recv.
+	
+	*/
+
+	if (dest < 0) {
+		// Si ricalcola l'identificativo 'dest' perche' non puo' essere negativo.
+		dest = (dest + col_size) % col_size;
+		MPI_Recv(&(*tmp), rows * cols, MPI_DOUBLE, source, ROLLING_TAG, comm_col, &status);
+		MPI_Send(&(*mat), rows * cols, MPI_DOUBLE, dest, ROLLING_TAG, comm_col);
+	} else {
+		MPI_Send(&(*mat), rows * cols, MPI_DOUBLE, dest, ROLLING_TAG, comm_col);
+		MPI_Recv(&(*tmp), rows * cols, MPI_DOUBLE, source, ROLLING_TAG, comm_col, &status);
 	}
 
-	// fprintf(out_file, "col_size: %d, col_rank: %d, dest: %d, source: %d\n", col_size, col_rank, dest, source);
+	// if (dest < 0) {
+	// 	printf("\t%d (%d) RECV from %d\n", col_rank, id_proc, source);
+	// 	printf("\t%d (%d) SEND to %d\n", col_rank, id_proc, dest);
+	// } else {
+	// 	printf("\t%d (%d) SEND to %d\n", col_rank, id_proc, dest);
+	// 	printf("\t%d (%d) RECV from %d\n", col_rank, id_proc, source);
+	// }
 
-	MPI_Send(&(*mat), rows * cols, MPI_DOUBLE, dest, step * ROLLING_TAG, comm_col);
-	MPI_Recv(&(*tmp), rows * cols, MPI_DOUBLE, source, step * ROLLING_TAG, comm_col, &status);
-	
 }
 
 /*	***************************************************************************
@@ -369,5 +401,6 @@ void bmr_rolling(
 
 	https://www.cs.csi.cuny.edu/~gu/teaching/courses/csc76010/slides/Matrix%20Multiplication%20by%20Nur.pdf
 	https://www.geeksforgeeks.org/modulus-on-negative-numbers/
+	https://stackoverflow.com/questions/12923039/mpi-send-receive-programme-never-completes
 	
 */
