@@ -196,20 +196,20 @@
 #define OP_MAX_QUANTITY 32
 
 /*
-    OP_MIN_EXP_TEST: int
-    Si utilizza come esponente minimo per determinare la quantita' di
-	operandi nella creazione dei casi di test.
+    MIN_COEFF_TEST: int
+    Si utilizza come coefficiente minimo per determinare le dimensioni delle
+	matrici nella creazione dei casi di test.
 */
 
-#define OP_MIN_EXP_TEST 2
+#define MIN_COEFF_TEST 1
 
 /*
-    OP_MAX_EXP_TEST: int
-    Si utilizza come esponente massimo per determinare la quantita' di
-	operandi nella creazione dei casi di test.
+    MAX_COEFF_TEST: int
+    Si utilizza come coefficiente massimo per determinare le dimensioni delle
+	matrici nella creazione dei casi di test.
 */
 
-#define OP_MAX_EXP_TEST 4
+#define MAX_COEFF_TEST 3
 
 /*
 	NO_TIME_CALC: int
@@ -250,18 +250,12 @@
 
 /*
 	MKDIR_PATH: char*
-	Si utilizza per indicare alla funzione system() il percorso
-	sul cluster dell'eseguibile 'mkdir'.
+	RM_PATH: char*
+	Si utilizza per indicare alle funzioni system() e createPBS() i percorsi
+	sul cluster degli eseguibili 'mkdir' e 'rm'.
 */
 
 #define MKDIR_PATH "/bin/mkdir"
-
-/*
-	RM_PATH: char*
-	Si utilizza per indicare alla funzione system() il percorso
-	sul cluster dell'eseguibile 'rm'.
-*/
-
 #define RM_PATH "/bin/rm"
 
 /*
@@ -333,7 +327,7 @@
 	 
 */
 
-#define CSV_TIME_PATH "../output"
+#define CSV_TIME_PATH "" NOME_PROVA "/output"
 
 /*
 	OP_MAX_VALUE: int
