@@ -210,12 +210,12 @@ double* scatterMatrixToGrid(
     displs = (int*) calloc(grid_dim[0] * grid_dim[1], sizeof(int));
 	// int displs[9] = {0, 1, 2, 9, 10, 11, 18, 19, 20};
 
-    for (int i = 0; i < grid_dim[0]; i++) {
+    for (i = 0; i < grid_dim[0]; i++) {
 
         // printf("%d - send: ", id_grid);
         // printf("%d - displ: ", id_grid);
 
-        for (int j = 0; j < grid_dim[1]; j++) {
+        for (j = 0; j < grid_dim[1]; j++) {
             send_counts[i*grid_dim[1] + j] = 1;
             displs[i*grid_dim[1] + j] = ((i * mat_cols * *loc_rows) + (j * *loc_cols)) / *loc_cols;
 
