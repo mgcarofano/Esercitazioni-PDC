@@ -5,7 +5,7 @@ PBS_O_WORKDIR=$PBS_O_HOME/prova3/codice
 PBS_O_EXECUTABLE=$PBS_O_HOME/prova3/bin
 
 #PBS -q studenti
-#PBS -l nodes=8
+#PBS -l nodes=8:ppn=8
 #PBS -N prova3_001
 #PBS -o $PBS_O_OUTPUT/std.out
 #PBS -e $PBS_O_OUTPUT/std.err
