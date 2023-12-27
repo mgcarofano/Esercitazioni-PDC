@@ -9,20 +9,23 @@
 /*	*************************************************************************** */
 //	COSTANTI
 
-#define ROWS_FIELD 0
-#define COLS_FIELD 1
-#define THREADS_FIELD 2
-#define TEST_FIELD 3
-#define TIME_FIELD 4
+#define A_ROWS 0
+#define A_COLS 1
+#define B_ROWS 2
+#define B_COLS 3
+#define N_PROC 4
+#define INPUT 5
+#define TEST 6
+#define TIME 7
 
 #define BURST_SIZE 10
 
 /*	*************************************************************************** */
 //	LIBRERIE E ALTRE FUNZIONI
 
-#include "./libraries/auxfunc.h"
+#include "libraries/csvfunc.h"
 
-void calcola_media(double **mat, int rows) {
+void calcola_media(double *mat, int rows, int cols, MPI_Comm comm) {
 
 	double avg = 0.0;
 	int i = 0, k = 0;
@@ -31,26 +34,33 @@ void calcola_media(double **mat, int rows) {
 		avg = 0.0;
 
 		for (i = 0; i < BURST_SIZE; i++) {
-			avg += mat[k+i][TIME_FIELD];
+			avg += mat[(k+i)*cols + TIME];
 		}
 
 		avg /= BURST_SIZE;
 
-		// printf("%1.0f,%1.0f,%1.0f,%1.0f,%1.9f\n",
-		// 	mat[k][ROWS_FIELD],
-		// 	mat[k][COLS_FIELD],
-		// 	mat[k][THREADS_FIELD],
-		// 	mat[k][TEST_FIELD],
+		// printf("%d,%d,%d,%d,%d,%d,%d,%1.9f\n",
+		// 	(int) mat[k*cols + A_ROWS],
+		// 	(int) mat[k*cols + A_COLS],
+		// 	(int) mat[k*cols + B_ROWS],
+		// 	(int) mat[k*cols + B_COLS],
+		// 	(int) mat[k*cols + N_PROC],
+		// 	(int) mat[k*cols + INPUT],
+		// 	(int) mat[k*cols + TEST],
 		// 	avg
 		// );
 
 		writeTimeCSV(
 			CSV_TIME_PATH"/"NOME_PROVA"_time_avg.csv",
-			(int) mat[k][ROWS_FIELD],
-			(int) mat[k][COLS_FIELD],
-			(int) mat[k][THREADS_FIELD],
-			(int) mat[k][TEST_FIELD],
-			avg
+			(int) mat[k*cols + A_ROWS],
+			(int) mat[k*cols + A_COLS],
+			(int) mat[k*cols + B_ROWS],
+			(int) mat[k*cols + B_COLS],
+			(int) mat[k*cols + N_PROC],
+			(int) mat[k*cols + INPUT],
+			(int) mat[k*cols + TEST],
+			avg,
+			comm
 		);
 	}
 }
@@ -59,25 +69,34 @@ void calcola_media(double **mat, int rows) {
 
 int main(int argc, char **argv) {
 
-	int rows = 0, cols = 0, i = 0;
-	char *csv_path = NULL;
-	double **mat = NULL;
+	int csv_rows = 0, csv_cols = 0, csv_size = 0;
+	int i = 0;
+	double *mat = NULL;
+	FILE *csv_mat = NULL;
 
-	csv_path = argv[1];
-	rows = getRowsFromCSV(csv_path);
-	cols = getColsFromCSV(csv_path);
+	MPI_Init(&argc, &argv);
 
-	mat = (double**) calloc(rows, sizeof(double*));
-	for (i = 0; i < rows; i++) {
-		mat[i] = (double*) calloc(cols, sizeof(double));
+	if ((csv_mat = fopen(argv[1], "r")) == NULL) {
+		printf("Nessun file o directory con questo nome: %s\n", argv[1]);
+		printf("Applicazione terminata.\n");
+		MPI_Abort(MPI_COMM_WORLD, FILE_OPENING_ERROR);
 	}
 
-	// printf("rows: %d, cols: %d\n", rows, cols);
+	getDimensionsFromCSV(csv_mat, &csv_size, &csv_rows, &csv_cols);
+	// printf("csv_rows: %d, csv_cols: %d\n", csv_rows, csv_cols);
 
-	getMatrixFromCSV(csv_path, mat, rows, cols);
-	calcola_media(mat, rows);
-	freeMatrix(mat, rows);
+	mat = (double*) calloc(csv_rows * csv_cols, sizeof(double));
 
+	getMatrixFromCSV(csv_mat, mat, csv_rows, csv_cols, MPI_COMM_WORLD);
+	calcola_media(mat, csv_rows, csv_cols, MPI_COMM_WORLD);
+
+	if ((fclose(csv_mat)) != 0) {
+		printf("Nessun file o directory con questo nome: %s\n", argv[1]);
+		printf("Applicazione terminata.\n");
+		MPI_Abort(MPI_COMM_WORLD, FILE_CLOSING_ERROR);
+	}
+
+	free(mat);
+	MPI_Finalize();
 	return 0;
-
 }

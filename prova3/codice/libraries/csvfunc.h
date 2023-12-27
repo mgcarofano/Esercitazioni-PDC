@@ -12,12 +12,15 @@
 #ifndef CSVFUNCTIONS_H
 #define CSVFUNCTIONS_H
 
+#include "mpi.h"
+#include <stdio.h>
+
 /*	*************************************************************************** */
 //	DEFINIZIONE DELLE FUNZIONI
 
 void getDimensionsFromCSV(FILE* csv_file, int* size, int* rows_csv, int* cols_csv);
 
-void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat, MPI_Comm comm);
+void getMatrixFromCSV(FILE* csv_file, double* mat, int rows_mat, int cols_mat, MPI_Comm comm);
 
 void writeTimeCSV(
 	const char* csv_path,

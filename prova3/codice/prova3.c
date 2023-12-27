@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 	int *grid_dim = NULL, *period = NULL, *grid_coords = NULL, *remain_dims = NULL;
 	int *start_coords = NULL, *end_coords = NULL;
 	
-	FILE* out_file;
+	FILE *csv_A_mat = NULL, *csv_B_mat = NULL, *out_file = NULL;
 	char out_path[PATH_MAX_LENGTH] = {};
 
 	MPI_Comm comm, comm_row, comm_col;
@@ -142,6 +142,8 @@ int main(int argc, char **argv) {
 
 	}
 
+	// if (id_proc == 0) printf("Lettura degli argomenti completata.\n");
+
 	MPI_Bcast(&A_rows, 1, MPI_INT, 0, comm);
 	MPI_Bcast(&A_cols, 1, MPI_INT, 0, comm);
 	MPI_Bcast(&B_rows, 1, MPI_INT, 0, comm);
@@ -155,6 +157,8 @@ int main(int argc, char **argv) {
 	MPI_Bcast(&time_calc, 1, MPI_INT, 0, comm);
 
 	MPI_Bcast(&pbs_count, 1, MPI_INT, 0, comm);
+
+	// if (id_proc == 0) printf("Distribuzione degli argomenti completata.\n");
 
 	//	CREAZIONE DELLA GRIGLIA BIDIMENSIONALE
 	/*	******************************************************************** */
@@ -175,7 +179,6 @@ int main(int argc, char **argv) {
 		period[1] = 1;
 
 		MPI_Cart_create(MPI_COMM_WORLD, 2, grid_dim, period, 0, &comm);
-		// MPI_Comm_rank(comm, &id_grid);
 		MPI_Cart_coords(comm, id_proc, 2, grid_coords);
 
 		remain_dims[0] = 0;
@@ -187,6 +190,8 @@ int main(int argc, char **argv) {
 		MPI_Cart_sub(comm, remain_dims, &comm_col);
 
 	}
+
+	// if (id_proc == 0) printf("Creazione della griglia completata.\n");
 
 	//	LETTURA E/O GENERAZIONE DEGLI ELEMENTI DELLA MATRICE
 	/*	******************************************************************** */
@@ -233,8 +238,33 @@ int main(int argc, char **argv) {
 					}
 					case VALUES_FROM_CSV:
 					{
-						getMatrixFromCSV(argv[ARGS_QUANTITY+1], A_mat, A_rows, A_cols, comm);
-						getMatrixFromCSV(argv[ARGS_QUANTITY+2], B_mat, B_rows, B_cols, comm);
+						if ((csv_A_mat = fopen(argv[ARGS_QUANTITY+1], "r")) == NULL) {
+							printf("Nessun file o directory con questo nome: %s\n", argv[ARGS_QUANTITY+1]);
+							printf("Applicazione terminata.\n");
+							MPI_Abort(comm, FILE_OPENING_ERROR);
+						}
+
+						if ((csv_B_mat = fopen(argv[ARGS_QUANTITY+2], "r")) == NULL) {
+							printf("Nessun file o directory con questo nome: %s\n", argv[ARGS_QUANTITY+2]);
+							printf("Applicazione terminata.\n");
+							MPI_Abort(comm, FILE_OPENING_ERROR);
+						}
+
+						getMatrixFromCSV(csv_A_mat, A_mat, A_rows, A_cols, comm);
+						getMatrixFromCSV(csv_B_mat, B_mat, B_rows, B_cols, comm);
+
+						if (fclose(csv_A_mat) != 0) {
+							printf("Nessun file o directory con questo nome: %s\n", argv[ARGS_QUANTITY+1]);
+							printf("Applicazione terminata.\n");
+							MPI_Abort(comm, FILE_CLOSING_ERROR);
+						}
+
+						if (fclose(csv_B_mat) != 0) {
+							printf("Nessun file o directory con questo nome: %s\n", argv[ARGS_QUANTITY+2]);
+							printf("Applicazione terminata.\n");
+							MPI_Abort(comm, FILE_CLOSING_ERROR);
+						}
+
 						break;
 					}
 					default:
@@ -284,6 +314,8 @@ int main(int argc, char **argv) {
 		MPI_Abort(comm, FILE_OPENING_ERROR);
 	}
 
+	// if (id_proc == 0) printf("File di output creato.\n");
+
 	if (n_proc == 1) {
 
 		loc_A_mat = A_mat;
@@ -310,6 +342,8 @@ int main(int argc, char **argv) {
 
 	}
 
+	// if (id_proc == 0) printf("Distribuzione delle matrici completata.\n");
+
 	fprintf(out_file, "\nMatrice A di dimensione %d x %d:\n", loc_A_rows, loc_A_cols);
 	fprintfMatrix(out_file, loc_A_mat, loc_A_rows, loc_A_cols, "%f\t");
 
@@ -332,6 +366,8 @@ int main(int argc, char **argv) {
 		free(A_mat);
 		free(B_mat);
 	}
+
+	// if (id_proc == 0) printf("Pulizia della memoria completata.\n");
 	
 	// 	INIZIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
 	/*	******************************************************************** */
@@ -392,6 +428,8 @@ int main(int argc, char **argv) {
 
 		for (step = 0; step < grid_dim[1]; step++) {
 
+			MPI_Barrier(comm);
+			// if (id_proc == 0) printf("\n--- PASSO %d ---\n\n", step+1);
 			// fprintf(out_file, "\n--- PASSO %d ---\n", step+1);
 
 			bmr_broadcast(
@@ -401,6 +439,7 @@ int main(int argc, char **argv) {
 				comm, comm_row
 			);
 
+			// if (id_proc == 0) printf("\tBROADCAST\n");
 			// fprintf(out_file, "\nBROADCAST:\n");
 			// fprintf(out_file, "Matrice tmp_A di dimensione %d x %d:\n", loc_A_rows, loc_A_cols);
 			// fprintfMatrix(out_file, tmp_A_mat, loc_A_rows, loc_A_cols, "%f\t");
@@ -419,10 +458,10 @@ int main(int argc, char **argv) {
 				bmr_rolling(
 					loc_B_mat, tmp_B_mat,
 					loc_B_rows, loc_B_cols,
-					step,
 					comm_col
 				);
 
+				// if (id_proc == 0) printf("\tROLLING\n");
 				// fprintf(out_file, "\nROLLING:\n");
 				// fprintf(out_file, "Matrice tmp_B di dimensione %d x %d:\n", loc_B_rows, loc_B_cols);
 				// fprintfMatrix(out_file, tmp_B_mat, loc_B_rows, loc_B_cols, "%f\t");
@@ -436,16 +475,20 @@ int main(int argc, char **argv) {
 				);
 			}
 
+			// if (id_proc == 0) printf("\tMULTIPLY\n");
 			// fprintf(out_file, "\nMULTIPLY:\n");
 			// fprintf(out_file, "Matrice loc_C di dimensione %d x %d:\n", loc_C_rows, loc_C_cols);
 			// fprintfMatrix(out_file, loc_C_mat, loc_C_rows, loc_C_cols, "%f\t");
 
+			// if (id_proc == 0) printf("\n-----\n");
 			// fprintf(out_file, "\n-----\n", step);
 		}
 
 		free(tmp_A_mat);
 		free(tmp_B_mat);
 	}
+
+	// if (id_proc == 0) printf("Applicazione dell'algoritmo BMR completato.");
 
 	//	SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
 	/*	******************************************************************** */
@@ -465,7 +508,6 @@ int main(int argc, char **argv) {
 		*/
 
 		MPI_Reduce(&t_loc, &t_tot, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
-
 
 		if (id_proc == 0) {
 

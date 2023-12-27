@@ -7,6 +7,13 @@
 */
 
 /*	*************************************************************************** */
+//	LIBRERIE
+
+#include "constants.c"
+#include "auxfunc.h"
+#include <stdlib.h>
+
+/*	*************************************************************************** */
 //	CODICE DELLE FUNZIONI DEFINITE IN 'csvfunc.h'
 
 void getDimensionsFromCSV(FILE* csv_file, int* size, int* rows_csv, int* cols_csv) {
@@ -48,22 +55,15 @@ void getDimensionsFromCSV(FILE* csv_file, int* size, int* rows_csv, int* cols_cs
 	fseek(csv_file, 0, SEEK_SET);
 }
 
-void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat, MPI_Comm comm) {
+void getMatrixFromCSV(FILE* csv_file, double* mat, int rows_mat, int cols_mat, MPI_Comm comm) {
 
-	FILE *file;
 	char c, char_val[CSV_FIELD_PRECISION] = {};
 	int size = 0, rows_csv = 0, cols_csv = 0;
 
 	int i = -1, file_pointer = -1;
 	int row_count = 0, comma_count = 0;
 
-	if ((file = fopen(path, "r")) == NULL) {
-		printf("Errore durante l'esecuzione!\n");
-		printf("Applicazione terminata.\n");
-		MPI_Abort(comm, FILE_OPENING_ERROR);
-	}
-
-	getDimensionsFromCSV(file, &size, &rows_csv, &cols_csv);
+	getDimensionsFromCSV(csv_file, &size, &rows_csv, &cols_csv);
 
 	// printf("size: %d\n", size);
 	// printf("rows_csv: %d, cols_csv: %d\n", rows_csv, cols_csv);
@@ -78,7 +78,7 @@ void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat,
 	do {
 		++file_pointer;
 		++i;
-		c = fgetc(file);
+		c = fgetc(csv_file);
 
 		// printf("%c", c);
 		if (c != CSV_FIELDS_SEPARATOR) {
@@ -120,12 +120,6 @@ void getMatrixFromCSV(const char* path, double* mat, int rows_mat, int cols_mat,
 
 	} while (file_pointer < size);
 
-	if (fclose(file) != 0) {
-		printf("Errore durante l'esecuzione!\n");
-		printf("Applicazione terminata.\n");
-		MPI_Abort(comm, FILE_CLOSING_ERROR);
-	}
-
 }
 
 void writeTimeCSV(
@@ -159,8 +153,6 @@ void writeTimeCSV(
 	fprintf(csv_file, "%d,%d,%d,%d,%d,%d,%d,%1.9f",
 		A_rows, A_cols, B_rows, B_cols, n_proc, input, test, t_tot
 	);
-
-	fprintf(csv_file, "\n");
 
 	if (fclose(csv_file) != 0) {
 		printf("Nessun file o directory con questo nome: %s\n", csv_path);
