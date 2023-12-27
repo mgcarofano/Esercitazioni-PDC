@@ -11,6 +11,7 @@ PBS_O_OUTPUT=$PBS_O_HOME/prova3/output/prova3_001
 PBS_O_WORKDIR=$PBS_O_HOME/prova3/codice
 PBS_O_EXECUTABLE=$PBS_O_HOME/prova3/bin
 
+sort -u $PBS_NODEFILE > hostlist
 
 rm -fr $PBS_O_OUTPUT
 mkdir -p $PBS_O_OUTPUT
