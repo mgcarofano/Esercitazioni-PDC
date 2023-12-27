@@ -23,10 +23,6 @@ mpirun:
 	mpiexec -machinefile $(home)/hostfile -np 9 $(prova2)/$(file)
 	rm -f $(prova2)/$(file)
 
-#	mpicc prova3.c -o prova3
-#	mpiexec -machinefile /project/hostfile -np 9 prova3 9 9 9 9 1 0 0 1
-#	mpiexec -machinefile /project/hostfile -np 9 prova3 9 9 9 9 2 0 0 1 ../input/A_mat.csv ../input/B_mat.csv
-
 #	Da utilizzare nella cartella 'prova1/jobs'
 mpirun_prova1:
 	mkdir -p $(home)/prova1/output
@@ -56,6 +52,51 @@ clang-openmp-run:
 #	clang -Xclang -fopenmp -L/opt/homebrew/opt/libomp/lib -I/opt/homebrew/opt/libomp/include -lomp prova2.c -o prova2
 #	./prova2 100 100 1 3 1
 
+prova3_workdir=prova3/codice
+prova3_output=prova3/output
+prova3_bin=prova3/bin
+id_test=prova3_028
+
+prova3_input=0
+prova3_test=3
+prova3_time=1
+
+menu_prova3:
+	mkdir -p $(prova3_bin)
+	gcc -o $(prova3_bin)/menu -lm $(prova3_workdir)/menu.c
+	./$(prova3_bin)/menu
+
+mpirun_prova3:
+	mkdir -p $(prova3_bin)
+	rm -fr $(prova3_output)/$(id_test)
+	mkdir -p $(prova3_output)/$(id_test)
+	mpicc -o $(prova3_bin)/$(id_test) -lm $(prova3_workdir)/prova3.c
+	mpiexec -machinefile /project/hostfile -np 4 $(prova3_bin)/$(id_test) 4 4 4 4 2 0 0 28 prova3/input/A_mat.csv prova3/input/B_mat.csv
+
+test_prova3:
+	mkdir -p $(prova3_bin)
+	val=0 ; \
+	for dim in 36 72 108 ; do \
+		for ncpu in 1 4 9 ; do \
+			val=$$((val+1)) ; \
+			rm -fr $(prova3_output)/prova3_00$$val ; \
+			mkdir -p $(prova3_output)/prova3_00$$val ; \
+			mpicc -o $(prova3_bin)/prova3_00$$val -lm $(prova3_workdir)/prova3.c ; \
+			for i in $(shell seq 10) ; do \
+				mpiexec -machinefile /project/hostfile -np $$ncpu $(prova3_bin)/prova3_00$$val \
+				$$dim $$dim $$dim $$dim $(prova3_input) $(prova3_test) $(prova3_time) $$val \
+				1> $(prova3_output)/prova3_00$$val/std.out \
+				2> $(prova3_output)/prova3_00$$val/std.err ; \
+			done ; \
+		done ; \
+	done
+
+media_prova3:
+	mkdir -p $(prova3_bin)
+	mpicc -o $(prova3_bin)/media-csv -lm $(prova3_workdir)/media-csv.c
+	mpiexec -machinefile /project/hostfile -np 1 $(prova3_bin)/media-csv $(prova3_output)/prova3_time.csv
+
+#	RIFERIMENTI
 #	https://unix.stackexchange.com/questions/193368/can-scp-create-a-directory-if-it-doesnt-exist
 #	https://discussions.apple.com/thread/8336714
 #	https://codeforces.com/blog/entry/88063
