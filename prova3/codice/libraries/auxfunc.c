@@ -396,6 +396,107 @@ void bmr_rolling(
 
 }
 
+void bmr(
+	double* A_mat, double* B_mat, double* C_mat,
+	int A_rows, int A_cols,
+	int B_rows, int B_cols,
+	int C_rows, int C_cols,
+	int *grid_dim,
+	MPI_Comm comm, MPI_Comm comm_row, MPI_Comm comm_col 
+) {
+
+	int n_proc = 0, id_proc = 0;
+	int step = 0;
+
+	double *tmp_A_mat = NULL, *tmp_B_mat = NULL;
+
+	MPI_Comm_size(comm, &n_proc);
+	// MPI_Comm_rank(comm, &id_proc);
+
+	if (n_proc == 1) {
+
+		bmr_multiply(
+			A_mat, B_mat, C_mat,
+			A_rows, A_cols,
+			B_rows, B_cols,
+			C_rows, C_cols,
+			comm
+		);
+
+	} else {
+
+		tmp_A_mat = (double*) calloc(A_rows * A_cols, sizeof(double));
+		tmp_B_mat = (double*) calloc(B_rows * B_cols, sizeof(double));
+
+		if (!tmp_A_mat && !tmp_B_mat) {
+			printf("Le matrici locali non sono state allocate correttamente!\n");
+			printf("Esecuzione terminata.\n");
+			MPI_Abort(comm, ALLOCATION_ERROR);
+		}
+
+		for (step = 0; step < grid_dim[1]; step++) {
+
+			MPI_Barrier(comm);
+			// if (id_proc == 0) printf("\n--- PASSO %d ---\n\n", step+1);
+			// fprintf(out_file, "\n--- PASSO %d ---\n", step+1);
+
+			bmr_broadcast(
+				A_mat, tmp_A_mat,
+				A_rows, A_cols,
+				step,
+				comm, comm_row
+			);
+
+			// if (id_proc == 0) printf("\tBROADCAST\n");
+			// fprintf(out_file, "\nBROADCAST:\n");
+			// fprintf(out_file, "Matrice tmp_A di dimensione %d x %d:\n", A_rows, A_cols);
+			// fprintfMatrix(out_file, tmp_A_mat, A_rows, A_cols, "%f\t");
+
+			if (step == 0) {
+
+				bmr_multiply(
+					tmp_A_mat, B_mat, C_mat,
+					A_rows, A_cols,
+					B_rows, B_cols,
+					C_rows, C_cols,
+					comm
+				);
+
+			} else {
+				bmr_rolling(
+					B_mat, tmp_B_mat,
+					B_rows, B_cols,
+					comm_col
+				);
+
+				// if (id_proc == 0) printf("\tROLLING\n");
+				// fprintf(out_file, "\nROLLING:\n");
+				// fprintf(out_file, "Matrice tmp_B di dimensione %d x %d:\n", B_rows, B_cols);
+				// fprintfMatrix(out_file, tmp_B_mat, B_rows, B_cols, "%f\t");
+
+				bmr_multiply(
+					tmp_A_mat, tmp_B_mat, C_mat,
+					A_rows, A_cols,
+					B_rows, B_cols,
+					C_rows, C_cols,
+					comm
+				);
+			}
+
+			// if (id_proc == 0) printf("\tMULTIPLY\n");
+			// fprintf(out_file, "\nMULTIPLY:\n");
+			// fprintf(out_file, "Matrice C di dimensione %d x %d:\n", C_rows, C_cols);
+			// fprintfMatrix(out_file, C_mat, C_rows, C_cols, "%f\t");
+
+			// if (id_proc == 0) printf("\n-----\n");
+			// fprintf(out_file, "\n-----\n", step);
+		}
+
+		free(tmp_A_mat);
+		free(tmp_B_mat);
+	}
+}
+
 /*	***************************************************************************
 	RIFERIMENTI
 

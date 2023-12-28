@@ -22,21 +22,22 @@ int main(int argc, char **argv) {
 	int input = DEFAULT_INPUT, test = DEFAULT_TEST, time_calc = NO_TIME_CALC;
 	int pbs_count = 0, check_test = 1;
 
-	int i = 0, j = 0, k = 0, step = 0;
+	int i = 0, j = 0, k = 0;
 
 	double *A_mat = NULL, *B_mat = NULL;
-	int A_rows = 0, A_cols = 0, B_rows = 0, B_cols = 0;
-	int q_num = 0;
+	int A_rows = 0, A_cols = 0;
+	int B_rows = 0, B_cols = 0;
 
-	double *loc_A_mat = NULL, *loc_B_mat = NULL, *loc_C_mat = NULL;
+	double *loc_A_mat = NULL, *loc_B_mat = NULL;
 	int loc_A_rows = 0, loc_A_cols = 0;
 	int loc_B_rows = 0, loc_B_cols = 0;
+
+	double *loc_C_mat = NULL, *test_C_mat = NULL;
 	int loc_C_rows = 0, loc_C_cols = 0;
+	int test_C_rows = 0, test_C_cols = 0;
 
-	double *tmp_A_mat = NULL, *tmp_B_mat = NULL;
-
-	double t_start = 0.0, t_end = 0.0;
-	double t_loc = 0.0, t_tot = 0.0;
+	double time_start = 0.0, time_end = 0.0;
+	double time_loc = 0.0, time_tot = 0.0;
 
 	double grid_tmp = 0;
 	int n_proc = 0, id_proc = 0;
@@ -207,15 +208,13 @@ int main(int argc, char **argv) {
 			MPI_Abort(comm, ALLOCATION_ERROR);
 		}
 
-		q_num = (A_rows * A_cols) + (B_rows * B_cols);
-
 		switch (test) {
 			case DEFAULT_TEST:
 			{
 				switch (input) {
 					case VALUES_FROM_INPUT:
 					{
-						if (q_num <= OP_MAX_QUANTITY) {
+						if (((A_rows*A_cols)+(B_rows*B_cols)) <= OP_MAX_QUANTITY) {
 							k = 1;
 							for (i = 0; i < A_rows; i++) {
 								for (j = 0; j < A_cols; j++) {
@@ -279,11 +278,6 @@ int main(int argc, char **argv) {
 				break;
 			}
 			case MULTIPLICATION_TRANSPOSE_TEST:
-			{
-				getRandomMatrix(A_mat, A_rows, A_cols);
-				getTransposeMatrix(A_mat, A_rows, A_cols, B_mat, B_rows, B_cols);
-				break;
-			}
 			case MULTIPLICATION_TRACE_TEST:
 			{
 				getRandomMatrix(A_mat, A_rows, A_cols);
@@ -391,7 +385,7 @@ int main(int argc, char **argv) {
 			rispetto ad un tempo arbitrario nel passato.
 		*/
 
-		t_start = MPI_Wtime();
+		time_start = MPI_Wtime();
 	}
 
 	//	APPLICAZIONE DEL BROADCAST MULTIPLY ROLLING PER IL CALCOLO DEL PRODOTTO MATRICE-MATRICE
@@ -407,86 +401,14 @@ int main(int argc, char **argv) {
 		MPI_Abort(comm, ALLOCATION_ERROR);
 	}
 
-	if (n_proc == 1) {
-		bmr_multiply(
-			loc_A_mat, loc_B_mat, loc_C_mat,
-			loc_A_rows, loc_A_cols,
-			loc_B_rows, loc_B_cols,
-			loc_C_rows, loc_C_cols,
-			MPI_COMM_WORLD
-		);
-	} else {
-
-		tmp_A_mat = (double*) calloc(loc_A_rows * loc_A_cols, sizeof(double));
-		tmp_B_mat = (double*) calloc(loc_B_rows * loc_B_cols, sizeof(double));
-
-		if (!tmp_A_mat && !tmp_B_mat) {
-			printf("Le matrici locali non sono state allocate correttamente!\n");
-			printf("Esecuzione terminata.\n");
-			MPI_Abort(comm, ALLOCATION_ERROR);
-		}
-
-		for (step = 0; step < grid_dim[1]; step++) {
-
-			MPI_Barrier(comm);
-			// if (id_proc == 0) printf("\n--- PASSO %d ---\n\n", step+1);
-			// fprintf(out_file, "\n--- PASSO %d ---\n", step+1);
-
-			bmr_broadcast(
-				loc_A_mat, tmp_A_mat,
-				loc_A_rows, loc_A_cols,
-				step,
-				comm, comm_row
-			);
-
-			// if (id_proc == 0) printf("\tBROADCAST\n");
-			// fprintf(out_file, "\nBROADCAST:\n");
-			// fprintf(out_file, "Matrice tmp_A di dimensione %d x %d:\n", loc_A_rows, loc_A_cols);
-			// fprintfMatrix(out_file, tmp_A_mat, loc_A_rows, loc_A_cols, "%f\t");
-
-			if (step == 0) {
-
-				bmr_multiply(
-					tmp_A_mat, loc_B_mat, loc_C_mat,
-					loc_A_rows, loc_A_cols,
-					loc_B_rows, loc_B_cols,
-					loc_C_rows, loc_C_cols,
-					comm
-				);
-
-			} else {
-				bmr_rolling(
-					loc_B_mat, tmp_B_mat,
-					loc_B_rows, loc_B_cols,
-					comm_col
-				);
-
-				// if (id_proc == 0) printf("\tROLLING\n");
-				// fprintf(out_file, "\nROLLING:\n");
-				// fprintf(out_file, "Matrice tmp_B di dimensione %d x %d:\n", loc_B_rows, loc_B_cols);
-				// fprintfMatrix(out_file, tmp_B_mat, loc_B_rows, loc_B_cols, "%f\t");
-
-				bmr_multiply(
-					tmp_A_mat, tmp_B_mat, loc_C_mat,
-					loc_A_rows, loc_A_cols,
-					loc_B_rows, loc_B_cols,
-					loc_C_rows, loc_C_cols,
-					comm
-				);
-			}
-
-			// if (id_proc == 0) printf("\tMULTIPLY\n");
-			// fprintf(out_file, "\nMULTIPLY:\n");
-			// fprintf(out_file, "Matrice loc_C di dimensione %d x %d:\n", loc_C_rows, loc_C_cols);
-			// fprintfMatrix(out_file, loc_C_mat, loc_C_rows, loc_C_cols, "%f\t");
-
-			// if (id_proc == 0) printf("\n-----\n");
-			// fprintf(out_file, "\n-----\n", step);
-		}
-
-		free(tmp_A_mat);
-		free(tmp_B_mat);
-	}
+	bmr(
+		loc_A_mat, loc_B_mat, loc_C_mat,
+		loc_A_rows, loc_A_cols,
+		loc_B_rows, loc_B_cols,
+		loc_C_rows, loc_C_cols,
+		grid_dim,
+		comm, comm_row, comm_col 
+	);
 
 	// if (id_proc == 0) printf("Applicazione dell'algoritmo BMR completato.");
 
@@ -494,10 +416,10 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 
 	if (time_calc == OK_TIME_CALC) {
-		t_end = MPI_Wtime();
+		time_end = MPI_Wtime();
 
 		// Si calcola la distanza di tempo tra l'istante iniziale e quello finale.
-		t_loc = t_end - t_start;
+		time_loc = time_end - time_start;
 
 		/*
 			--- int MPI_Reduce(void *sendbuf, void *recvbuf, int count,
@@ -507,7 +429,7 @@ int main(int argc, char **argv) {
 			calcolare il massimo tempo tra tutti i tempi calcolati localmente.
 		*/
 
-		MPI_Reduce(&t_loc, &t_tot, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+		MPI_Reduce(&time_loc, &time_tot, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
 		if (id_proc == 0) {
 
@@ -531,14 +453,14 @@ int main(int argc, char **argv) {
 					break;
 			}
 
-			printf("\nCalcolo del prodotto matrice-matrice terminato in %e sec\n", t_tot);
+			printf("\nCalcolo del prodotto matrice-matrice terminato in %e sec\n", time_tot);
 
 			if (check_test) {
 				writeTimeCSV(
 					CSV_TIME_PATH"/"NOME_PROVA"_time.csv",
 					A_rows, A_cols, B_rows, B_cols,
 					n_proc, input, test,
-					t_tot,
+					time_tot,
 					comm
 				);
 			}
