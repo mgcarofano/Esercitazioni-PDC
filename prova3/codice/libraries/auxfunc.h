@@ -62,7 +62,6 @@ void bmr(
 	int A_rows, int A_cols,
 	int B_rows, int B_cols,
 	int C_rows, int C_cols,
-	int *grid_dim,
 	MPI_Comm comm, MPI_Comm comm_row, MPI_Comm comm_col 
 );
 

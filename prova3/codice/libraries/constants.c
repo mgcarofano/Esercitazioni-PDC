@@ -127,6 +127,14 @@
 /*	*************************************************************************** */
 //	ENUMERAZIONI E COSTANTI
 
+/*
+	DEBUG: int
+	Si utilizza per stampare nel file di output generale dei messaggi di
+	controllo per verificare lo stato dell'esecuzione del programma.
+*/
+
+#define DEBUG 1
+
 #define DEFAULT_SCELTA 0
 
 /*
@@ -186,6 +194,21 @@
 #define DEFAULT_INPUT 0
 #define VALUES_FROM_INPUT 1
 #define VALUES_FROM_CSV 2
+
+/*
+    TAB_SPACE_PRINT : int
+    WOLFRAM_PRINT : int
+	Si utilizzano per visualizzare nei file di output le matrici di input
+	e di output nei due seguenti formati:
+	-	Formato "tab-space". Utile per visualizzare la matrice in
+		due dimensioni.
+	-	Formato "Wolfram Language code". Per passare la matrice direttamente
+		sul sito web https://www.wolframalpha.com/ ed eseguire altre
+		operazioni.
+*/
+
+#define TAB_SPACE_PRINT 1
+#define WOLFRAM_PRINT 2
 
 /*
     OP_MAX_QUANTITY: int

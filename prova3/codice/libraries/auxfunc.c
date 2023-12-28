@@ -240,12 +240,47 @@ double* scatterMatrixToGrid(
 void fprintfMatrix(FILE* out_file, double* mat, int rows, int cols, const char* format) {
 
 	int i = 0, j = 0;
+	int mode = TAB_SPACE_PRINT;
 
-	for (i = 0; i < rows; i++) {
-		for (j = 0; j < cols; j++) {
-			fprintf(out_file, format, mat[i*cols + j]);
+	switch(mode) {
+		case TAB_SPACE_PRINT:
+		{
+			for (i = 0; i < rows; i++) {
+				for (j = 0; j < cols; j++) {
+					fprintf(out_file, format, mat[i*cols + j]);
+					if (j != cols-1) {
+						fprintf(out_file, "\t");
+					}
+				}
+				if (i != rows-1) {
+					fprintf(out_file, "\n");
+				}
+			}
+			fprintf(out_file, "\n");
+			break;
 		}
-		fprintf(out_file, "\n");
+		case WOLFRAM_PRINT:
+		{
+			fprintf(out_file, "{");
+			for (i = 0; i < rows; i++) {
+				fprintf(out_file, "{");
+				for (j = 0; j < cols; j++) {
+					fprintf(out_file, format, mat[i*cols + j]);
+					if (j != cols-1) {
+						fprintf(out_file, ", ");
+					}
+				}
+				fprintf(out_file, "}");
+				if (i != rows-1) {
+					fprintf(out_file, ", ");
+				}
+			}
+			fprintf(out_file, "}");
+			fprintf(out_file, "\n");
+			break;
+		}
+		default:
+			break;
 	}
 
 }
@@ -401,11 +436,10 @@ void bmr(
 	int A_rows, int A_cols,
 	int B_rows, int B_cols,
 	int C_rows, int C_cols,
-	int *grid_dim,
 	MPI_Comm comm, MPI_Comm comm_row, MPI_Comm comm_col 
 ) {
 
-	int n_proc = 0, id_proc = 0;
+	int n_proc = 0, id_proc = 0, col_size = 0;
 	int step = 0;
 
 	double *tmp_A_mat = NULL, *tmp_B_mat = NULL;
@@ -425,6 +459,9 @@ void bmr(
 
 	} else {
 
+		MPI_Comm_size(comm_col, &col_size);
+		// if (id_proc == 0) printf("%d\n", col_size);
+
 		tmp_A_mat = (double*) calloc(A_rows * A_cols, sizeof(double));
 		tmp_B_mat = (double*) calloc(B_rows * B_cols, sizeof(double));
 
@@ -434,7 +471,7 @@ void bmr(
 			MPI_Abort(comm, ALLOCATION_ERROR);
 		}
 
-		for (step = 0; step < grid_dim[1]; step++) {
+		for (step = 0; step < col_size; step++) {
 
 			MPI_Barrier(comm);
 			// if (id_proc == 0) printf("\n--- PASSO %d ---\n\n", step+1);

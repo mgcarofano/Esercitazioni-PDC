@@ -65,36 +65,43 @@ menu_prova3:
 	mkdir -p $(prova3_bin)
 	gcc -o $(prova3_bin)/menu -lm $(prova3_workdir)/menu.c
 	./$(prova3_bin)/menu
+	rm -fr $(prova3_bin)
 
 mpirun_prova3:
 	mkdir -p $(prova3_bin)
 	rm -fr $(prova3_output)/$(id_test)
 	mkdir -p $(prova3_output)/$(id_test)
 	mpicc -o $(prova3_bin)/$(id_test) -lm $(prova3_workdir)/prova3.c
-	mpiexec -machinefile /project/hostfile -np 4 $(prova3_bin)/$(id_test) 4 4 4 4 2 0 0 28 prova3/input/A_mat.csv prova3/input/B_mat.csv
+	mpiexec -machinefile /project/hostfile -np 4 $(prova3_bin)/$(id_test) 4 4 4 4 2 0 0 28 prova3/input/A_mat.csv prova3/input/B_mat.csv \
+		1> $(prova3_output)/$(id_test)/std.out \
+		2> $(prova3_output)/$(id_test)/std.err
+	rm -fr $(prova3_bin)
 
 test_prova3:
 	mkdir -p $(prova3_bin)
-	val=0 ; \
-	for dim in 36 72 108 ; do \
-		for ncpu in 1 4 9 ; do \
-			val=$$((val+1)) ; \
-			rm -fr $(prova3_output)/prova3_00$$val ; \
-			mkdir -p $(prova3_output)/prova3_00$$val ; \
-			mpicc -o $(prova3_bin)/prova3_00$$val -lm $(prova3_workdir)/prova3.c ; \
-			for i in $(shell seq 10) ; do \
-				mpiexec -machinefile /project/hostfile -np $$ncpu $(prova3_bin)/prova3_00$$val \
-				$$dim $$dim $$dim $$dim $(prova3_input) $(prova3_test) $(prova3_time) $$val \
-				1> $(prova3_output)/prova3_00$$val/std.out \
-				2> $(prova3_output)/prova3_00$$val/std.err ; \
+	for val in 0 9 18 ; do \
+		for dim in 36 72 108 ; do \
+			for ncpu in 1 4 9 ; do \
+				val=$$((val+1)) ; \
+				rm -fr $(prova3_output)/prova3_00$$val ; \
+				mkdir -p $(prova3_output)/prova3_00$$val ; \
+				mpicc -o $(prova3_bin)/prova3_00$$val -lm $(prova3_workdir)/prova3.c ; \
+				for i in $(shell seq 10) ; do \
+					mpiexec -machinefile /project/hostfile -np $$ncpu $(prova3_bin)/prova3_00$$val \
+					$$dim $$dim $$dim $$dim $(prova3_input) $(prova3_test) $(prova3_time) $$val \
+					1> $(prova3_output)/prova3_00$$val/std.out \
+					2> $(prova3_output)/prova3_00$$val/std.err ; \
+				done ; \
 			done ; \
 		done ; \
 	done
+	rm -fr $(prova3_bin)
 
 media_prova3:
 	mkdir -p $(prova3_bin)
 	mpicc -o $(prova3_bin)/media-csv -lm $(prova3_workdir)/media-csv.c
 	mpiexec -machinefile /project/hostfile -np 1 $(prova3_bin)/media-csv $(prova3_output)/prova3_time.csv
+	rm -fr $(prova3_bin)
 
 #	RIFERIMENTI
 #	https://unix.stackexchange.com/questions/193368/can-scp-create-a-directory-if-it-doesnt-exist

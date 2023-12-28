@@ -24,9 +24,10 @@ int main(int argc, char **argv) {
 
 	int i = 0, j = 0, k = 0;
 
-	double *A_mat = NULL, *B_mat = NULL;
+	double *A_mat = NULL, *B_mat = NULL, *C_mat = NULL;
 	int A_rows = 0, A_cols = 0;
 	int B_rows = 0, B_cols = 0;
+	int C_rows = 0, C_cols = 0;
 
 	double *loc_A_mat = NULL, *loc_B_mat = NULL;
 	int loc_A_rows = 0, loc_A_cols = 0;
@@ -87,7 +88,7 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 
 	if (id_proc == 0) {
-		printf("Inizio esecuzione.\n\n");
+		printf("Inizio esecuzione.\n");
 
 		/*
 			Si affida al primo processore con id_proc == 0 il compito
@@ -143,7 +144,7 @@ int main(int argc, char **argv) {
 
 	}
 
-	// if (id_proc == 0) printf("Lettura degli argomenti completata.\n");
+	if (id_proc == 0 && DEBUG) printf("Lettura degli argomenti completata.\n");
 
 	MPI_Bcast(&A_rows, 1, MPI_INT, 0, comm);
 	MPI_Bcast(&A_cols, 1, MPI_INT, 0, comm);
@@ -159,7 +160,7 @@ int main(int argc, char **argv) {
 
 	MPI_Bcast(&pbs_count, 1, MPI_INT, 0, comm);
 
-	// if (id_proc == 0) printf("Distribuzione degli argomenti completata.\n");
+	if (id_proc == 0 && DEBUG) printf("Distribuzione degli argomenti completata.\n");
 
 	//	CREAZIONE DELLA GRIGLIA BIDIMENSIONALE
 	/*	******************************************************************** */
@@ -192,7 +193,28 @@ int main(int argc, char **argv) {
 
 	}
 
-	// if (id_proc == 0) printf("Creazione della griglia completata.\n");
+	if (id_proc == 0 && DEBUG) printf("Creazione della griglia completata.\n");
+
+	//	CREAZIONE DEI FILE DI OUTPUT
+	/*	******************************************************************** */
+
+	if (n_proc == 1) {
+		sprintf(out_path, NOME_PROVA "/output/" NOME_PROVA "_%03d/proc%d.out",
+			pbs_count, id_proc
+		);
+	} else {
+		sprintf(out_path, NOME_PROVA "/output/" NOME_PROVA "_%03d/proc%d_%02d_%02d.out",
+			pbs_count, id_proc, grid_coords[0], grid_coords[1]
+		);
+	}
+	
+	if ((out_file = fopen(out_path, "w")) == NULL) {
+		printf("Nessun file o directory con questo nome: %s\n", out_path);
+		printf("Esecuzione terminata.\n");
+		MPI_Abort(comm, FILE_OPENING_ERROR);
+	}
+
+	if (id_proc == 0 && DEBUG) printf("File di output creato.\n");
 
 	//	LETTURA E/O GENERAZIONE DEGLI ELEMENTI DELLA MATRICE
 	/*	******************************************************************** */
@@ -287,28 +309,25 @@ int main(int argc, char **argv) {
 			default:
 				break;
 		}
+
+		if (id_proc == 0 && DEBUG) printf("Generazione delle matrici globali completata.\n");
+
+		if (n_proc > 1) fprintf(out_file, "\n--- MATRICI GLOBALI ---\n");
+			fprintf(out_file, "\nMatrice A di dimensione %d x %d:\n", A_rows, A_cols);
+			fprintfMatrix(out_file, A_mat, A_rows, A_cols, "%f");
+
+			fprintf(out_file, "\nMatrice B di dimensione %d x %d:\n", B_rows, B_cols);
+			if (test == MULTIPLICATION_IDENTITY_TEST) {
+				fprintfMatrix(out_file, B_mat, B_rows, B_cols, "%1.0f");
+			} else {
+				fprintfMatrix(out_file, B_mat, B_rows, B_cols, "%f");
+			}
+		if (n_proc > 1) fprintf(out_file, "\n-----\n");
+
 	}
 
 	//	DISTRIBUZIONE DELLE MATRICI
 	/*	******************************************************************** */
-
-	if (n_proc == 1) {
-		sprintf(out_path, NOME_PROVA "/output/" NOME_PROVA "_%03d/proc%d.out",
-			pbs_count, id_proc
-		);
-	} else {
-		sprintf(out_path, NOME_PROVA "/output/" NOME_PROVA "_%03d/proc%d_%02d_%02d.out",
-			pbs_count, id_proc, grid_coords[0], grid_coords[1]
-		);
-	}
-	
-	if ((out_file = fopen(out_path, "w")) == NULL) {
-		printf("Nessun file o directory con questo nome: %s\n", out_path);
-		printf("Esecuzione terminata.\n");
-		MPI_Abort(comm, FILE_OPENING_ERROR);
-	}
-
-	// if (id_proc == 0) printf("File di output creato.\n");
 
 	if (n_proc == 1) {
 
@@ -334,19 +353,21 @@ int main(int argc, char **argv) {
 			id_proc, grid_dim, grid_coords, comm
 		);
 
+		if (id_proc == 0) fprintf(out_file, "\n--- MATRICI LOCALI ---\n");
+			fprintf(out_file, "\nMatrice loc_A di dimensione %d x %d:\n", loc_A_rows, loc_A_cols);
+			fprintfMatrix(out_file, loc_A_mat, loc_A_rows, loc_A_cols, "%f");
+
+			fprintf(out_file, "\nMatrice loc_B di dimensione %d x %d:\n", loc_B_rows, loc_B_cols);
+			if (test == MULTIPLICATION_IDENTITY_TEST) {
+				fprintfMatrix(out_file, loc_B_mat, loc_B_rows, loc_B_cols, "%1.0f");
+			} else {
+				fprintfMatrix(out_file, loc_B_mat, loc_B_rows, loc_B_cols, "%f");
+			}
+		if (id_proc == 0) fprintf(out_file, "\n-----\n");
+
 	}
 
-	// if (id_proc == 0) printf("Distribuzione delle matrici completata.\n");
-
-	fprintf(out_file, "\nMatrice A di dimensione %d x %d:\n", loc_A_rows, loc_A_cols);
-	fprintfMatrix(out_file, loc_A_mat, loc_A_rows, loc_A_cols, "%f\t");
-
-	fprintf(out_file, "\nMatrice B di dimensione %d x %d:\n", loc_B_rows, loc_B_cols);
-	if (test == MULTIPLICATION_IDENTITY_TEST) {
-		fprintfMatrix(out_file, loc_B_mat, loc_B_rows, loc_B_cols, "%1.0f\t");
-	} else {
-		fprintfMatrix(out_file, loc_B_mat, loc_B_rows, loc_B_cols, "%f\t");
-	}
+	if (id_proc == 0 && DEBUG) printf("Distribuzione delle matrici completata.\n");
 
 	/*
 	
@@ -361,7 +382,7 @@ int main(int argc, char **argv) {
 		free(B_mat);
 	}
 
-	// if (id_proc == 0) printf("Pulizia della memoria completata.\n");
+	if (id_proc == 0 && DEBUG) printf("Pulizia della memoria completata.\n");
 	
 	// 	INIZIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
 	/*	******************************************************************** */
@@ -406,11 +427,10 @@ int main(int argc, char **argv) {
 		loc_A_rows, loc_A_cols,
 		loc_B_rows, loc_B_cols,
 		loc_C_rows, loc_C_cols,
-		grid_dim,
 		comm, comm_row, comm_col 
 	);
 
-	// if (id_proc == 0) printf("Applicazione dell'algoritmo BMR completato.");
+	if (id_proc == 0 && DEBUG) printf("Applicazione dell'algoritmo BMR completato.\n");
 
 	//	SALVATAGGIO DEL CALCOLO DEI TEMPI DI ESECUZIONE
 	/*	******************************************************************** */
@@ -433,6 +453,7 @@ int main(int argc, char **argv) {
 
 		if (id_proc == 0) {
 
+			// Si veda il capitolo "Futuri sviluppi" della documentazione.
 			switch (test) {
 				case MULTIPLICATION_IDENTITY_TEST:
 				{
@@ -470,9 +491,29 @@ int main(int argc, char **argv) {
 	//	STAMPA DELL'OUTPUT
   	/*	******************************************************************** */
 
-	fprintf(out_file, "\nRisultato:\n");
-	fprintf(out_file, "Matrice C di dimensione %d x %d:\n", loc_C_rows, loc_C_cols);
-	fprintfMatrix(out_file, loc_C_mat, loc_C_rows, loc_C_cols, "%f\t");
+	// Si veda il capitolo "Futuri sviluppi" della documentazione.
+	// if (id_proc == 0) {
+
+	// 	if (n_proc == 1) {
+	// 		C_mat = loc_C_mat;
+	// 		C_rows = A_rows;
+	// 		C_cols = B_cols;
+	// 	} else {
+	// 		// ...
+	// 	}
+
+	// 	fprintf(out_file, "\nRisultato globale:");
+	// 	fprintf(out_file, "\nMatrice C di dimensione %d x %d:\n", C_rows, C_cols);
+	// 	fprintfMatrix(out_file, C_mat, C_rows, C_cols, "%f");
+
+	// 	free(C_mat);
+	// }
+
+	fprintf(out_file, "\nRisultato locale:");
+	fprintf(out_file, "\nMatrice loc_C di dimensione %d x %d:\n", loc_C_rows, loc_C_cols);
+	fprintfMatrix(out_file, loc_C_mat, loc_C_rows, loc_C_cols, "%f");
+
+	if (id_proc == 0 && DEBUG) printf("Stampa dell'output completata.\n");
 
 	//	TERMINAZIONE DELL'ESECUZIONE
   	/*	******************************************************************** */
