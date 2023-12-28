@@ -57,10 +57,6 @@ prova3_output=prova3/output
 prova3_bin=prova3/bin
 id_test=prova3_028
 
-prova3_input=0
-prova3_test=3
-prova3_time=1
-
 menu_prova3:
 	mkdir -p $(prova3_bin)
 	gcc -o $(prova3_bin)/menu -lm $(prova3_workdir)/menu.c
@@ -79,19 +75,19 @@ mpirun_prova3:
 
 test_prova3:
 	mkdir -p $(prova3_bin)
-	for val in 0 9 18 ; do \
-		for dim in 36 72 108 ; do \
-			for ncpu in 1 4 9 ; do \
-				val=$$((val+1)) ; \
-				rm -fr $(prova3_output)/prova3_00$$val ; \
-				mkdir -p $(prova3_output)/prova3_00$$val ; \
-				mpicc -o $(prova3_bin)/prova3_00$$val -lm $(prova3_workdir)/prova3.c ; \
-				for i in $(shell seq 10) ; do \
-					mpiexec -machinefile /project/hostfile -np $$ncpu $(prova3_bin)/prova3_00$$val \
-					$$dim $$dim $$dim $$dim $(prova3_input) $(prova3_test) $(prova3_time) $$val \
-					1> $(prova3_output)/prova3_00$$val/std.out \
-					2> $(prova3_output)/prova3_00$$val/std.err ; \
-				done ; \
+	test=1 ; \
+	val=$$(((($$test-1)*9))) ; \
+	for dim in 36 72 108 ; do \
+		for ncpu in 1 4 9 ; do \
+			val=$$((val+1)) ; \
+			rm -fr $(prova3_output)/prova3_00$$val ; \
+			mkdir -p $(prova3_output)/prova3_00$$val ; \
+			mpicc -o $(prova3_bin)/prova3_00$$val -lm $(prova3_workdir)/prova3.c ; \
+			for i in $(shell seq 10) ; do \
+				mpiexec -machinefile /project/hostfile -np $$ncpu $(prova3_bin)/prova3_00$$val \
+				$$dim $$dim $$dim $$dim 0 $$test 1 $$val \
+				1> $(prova3_output)/prova3_00$$val/std.out \
+				2> $(prova3_output)/prova3_00$$val/std.err ; \
 			done ; \
 		done ; \
 	done

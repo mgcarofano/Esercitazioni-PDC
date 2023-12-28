@@ -371,6 +371,7 @@ void bmr_multiply(
 void bmr_rolling(
 	double* mat, double* tmp,
 	int rows, int cols,
+	int step,
 	MPI_Comm comm_col
 ) {
 
@@ -380,7 +381,6 @@ void bmr_rolling(
 	MPI_Status status;
 
 	// MPI_Comm_rank(comm, &id_proc);
-
 	MPI_Comm_size(comm_col, &col_size);
 	MPI_Comm_rank(comm_col, &col_rank);
 
@@ -392,8 +392,8 @@ void bmr_rolling(
 
 	*/
 
-	source = (col_rank + 1) % col_size;
-	dest = (col_rank - 1) % col_size;
+	source = (col_rank + step) % col_size;
+	dest = (col_rank - step) % col_size;
 
 	/*
 	
@@ -422,11 +422,11 @@ void bmr_rolling(
 	}
 
 	// if (dest < 0) {
-	// 	printf("\t%d (%d) RECV from %d\n", col_rank, id_proc, source);
-	// 	printf("\t%d (%d) SEND to %d\n", col_rank, id_proc, dest);
+	// 	fprintf(out_file, "\t%d (%d) RECV from %d\n", col_rank, id_proc, source);
+	// 	fprintf(out_file, "\t%d (%d) SEND to %d\n", col_rank, id_proc, dest);
 	// } else {
-	// 	printf("\t%d (%d) SEND to %d\n", col_rank, id_proc, dest);
-	// 	printf("\t%d (%d) RECV from %d\n", col_rank, id_proc, source);
+	// 	fprintf(out_file, "\t%d (%d) SEND to %d\n", col_rank, id_proc, dest);
+	// 	fprintf(out_file, "\t%d (%d) RECV from %d\n", col_rank, id_proc, source);
 	// }
 
 }
@@ -445,7 +445,7 @@ void bmr(
 	double *tmp_A_mat = NULL, *tmp_B_mat = NULL;
 
 	MPI_Comm_size(comm, &n_proc);
-	// MPI_Comm_rank(comm, &id_proc);
+	MPI_Comm_rank(comm, &id_proc);
 
 	if (n_proc == 1) {
 
@@ -460,7 +460,7 @@ void bmr(
 	} else {
 
 		MPI_Comm_size(comm_col, &col_size);
-		// if (id_proc == 0) printf("%d\n", col_size);
+		// if (id_proc == 0 && DEBUG) printf("%d\n", col_size);
 
 		tmp_A_mat = (double*) calloc(A_rows * A_cols, sizeof(double));
 		tmp_B_mat = (double*) calloc(B_rows * B_cols, sizeof(double));
@@ -473,8 +473,7 @@ void bmr(
 
 		for (step = 0; step < col_size; step++) {
 
-			MPI_Barrier(comm);
-			// if (id_proc == 0) printf("\n--- PASSO %d ---\n\n", step+1);
+			if (id_proc == 0 && DEBUG) printf("\n--- PASSO %d ---\n\n", step+1);
 			// fprintf(out_file, "\n--- PASSO %d ---\n", step+1);
 
 			bmr_broadcast(
@@ -484,9 +483,11 @@ void bmr(
 				comm, comm_row
 			);
 
-			// if (id_proc == 0) printf("\tBROADCAST\n");
-			// fprintf(out_file, "\nBROADCAST:\n");
-			// fprintf(out_file, "Matrice tmp_A di dimensione %d x %d:\n", A_rows, A_cols);
+			if (id_proc == 0 && DEBUG) printf("\tBROADCAST\n");
+			// fprintf(out_file, "\nBROADCAST");
+			// fprintf(out_file, "\nMatrice A di dimensione %d x %d:\n", A_rows, A_cols);
+			// fprintfMatrix(out_file, A_mat, A_rows, A_cols, "%f\t");
+			// fprintf(out_file, "\nMatrice tmp_A di dimensione %d x %d:\n", A_rows, A_cols);
 			// fprintfMatrix(out_file, tmp_A_mat, A_rows, A_cols, "%f\t");
 
 			if (step == 0) {
@@ -503,12 +504,15 @@ void bmr(
 				bmr_rolling(
 					B_mat, tmp_B_mat,
 					B_rows, B_cols,
+					step,
 					comm_col
 				);
 
-				// if (id_proc == 0) printf("\tROLLING\n");
-				// fprintf(out_file, "\nROLLING:\n");
-				// fprintf(out_file, "Matrice tmp_B di dimensione %d x %d:\n", B_rows, B_cols);
+				if (id_proc == 0 && DEBUG) printf("\tROLLING\n");
+				// fprintf(out_file, "\nROLLING");
+				// fprintf(out_file, "\nMatrice B di dimensione %d x %d:\n", B_rows, B_cols);
+				// fprintfMatrix(out_file, B_mat, B_rows, B_cols, "%f\t");
+				// fprintf(out_file, "\nMatrice tmp_B di dimensione %d x %d:\n", B_rows, B_cols);
 				// fprintfMatrix(out_file, tmp_B_mat, B_rows, B_cols, "%f\t");
 
 				bmr_multiply(
@@ -520,13 +524,13 @@ void bmr(
 				);
 			}
 
-			// if (id_proc == 0) printf("\tMULTIPLY\n");
-			// fprintf(out_file, "\nMULTIPLY:\n");
-			// fprintf(out_file, "Matrice C di dimensione %d x %d:\n", C_rows, C_cols);
+			if (id_proc == 0 && DEBUG) printf("\tMULTIPLY\n");
+			// fprintf(out_file, "\nMULTIPLY");
+			// fprintf(out_file, "\nMatrice C di dimensione %d x %d:\n", C_rows, C_cols);
 			// fprintfMatrix(out_file, C_mat, C_rows, C_cols, "%f\t");
 
-			// if (id_proc == 0) printf("\n-----\n");
-			// fprintf(out_file, "\n-----\n", step);
+			if (id_proc == 0 && DEBUG) printf("\n-----\n\n");
+			// fprintf(out_file, "\n-----\n\n");
 		}
 
 		free(tmp_A_mat);

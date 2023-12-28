@@ -29,13 +29,10 @@ int main(int argc, char **argv) {
 	int B_rows = 0, B_cols = 0;
 	int C_rows = 0, C_cols = 0;
 
-	double *loc_A_mat = NULL, *loc_B_mat = NULL;
+	double *loc_A_mat = NULL, *loc_B_mat = NULL, *loc_C_mat = NULL;
 	int loc_A_rows = 0, loc_A_cols = 0;
 	int loc_B_rows = 0, loc_B_cols = 0;
-
-	double *loc_C_mat = NULL, *test_C_mat = NULL;
 	int loc_C_rows = 0, loc_C_cols = 0;
-	int test_C_rows = 0, test_C_cols = 0;
 
 	double time_start = 0.0, time_end = 0.0;
 	double time_loc = 0.0, time_tot = 0.0;
@@ -313,15 +310,15 @@ int main(int argc, char **argv) {
 		if (id_proc == 0 && DEBUG) printf("Generazione delle matrici globali completata.\n");
 
 		if (n_proc > 1) fprintf(out_file, "\n--- MATRICI GLOBALI ---\n");
-			fprintf(out_file, "\nMatrice A di dimensione %d x %d:\n", A_rows, A_cols);
-			fprintfMatrix(out_file, A_mat, A_rows, A_cols, "%f");
+		fprintf(out_file, "\nMatrice A di dimensione %d x %d:\n", A_rows, A_cols);
+		fprintfMatrix(out_file, A_mat, A_rows, A_cols, "%f");
 
-			fprintf(out_file, "\nMatrice B di dimensione %d x %d:\n", B_rows, B_cols);
-			if (test == MULTIPLICATION_IDENTITY_TEST) {
-				fprintfMatrix(out_file, B_mat, B_rows, B_cols, "%1.0f");
-			} else {
-				fprintfMatrix(out_file, B_mat, B_rows, B_cols, "%f");
-			}
+		fprintf(out_file, "\nMatrice B di dimensione %d x %d:\n", B_rows, B_cols);
+		if (test == MULTIPLICATION_IDENTITY_TEST) {
+			fprintfMatrix(out_file, B_mat, B_rows, B_cols, "%1.0f");
+		} else {
+			fprintfMatrix(out_file, B_mat, B_rows, B_cols, "%f");
+		}
 		if (n_proc > 1) fprintf(out_file, "\n-----\n");
 
 	}
@@ -354,15 +351,15 @@ int main(int argc, char **argv) {
 		);
 
 		if (id_proc == 0) fprintf(out_file, "\n--- MATRICI LOCALI ---\n");
-			fprintf(out_file, "\nMatrice loc_A di dimensione %d x %d:\n", loc_A_rows, loc_A_cols);
-			fprintfMatrix(out_file, loc_A_mat, loc_A_rows, loc_A_cols, "%f");
+		fprintf(out_file, "\nMatrice loc_A di dimensione %d x %d:\n", loc_A_rows, loc_A_cols);
+		fprintfMatrix(out_file, loc_A_mat, loc_A_rows, loc_A_cols, "%f");
 
-			fprintf(out_file, "\nMatrice loc_B di dimensione %d x %d:\n", loc_B_rows, loc_B_cols);
-			if (test == MULTIPLICATION_IDENTITY_TEST) {
-				fprintfMatrix(out_file, loc_B_mat, loc_B_rows, loc_B_cols, "%1.0f");
-			} else {
-				fprintfMatrix(out_file, loc_B_mat, loc_B_rows, loc_B_cols, "%f");
-			}
+		fprintf(out_file, "\nMatrice loc_B di dimensione %d x %d:\n", loc_B_rows, loc_B_cols);
+		if (test == MULTIPLICATION_IDENTITY_TEST) {
+			fprintfMatrix(out_file, loc_B_mat, loc_B_rows, loc_B_cols, "%1.0f");
+		} else {
+			fprintfMatrix(out_file, loc_B_mat, loc_B_rows, loc_B_cols, "%f");
+		}
 		if (id_proc == 0) fprintf(out_file, "\n-----\n");
 
 	}
