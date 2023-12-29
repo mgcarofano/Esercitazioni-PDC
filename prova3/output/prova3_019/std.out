@@ -1,3 +1,11 @@
+---
+PBS: la directory degli output e' /homes/DMA/PDC/2024/NVLFNC97Z/prova3/output/prova3_019
+PBS: la directory di lavoro e' /homes/DMA/PDC/2024/NVLFNC97Z/prova3/codice
+PBS: la directory degli eseguibili e' /homes/DMA/PDC/2024/NVLFNC97Z/prova3/bin
+PBS: Compilazione in esecuzione...
+PBS: Compilazione completata.
+PBS: Job in esecuzione su 1 cpu...
+>>>
 Inizio esecuzione.
 Lettura degli argomenti completata.
 Distribuzione degli argomenti completata.
@@ -8,9 +16,156 @@ Distribuzione delle matrici completata.
 Pulizia della memoria completata.
 Applicazione dell'algoritmo BMR completato.
 
-Calcolo del prodotto matrice-matrice terminato in 2.432920e-04 sec
+Calcolo del prodotto matrice-matrice terminato in 5.807877e-04 sec
 prova3/output/prova3_time.csv aggiornato con successo!
 
 Stampa dell'output completata.
 
 Esecuzione terminata.
+Inizio esecuzione.
+Lettura degli argomenti completata.
+Distribuzione degli argomenti completata.
+Creazione della griglia completata.
+File di output creato.
+Generazione delle matrici globali completata.
+Distribuzione delle matrici completata.
+Pulizia della memoria completata.
+Applicazione dell'algoritmo BMR completato.
+
+Calcolo del prodotto matrice-matrice terminato in 5.769730e-04 sec
+prova3/output/prova3_time.csv aggiornato con successo!
+
+Stampa dell'output completata.
+
+Esecuzione terminata.
+Inizio esecuzione.
+Lettura degli argomenti completata.
+Distribuzione degli argomenti completata.
+Creazione della griglia completata.
+File di output creato.
+Generazione delle matrici globali completata.
+Distribuzione delle matrici completata.
+Pulizia della memoria completata.
+Applicazione dell'algoritmo BMR completato.
+
+Calcolo del prodotto matrice-matrice terminato in 5.760193e-04 sec
+prova3/output/prova3_time.csv aggiornato con successo!
+
+Stampa dell'output completata.
+
+Esecuzione terminata.
+Inizio esecuzione.
+Lettura degli argomenti completata.
+Distribuzione degli argomenti completata.
+Creazione della griglia completata.
+File di output creato.
+Generazione delle matrici globali completata.
+Distribuzione delle matrici completata.
+Pulizia della memoria completata.
+Applicazione dell'algoritmo BMR completato.
+
+Calcolo del prodotto matrice-matrice terminato in 5.700588e-04 sec
+prova3/output/prova3_time.csv aggiornato con successo!
+
+Stampa dell'output completata.
+
+Esecuzione terminata.
+Inizio esecuzione.
+Lettura degli argomenti completata.
+Distribuzione degli argomenti completata.
+Creazione della griglia completata.
+File di output creato.
+Generazione delle matrici globali completata.
+Distribuzione delle matrici completata.
+Pulizia della memoria completata.
+Applicazione dell'algoritmo BMR completato.
+
+Calcolo del prodotto matrice-matrice terminato in 5.779266e-04 sec
+prova3/output/prova3_time.csv aggiornato con successo!
+
+Stampa dell'output completata.
+
+Esecuzione terminata.
+Inizio esecuzione.
+Lettura degli argomenti completata.
+Distribuzione degli argomenti completata.
+Creazione della griglia completata.
+File di output creato.
+Generazione delle matrici globali completata.
+Distribuzione delle matrici completata.
+Pulizia della memoria completata.
+Applicazione dell'algoritmo BMR completato.
+
+Calcolo del prodotto matrice-matrice terminato in 5.769730e-04 sec
+prova3/output/prova3_time.csv aggiornato con successo!
+
+Stampa dell'output completata.
+
+Esecuzione terminata.
+Inizio esecuzione.
+Lettura degli argomenti completata.
+Distribuzione degli argomenti completata.
+Creazione della griglia completata.
+File di output creato.
+Generazione delle matrici globali completata.
+Distribuzione delle matrici completata.
+Pulizia della memoria completata.
+Applicazione dell'algoritmo BMR completato.
+
+Calcolo del prodotto matrice-matrice terminato in 5.760193e-04 sec
+prova3/output/prova3_time.csv aggiornato con successo!
+
+Stampa dell'output completata.
+
+Esecuzione terminata.
+Inizio esecuzione.
+Lettura degli argomenti completata.
+Distribuzione degli argomenti completata.
+Creazione della griglia completata.
+File di output creato.
+Generazione delle matrici globali completata.
+Distribuzione delle matrici completata.
+Pulizia della memoria completata.
+Applicazione dell'algoritmo BMR completato.
+
+Calcolo del prodotto matrice-matrice terminato in 5.779266e-04 sec
+prova3/output/prova3_time.csv aggiornato con successo!
+
+Stampa dell'output completata.
+
+Esecuzione terminata.
+Inizio esecuzione.
+Lettura degli argomenti completata.
+Distribuzione degli argomenti completata.
+Creazione della griglia completata.
+File di output creato.
+Generazione delle matrici globali completata.
+Distribuzione delle matrici completata.
+Pulizia della memoria completata.
+Applicazione dell'algoritmo BMR completato.
+
+Calcolo del prodotto matrice-matrice terminato in 5.679131e-04 sec
+prova3/output/prova3_time.csv aggiornato con successo!
+
+Stampa dell'output completata.
+
+Esecuzione terminata.
+Inizio esecuzione.
+Lettura degli argomenti completata.
+Distribuzione degli argomenti completata.
+Creazione della griglia completata.
+File di output creato.
+Generazione delle matrici globali completata.
+Distribuzione delle matrici completata.
+Pulizia della memoria completata.
+Applicazione dell'algoritmo BMR completato.
+
+Calcolo del prodotto matrice-matrice terminato in 5.829334e-04 sec
+prova3/output/prova3_time.csv aggiornato con successo!
+
+Stampa dell'output completata.
+
+Esecuzione terminata.
+>>>
+PBS: Job completato.
+---
