@@ -70,6 +70,7 @@ int main(int argc, char **argv) {
 				printf("%d. \t Input da linea di comando (fino a %d elementi).\n", VALUES_FROM_INPUT, OP_MAX_QUANTITY);
 				printf("%d. \t Input da file .csv.\n", VALUES_FROM_CSV);
 				input = getIntegerFromInput();
+				checkScelta(scelta, VALUES_FROM_INPUT, VALUES_FROM_CSV);
 
 				/* ************************************************************ */
 				// CREAZIONE DEL FILE DI ESECUZIONE .PBS

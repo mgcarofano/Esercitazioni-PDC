@@ -129,82 +129,104 @@
 
 /*
 	DEBUG: int
-	Si utilizza per stampare nel file di output generale dei messaggi di
-	controllo per verificare lo stato dell'esecuzione del programma.
+	Si utilizza per scegliere se stampare o meno nel file di output
+	generale dei messaggi di controllo per verificare lo stato
+	dell'esecuzione del programma.
 */
 
 #define DEBUG 1
 
+/*
+	DEFAULT_SCELTA: int
+	È il valore con cui viene inizializzata la variabile 'scelta'
+	nel file 'menu.c'.
+*/
+
 #define DEFAULT_SCELTA 0
 
 /*
-	NO_TEST: int
-	Si utilizza per calcolare il prodotto matrice-matrice sul cluster senza
-	riservare un processore per ogni nodo. Questa strategia d'esecuzione e'
-	riservata per i casi di test dove e' necessario calcolare anche
-	i tempi di esecuzione.
+	Le seguenti 3 costanti sono valori interi che rappresentano
+    le possibili scelte che può inserire l'utente nel menu' principale
+    dell'applicazione.
+	-	NO_TEST: int
+		Si utilizza per calcolare il prodotto matrice-matrice sul cluster senza
+		riservare un processore per ogni nodo. Questa tipologia d'esecuzione e'
+		riservata per i casi di test dove e' necessario calcolare anche
+		i tempi di esecuzione.
+	-	TESTING_SUITE: int
+		Si utilizza per eseguire la suite di testing progettata per verificare
+		la correttezza dell'algoritmo del calcolo del prodotto matrice-matrice.
+	-	EXIT_APPLICATION: int
+		Si utilizza per terminare il menu' principale dell'applicazione.
 */
 
 #define NO_TEST 1
-
-/*
-
-	TESTING_SUITE: int
-	Si utilizza per eseguire la suite di testing progettata per verificare
-	la correttezza dell'algoritmo del calcolo del prodotto matrice-matrice.
-
-*/
-
 #define TESTING_SUITE 2
-
 #define EXIT_APPLICATION 3
 
 /*
-    Le seguenti 4 costanti sono valori interi che rappresentano
-    le possibili scelte che può inserire l'utente nel menu'
-    della suite di test dell'applicazione.
-*/
-
-/*
-    MULTIPLICATION_IDENTITY_TEST : int
-    MULTIPLICATION_TRANSPOSE_TEST : int
-    MULTIPLICATION_TRACE_TEST : int
-    Indicano l'esecuzione di tre diversi casi di test:
-	-	verifica della correttezza del prodotto con la matrice identita'.
-	-	verifica delle proprieta' del prodotto rispetto alle matrici trasposte.
-	-	verifica delle proprieta' del prodotto rispetto alle tracce.
+	DEFAULT_TEST: int
+	È il valore con cui viene inizializzata la variabile 'test'
+	nel file 'prova3.c'.
 */
 
 #define DEFAULT_TEST 0
+
+/*
+    Le seguenti 4 costanti sono valori interi che rappresentano le possibili
+	scelte che può inserire l'utente nel menu' della suite di test
+	dell'applicazione.
+	-	MULTIPLICATION_IDENTITY_TEST : int
+		Per verificare la correttezza del prodotto di una matrice reale
+		con la matrice identita' delle stesse dimensioni.
+	-	MULTIPLICATION_TRANSPOSE_TEST : int
+		Per verificare le proprieta' del prodotto matrice-matrice
+		rispetto alle matrici trasposte, cioè una matrice in cui si invertono
+		le righe con le colonne o viceversa.
+	-	MULTIPLICATION_TRACE_TEST : int
+		Per verificare le proprieta' del prodotto matrice-matrice
+		rispetto alle traccia, cioe' la somma di tutti gli elementi
+		sulla diagonale principale.
+	-	EXIT_TEST : int
+		Si utilizza per chiudere il menu' dell'applicazione dedicato
+		alla scelta dei casi di test.
+*/
+
 #define MULTIPLICATION_IDENTITY_TEST 1
 #define MULTIPLICATION_TRANSPOSE_TEST 2
 #define MULTIPLICATION_TRACE_TEST 3
-
 #define EXIT_TEST 4
 
 /*
-    VALUES_FROM_INPUT : int
-    VALUES_FROM_CSV : int
-	Si utilizzano per eseguire l'algoritmo del calcolo
-	del prodotto matrice-matrice utilizzando esclusivamente:
-	-	valori scelti dall'utente (o generati in modo pseudo-casuale).
-	-	valori recuperati da un file .csv.
+	DEFAULT_INPUT : int
+	È il valore con cui viene inizializzata la variabile 'input'
+	nel file 'prova3.c'.
 */
 
 #define DEFAULT_INPUT 0
+
+/*
+	Le seguenti 2 costanti si utilizzano per eseguire l'algoritmo del calcolo
+	del prodotto matrice-matrice utilizzando esclusivamente:
+    -	VALUES_FROM_INPUT : int
+		Valori scelti dall'utente (o generati in modo pseudo-casuale).
+    -	VALUES_FROM_CSV : int
+		Valori recuperati da un file .csv.
+*/
+
 #define VALUES_FROM_INPUT 1
 #define VALUES_FROM_CSV 2
 
 /*
-    TAB_SPACE_PRINT : int
-    WOLFRAM_PRINT : int
-	Si utilizzano per visualizzare nei file di output le matrici di input
-	e di output nei due seguenti formati:
-	-	Formato "tab-space". Utile per visualizzare la matrice in
+	Le seguenti 2 costanti si utilizzano per scegliere il formato di
+	visualizzazione le matrici di input e di output nei file di output:
+    -	TAB_SPACE_PRINT : int
+		Indica il formato "tab-space". Utile per visualizzare la matrice in
 		due dimensioni.
-	-	Formato "Wolfram Language code". Per passare la matrice direttamente
-		sul sito web https://www.wolframalpha.com/ ed eseguire altre
-		operazioni.
+    -	WOLFRAM_PRINT : int
+		Indica il formato "Wolfram Language code". Utile per passare la matrice
+		direttamente sul sito web https://www.wolframalpha.com/ ed eseguire
+		altre operazioni.
 */
 
 #define TAB_SPACE_PRINT 1
@@ -212,7 +234,7 @@
 
 /*
     OP_MAX_QUANTITY: int
-    Si utilizza per specificare il massimo numero di operandi
+    Si utilizza per specificare il massimo numero di elementi della matrice
 	che l'utente può inserire manualmente
 */
 
@@ -220,18 +242,12 @@
 
 /*
     MIN_COEFF_TEST: int
-    Si utilizza come coefficiente minimo per determinare le dimensioni delle
-	matrici nella creazione dei casi di test.
+    MAX_COEFF_TEST: int
+    Si utilizzano, rispettivamente, come coefficienti minimo e massimo per
+	determinare le dimensioni delle matrici nella creazione dei casi di test.
 */
 
 #define MIN_COEFF_TEST 1
-
-/*
-    MAX_COEFF_TEST: int
-    Si utilizza come coefficiente massimo per determinare le dimensioni delle
-	matrici nella creazione dei casi di test.
-*/
-
 #define MAX_COEFF_TEST 3
 
 /*
@@ -274,7 +290,7 @@
 /*
 	MKDIR_PATH: char*
 	RM_PATH: char*
-	Si utilizza per indicare alle funzioni system() e createPBS() i percorsi
+	Si utilizzano per indicare alle funzioni system() e createPBS() i percorsi
 	sul cluster degli eseguibili 'mkdir' e 'rm'.
 */
 
@@ -338,13 +354,13 @@
 	-	B_cols : int
 		Indica il numero di colonne della matrice B in input.
 	-	n_proc : int
-		Indica il numero di processori nel contesto.
+		Indica il numero di processi attivati nel contesto d'esecuzione.
 	-	input : int
 		Indica la provenienza dei valori di input se non e' stato attivato
 		nessun caso di test (puo' essere VALUES_FROM_INPUT o VALUES_FROM_CSV).
 	-	test : int
 		Indica il caso di test eseguito.
-	-	t_tot : double
+	-	time_tot : double
 		Indica il tempo di esecuzione impiegato per il solo calcolo
 		del prodotto matrice-matrice.
 	 
@@ -376,7 +392,7 @@
 #define CSV_FIELD_PRECISION 10
 
 /*
-	CSV_FIELDS_SEPARATOR: int
+	CSV_FIELDS_SEPARATOR: char
 	Indica il carattere utilizzato nel file .csv per separare un campo
 	da quello successivo. Si utilizza il valore corrispondente nella
 	tabella ASCII.

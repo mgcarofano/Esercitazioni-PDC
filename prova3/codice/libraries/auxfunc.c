@@ -233,6 +233,9 @@ double* scatterMatrixToGrid(
         MPI_DOUBLE, 0, comm_grid
     );
 
+	free(send_counts);
+	free(displs);
+
 	return ret;
 
 }

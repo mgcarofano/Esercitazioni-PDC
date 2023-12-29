@@ -24,10 +24,9 @@ int main(int argc, char **argv) {
 
 	int i = 0, j = 0, k = 0;
 
-	double *A_mat = NULL, *B_mat = NULL, *C_mat = NULL;
+	double *A_mat = NULL, *B_mat = NULL;
 	int A_rows = 0, A_cols = 0;
 	int B_rows = 0, B_cols = 0;
-	int C_rows = 0, C_cols = 0;
 
 	double *loc_A_mat = NULL, *loc_B_mat = NULL, *loc_C_mat = NULL;
 	int loc_A_rows = 0, loc_A_cols = 0;
@@ -39,9 +38,8 @@ int main(int argc, char **argv) {
 
 	double grid_tmp = 0;
 	int n_proc = 0, id_proc = 0;
-	int grid_cols = 0, grid_rows = 0;
+	int grid_rows = 0, grid_cols = 0;
 	int *grid_dim = NULL, *period = NULL, *grid_coords = NULL, *remain_dims = NULL;
-	int *start_coords = NULL, *end_coords = NULL;
 	
 	FILE *csv_A_mat = NULL, *csv_B_mat = NULL, *out_file = NULL;
 	char out_path[PATH_MAX_LENGTH] = {};
@@ -84,8 +82,9 @@ int main(int argc, char **argv) {
 	//	LETTURA DEI DATI
 	/*	******************************************************************** */
 
+	if (id_proc == 0 && DEBUG) printf("Inizio esecuzione.\n");
+
 	if (id_proc == 0) {
-		printf("Inizio esecuzione.\n");
 
 		/*
 			Si affida al primo processore con id_proc == 0 il compito
@@ -93,7 +92,8 @@ int main(int argc, char **argv) {
 		*/
 
 		if (argc < ARGS_QUANTITY) {
-			printf("Errore nella lettura degli argomenti di input!\n\n");
+			printf("Errore nella lettura degli argomenti di input!\n");
+			printf("Sono richiesti almeno %d argomenti in input!\n", ARGS_QUANTITY);
 			printf("Esecuzione terminata.\n");
 			MPI_Abort(comm, NOT_ENOUGH_ARGS_ERROR);
 		}
@@ -119,8 +119,8 @@ int main(int argc, char **argv) {
 		grid_tmp = sqrt(n_proc);
 
 		if (n_proc != 0 && grid_tmp != floor(grid_tmp)) {
-			printf("Il numero di processori (%d) non e' un quadrato perfetto.\n", n_proc);
-			printf("Impossibile costruire una griglia di processori bidimensionale quadrata.\n");
+			printf("Il numero di processi (%d) non e' un quadrato perfetto.\n", n_proc);
+			printf("Impossibile costruire una griglia di processi bidimensionale quadrata.\n");
 			printf("Esecuzione terminata.\n");
 			MPI_Abort(comm, PROCESSOR_QUANTITY_ERROR);
 		}
@@ -165,8 +165,6 @@ int main(int argc, char **argv) {
 	if (n_proc > 1) {
 
 		grid_coords		= (int*) calloc(2, sizeof(int));
-		start_coords	= (int*) calloc(2, sizeof(int));
-		end_coords		= (int*) calloc(2, sizeof(int));
 		grid_dim		= (int*) calloc(2, sizeof(int));
 		period			= (int*) calloc(2, sizeof(int));
 		remain_dims		= (int*) calloc(2, sizeof(int));
@@ -433,6 +431,8 @@ int main(int argc, char **argv) {
 	/*	******************************************************************** */
 
 	if (time_calc == OK_TIME_CALC) {
+
+		MPI_Barrier(comm);
 		time_end = MPI_Wtime();
 
 		// Si calcola la distanza di tempo tra l'istante iniziale e quello finale.
@@ -450,30 +450,32 @@ int main(int argc, char **argv) {
 
 		if (id_proc == 0) {
 
-			// Si veda il capitolo "Futuri sviluppi" della documentazione.
-			switch (test) {
-				case MULTIPLICATION_IDENTITY_TEST:
-				{
-					// ...
-					break;
-				}
-				case MULTIPLICATION_TRANSPOSE_TEST:
-				{
-					// ...
-					break;
-				}
-				case MULTIPLICATION_TRACE_TEST:
-				{
-					// ...
-					break;
-				}
-				default:
-					break;
-			}
-
-			printf("\nCalcolo del prodotto matrice-matrice terminato in %e sec\n", time_tot);
+			// Si veda il sezione "Futuri sviluppi" della documentazione.
+			// switch (test) {
+			// 	case MULTIPLICATION_IDENTITY_TEST:
+			// 	{
+			// 		// ...
+			// 		break;
+			// 	}
+			// 	case MULTIPLICATION_TRANSPOSE_TEST:
+			// 	{
+			// 		// ...
+			// 		break;
+			// 	}
+			// 	case MULTIPLICATION_TRACE_TEST:
+			// 	{
+			// 		// ...
+			// 		break;
+			// 	}
+			// 	default:
+			// 		break;
+			// }
 
 			if (check_test) {
+
+				if (id_proc == 0 && DEBUG)
+					printf("\nCalcolo del prodotto matrice-matrice terminato in %e sec\n", time_tot);
+
 				writeTimeCSV(
 					CSV_TIME_PATH"/"NOME_PROVA"_time.csv",
 					A_rows, A_cols, B_rows, B_cols,
@@ -488,7 +490,7 @@ int main(int argc, char **argv) {
 	//	STAMPA DELL'OUTPUT
   	/*	******************************************************************** */
 
-	// Si veda il capitolo "Futuri sviluppi" della documentazione.
+	// Si veda il sezione "Futuri sviluppi" della documentazione.
 	// if (id_proc == 0) {
 
 	// 	if (n_proc == 1) {
@@ -529,23 +531,18 @@ int main(int argc, char **argv) {
 
 	if (n_proc > 1) {
 		free(grid_coords);
-		free(start_coords);
-		free(end_coords);
 		free(grid_dim);
 		free(period);
 		free(remain_dims);
 	}
 
-	if (id_proc == 0) {
-
-		if (fclose(out_file) != 0) {
-			printf("Nessun file o directory con questo nome: %s\n", out_path);
-			printf("Esecuzione terminata.\n");
-			MPI_Abort(comm, FILE_CLOSING_ERROR);
-		}
-
-		printf("\nEsecuzione terminata.\n");
+	if (fclose(out_file) != 0) {
+		printf("Nessun file o directory con questo nome: %s\n", out_path);
+		printf("Esecuzione terminata.\n");
+		MPI_Abort(comm, FILE_CLOSING_ERROR);
 	}
+
+	if (id_proc == 0 && DEBUG) printf("\nEsecuzione terminata.\n");
 
 	MPI_Finalize();
 	return 0;

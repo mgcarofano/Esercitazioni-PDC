@@ -88,11 +88,9 @@ void getMatrixFromCSV(FILE* csv_file, double* mat, int rows_mat, int cols_mat, M
 		}
 
 		/*
-
 			Si utilizza il controllo "file_pointer == size" per evitare di
 			leggere il carattere "End Of File" (EOF) che non e' riconosciuto
 			correttamente dalla libreria MPI.
-		
 		*/
 
 		if (file_pointer == size || c == CSV_FIELDS_SEPARATOR || c == CSV_ROWS_SEPARATOR) {
@@ -127,7 +125,7 @@ void writeTimeCSV(
 	int A_rows, int A_cols,
 	int B_rows, int B_cols,
 	int n_proc, int input, int test,
-	double t_tot,
+	double time_tot,
 	MPI_Comm comm
 ) {
 
@@ -151,7 +149,7 @@ void writeTimeCSV(
 
 	fseek(csv_file, 0, SEEK_SET);
 	fprintf(csv_file, "%d,%d,%d,%d,%d,%d,%d,%1.9f",
-		A_rows, A_cols, B_rows, B_cols, n_proc, input, test, t_tot
+		A_rows, A_cols, B_rows, B_cols, n_proc, input, test, time_tot
 	);
 
 	if (fclose(csv_file) != 0) {

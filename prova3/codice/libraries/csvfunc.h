@@ -27,7 +27,7 @@ void writeTimeCSV(
 	int A_rows, int A_cols,
 	int B_rows, int B_cols,
 	int n_proc, int input, int test,
-	double t_tot,
+	double time_tot,
 	MPI_Comm comm
 );
 
