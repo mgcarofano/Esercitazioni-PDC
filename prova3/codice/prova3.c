@@ -305,8 +305,6 @@ int main(int argc, char **argv) {
 				break;
 		}
 
-		if (id_proc == 0 && DEBUG) printf("Generazione delle matrici globali completata.\n");
-
 		if (n_proc > 1) fprintf(out_file, "\n--- MATRICI GLOBALI ---\n");
 		fprintf(out_file, "\nMatrice A di dimensione %d x %d:\n", A_rows, A_cols);
 		fprintfMatrix(out_file, A_mat, A_rows, A_cols, "%f");
@@ -320,6 +318,8 @@ int main(int argc, char **argv) {
 		if (n_proc > 1) fprintf(out_file, "\n-----\n");
 
 	}
+	
+	if (id_proc == 0 && DEBUG) printf("Generazione delle matrici globali completata.\n");
 
 	//	DISTRIBUZIONE DELLE MATRICI
 	/*	******************************************************************** */

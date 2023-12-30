@@ -185,7 +185,7 @@
 		le righe con le colonne o viceversa.
 	-	MULTIPLICATION_TRACE_TEST : int
 		Per verificare le proprieta' del prodotto matrice-matrice
-		rispetto alle traccia, cioe' la somma di tutti gli elementi
+		rispetto alla traccia, cioe' la somma di tutti gli elementi
 		sulla diagonale principale.
 	-	EXIT_TEST : int
 		Si utilizza per chiudere il menu' dell'applicazione dedicato
