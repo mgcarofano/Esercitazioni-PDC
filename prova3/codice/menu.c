@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 
 				printf("Scegli un test da eseguire: \n");
 				printf("%d. \t Calcolo del prodotto con la matrice identita'.\n", MULTIPLICATION_IDENTITY_TEST);
-				printf("%d. \t Confronto di T(AB) con T(B)•T(A), dove T(-) e' la matrice trasposta.\n", MULTIPLICATION_TRANSPOSE_TEST);
+				printf("%d. \t Confronto di T(AB) con T(B) x T(A), dove T(-) e' la matrice trasposta.\n", MULTIPLICATION_TRANSPOSE_TEST);
 				printf("%d. \t Confronto di tr(AB) e tr(BA), dove tr(-) e' la traccia della matrice.\n", MULTIPLICATION_TRACE_TEST);
 				printf("%d. \t Chiudere la suite di testing.\n\n", EXIT_TEST);
 				test = getIntegerFromInput();
